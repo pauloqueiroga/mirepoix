@@ -98,11 +98,47 @@ test('the Apache config sends exactly the dev server\'s security headers', async
   assert.match(config, /Header set Cache-Control "no-cache"/, 'browsers check for new versions');
 });
 
-test('every file index.html refers to exists', async () => {
-  const html = await readFile(inApp('index.html'), 'utf8');
-  const references = [...html.matchAll(/(?:href|src)="([^"]+)"/g)].map((match) => String(match[1]));
-  assert.ok(references.length >= 5);
-  for (const path of references) {
-    await assert.doesNotReject(access(inApp(path)), path);
+const PAGES = ['index.html', 'privacy.html'];
+
+/** @param {string} page */
+async function references(page) {
+  const html = await readFile(inApp(page), 'utf8');
+  return [...html.matchAll(/(?:href|src|content)="([^"]+)"/g)].map((match) => String(match[1]));
+}
+
+test('every local file a page refers to exists', async () => {
+  for (const page of PAGES) {
+    const local = (await references(page)).filter((ref) => /^[\w./-]+\.\w+$/.test(ref) || ref === './');
+    assert.ok(local.length >= 5, page);
+    for (const path of local) await assert.doesNotReject(access(inApp(path === './' ? 'index.html' : path)), `${page}: ${path}`);
   }
+});
+
+test('every address the site gives for itself agrees with package.json\'s homepage (R1.15)', async () => {
+  const pkg = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
+  const home = String(pkg.homepage);
+  assert.match(home, /^https:\/\/.+\/$/);
+  const own = (/** @type {string} */ url) => !/^https?:\/\/(policies\.google\.com|schema\.org|www\.sitemaps\.org)/.test(url);
+  const files = [...PAGES, 'robots.txt', 'sitemap.xml'];
+  for (const file of files) {
+    const text = await readFile(inApp(file), 'utf8');
+    for (const [url] of text.matchAll(/https?:\/\/[^\s"'<>]+/g)) {
+      if (own(url)) assert.ok(url.startsWith(home), `${file}: ${url} is not under ${home}`);
+    }
+  }
+  for (const page of PAGES) {
+    const refs = await references(page);
+    const image = refs.find((ref) => ref.endsWith('/social.png'));
+    assert.equal(image, `${home}icons/social.png`, `${page} has a share image`);
+    assert.ok(refs.includes(page === 'index.html' ? home : `${home}${page}`), `${page} names its canonical address`);
+  }
+});
+
+test('the analytics setting is a Google Analytics Measurement ID, or empty for off', async () => {
+  const { ANALYTICS_ID } = await import('../../app/config.js');
+  assert.match(ANALYTICS_ID, /^(G-[A-Z0-9]{6,12})?$/);
+});
+
+test('the share preview is a 1200×630 PNG', async () => {
+  assert.equal(await pngSize('icons/social.png'), '1200x630');
 });

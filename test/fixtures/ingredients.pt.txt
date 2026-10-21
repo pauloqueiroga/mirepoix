@@ -97,3 +97,22 @@ salsinha q.b. => | | salsinha | q.b.
 3 ovos de codorna => 3 | ovos | codorna | | | unknown-unit
 pitada de sal => 1 | pinch | sal | | | assumed-quantity
 2 xícaras => 2 | cup | | | | no-name
+
+# Números por extenso (R1.16)
+dois ovos => 2 | count | ovos
+Duas cebolas médias => 2 | count | cebolas médias
+três xícaras de farinha => 3 | cup | farinha
+duas colheres (sopa) de manteiga => 2 | tbsp | manteiga
+um ovo => 1 | count | ovo
+uma cebola picada => 1 | count | cebola picada
+doze ovos => 12 | count | ovos
+vinte e cinco gramas de fermento => 25 | g | fermento
+dois ou três dentes de alho => 2-3 | clove | alho
+quatro a cinco tomates => 4-5 | count | tomates
+uma e meia xícara de açúcar => 1 1/2 | cup | açúcar
+um quarto de xícara de óleo => 1/4 | cup | óleo
+três quartos de xícara de leite => 3/4 | cup | leite
+dois terços de xícara de açúcar => 2/3 | cup | açúcar
+meia cebola => 1/2 | count | cebola
+um pouco de sal => | | um pouco de sal
+cerca de duas xícaras de caldo => 2 | cup | caldo | cerca de

@@ -3,13 +3,19 @@
 // file changes, so VERSION moves with package.json's version on every release.
 // A unit test keeps SHELL equal to the files in app/.
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const CACHE = `mirepoix-shell-${VERSION}`;
 const SHELL = [
   './',
   'index.html',
   'main.js',
   'offline.js',
+  'config.js',
+  'analytics.js',
+  'privacy.html',
+  'privacy.js',
+  'robots.txt',
+  'sitemap.xml',
   'manifest.webmanifest',
   'styles/app.css',
   'icons/icon.svg',
@@ -20,6 +26,7 @@ const SHELL = [
   'icons/logo-horizontal-dark.svg',
   'icons/logo-stacked.svg',
   'icons/logo-stacked-dark.svg',
+  'icons/social.png',
   'domain/backup.js',
   'domain/draft.js',
   'domain/ingredients.js',

@@ -298,7 +298,7 @@ a { color: var(--carrot); }
 
 .list {
   margin: 0;
-  padding: 0 0 96px; /* room to scroll the last recipe out from under + */
+  padding: 0; /* the footer below leaves room to scroll out from under + */
   list-style: none;
 }
 
@@ -798,4 +798,68 @@ a.chip { text-decoration: none; }
 .empty .aside {
   margin-top: 16px;
   font-size: .9rem;
+}
+/* Small print, the privacy page, and the analytics question */
+
+.app-footer {
+  padding: 28px max(var(--gutter), env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  font-size: .85rem;
+}
+
+.app-footer a { color: var(--ink-2); }
+
+.prose {
+  max-width: 46rem;
+  padding: 0 max(var(--gutter), env(safe-area-inset-right)) 48px max(var(--gutter), env(safe-area-inset-left));
+}
+
+.prose p {
+  margin: 0 0 12px;
+  line-height: 1.55;
+}
+
+.prose .lead { color: var(--ink-2); }
+
+.choice {
+  margin: 4px 0 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.updated {
+  margin-top: 28px;
+  font-size: .85rem;
+  color: var(--ink-2);
+}
+
+.consent {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 14px max(var(--gutter), env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 -6px 24px rgb(0 0 0 / .12);
+}
+
+.consent p {
+  flex: 1 1 22rem;
+  margin: 0;
+  font-size: .9rem;
+}
+
+.consent-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
 }

@@ -71,7 +71,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Per device:** the derived key is stored as a *non-extractable* `CryptoKey` in IndexedDB. The passphrase is typed once per device and never stored.
 - **In transit:** HTTPS everywhere, both for the app host and for the GitHub API.
 - **On the device:** the local copy is readable inside the browser's storage and relies on the operating system's disk encryption (FileVault, BitLocker or Device Encryption, iOS Data Protection). Encrypting it with a key stored right next to it would add ceremony, not protection.
-- **Hardening:** a strict Content-Security-Policy that allows only our own scripts and no inline scripts, and lets the network reach only `api.github.com`. No third-party code at runtime.
+- **Hardening:** a strict Content-Security-Policy that allows only our own scripts and no inline scripts, and lets the network reach only `api.github.com`. No third-party code at runtime. **Superseded in part by D14:** the CSP also allows Google Analytics' domains, used only after a visitor opts in.
 - **Consequences:** If the passphrase is lost, the synced data can't be read. Export (plain JSON) and a clear warning at setup mitigate this. Random file names keep even the titles private. Changing the passphrase means re-encrypting everything; that's in the Wish List.
 
 ## D8. Recipe data model, schema v1
@@ -117,6 +117,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - Each section is a plain text box, so you paste chunks or type, in whatever order they come. Ingredient lines are parsed as you go and shown next to the text as quantity / unit / name / note / equivalents.
 - Doubtful lines are **flagged, not silently guessed**. There's an explicit escape hatch: `2 | punhado | salsinha` sets quantity | unit | name directly.
 - The parser understands decimals with `.` or `,`, fractions (`1/2`, `½`, `1 1/2`), ranges (`2-3`, `2 a 3`, `2 to 3`), units with abbreviations and plurals (`cups`, `tbsp`, `xícara`, `xíc.`, `colher (sopa)`, `c. de chá`, …), the Portuguese connector "de" ("2 xícaras de farinha"), notes after a comma, "to taste" / "a gosto", and equivalents in parentheses ("2 cups (437 g)").
+- Quantities written as words are read too (R1.16, 2026-10-21): "two", "dois", "vinte e cinco", "twenty-five", "three quarters", "um terço", "half an onion", "dois ou três". They're saved as numbers. Look-alikes stay text: "five-spice powder", "um pouco de sal".
 - Each recipe has a language (`en` or `pt`), which picks the vocabulary for parsing and display. The UI itself is in English.
 - Parser cases live in fixture files. They grow with every real-world line that surprised us.
 
@@ -154,3 +155,16 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - The palette comes from the mirepoix itself: **onion** for paper, **carrot** for actions and headings, **celery** for "all good" (sync, ticks, cook's notes). Contrast meets WCAG AA in both themes.
 - Touch targets are at least 44 px. Cook-mode type is readable at arm's length.
 - See [docs/mockups/index.html](docs/mockups/index.html).
+
+## D14. Google Analytics, opt-in, screen names only
+
+**Accepted** · 2026-10-21
+
+- **Context:** The maintainer wants to know how Mirepoix is used. D7 allowed no third-party code, and the app promises to be private by default.
+- **Decision:** Use Google Analytics, but only after a visitor says yes. A banner asks once per device, and the answer can be changed on the privacy page. Until then, nothing loads and nothing is sent. The Measurement ID lives in `app/config.js` (set to `G-H72PWB3YHW` on 2026-10-21); an empty string switches analytics off entirely.
+- **What's sent:** the name of each screen ("recipes", "recipe", "new recipe", "edit recipe", "keep a copy", "privacy", "not found"). Each hit's address is rewritten to carry only that name. Recipe titles, ingredients, notes and searches are never sent:
+  - The search lives in browser history state, not in the address.
+  - While analytics is on, tab titles are generic ("Recipe · Mirepoix").
+  - Google signals and ad personalization are switched off.
+- **In Google Analytics' settings:** turn off Enhanced measurement's "page changes based on browser history events" and "site search", so Google doesn't collect page views on its own.
+- **Consequences:** the CSP gains `https://*.googletagmanager.com` for scripts, plus Google's analytics domains for images and connections (D7 superseded in part). The privacy page (R1.13) explains all of this. Saying no, or later stopping, deletes Google's `_ga` cookies.

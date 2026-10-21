@@ -1,0 +1,10 @@
+# Mirepoix's public pages are its front door and its privacy page. Recipes
+# never reach the server, so there's nothing private here to hide.
+#
+# Crawlers only read robots.txt at the root of a domain. While Mirepoix lives
+# in a folder (pauloq.com/mirepoix/), add the Sitemap line below to
+# pauloq.com/robots.txt; this file starts counting once Mirepoix has its own domain.
+User-agent: *
+Allow: /
+
+Sitemap: https://pauloq.com/mirepoix/sitemap.xml

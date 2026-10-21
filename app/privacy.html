@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Privacy · Mirepoix</title>
+  <meta name="description" content="What Mirepoix keeps, where it keeps it, and what it never sends. Your recipes stay with you.">
+  <link rel="canonical" href="https://pauloq.com/mirepoix/privacy.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Mirepoix">
+  <meta property="og:title" content="Privacy · Mirepoix">
+  <meta property="og:description" content="What Mirepoix keeps, where it keeps it, and what it never sends.">
+  <meta property="og:url" content="https://pauloq.com/mirepoix/privacy.html">
+  <meta property="og:image" content="https://pauloq.com/mirepoix/icons/social.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Mirepoix logo: an M made of onion, carrot and celery, above the name.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#FBF8F3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1C1A17" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles/app.css">
+  <script type="module" src="privacy.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="bar">
+      <a class="back" href="./">Recipes</a>
+    </header>
+    <main class="page prose">
+      <h1 class="recipe-title">Privacy</h1>
+      <p class="lead">The short version: your recipes stay with you.</p>
+
+      <section class="recipe-section" aria-labelledby="keeps">
+        <h2 id="keeps" class="section-label">What Mirepoix keeps, and where</h2>
+        <p>The recipes you add are kept in this browser’s storage, on this device. They don’t leave it unless you export them to a file yourself.</p>
+        <p>When syncing arrives, recipes will also be kept in a private GitHub repository that you control. Each one is encrypted on your device first, with a passphrase only you know, so GitHub only ever sees scrambled files.</p>
+      </section>
+
+      <section class="recipe-section" aria-labelledby="sends">
+        <h2 id="sends" class="section-label">What Mirepoix sends</h2>
+        <p>Nothing about your recipes, to anyone. There are no accounts and no ads.</p>
+        <p>Like every website, the server that delivers the app (pauloq.com) records ordinary visit details in its logs: the address you connect from, your browser, and when.</p>
+      </section>
+
+      <section class="recipe-section" aria-labelledby="statistics">
+        <h2 id="statistics" class="section-label">Usage statistics, only if you agree</h2>
+        <p>Mirepoix can use Google Analytics to count how its screens are used. Nothing loads unless you say yes. If you do, Google receives the name of each screen you open (such as “recipes”, “recipe” or “edit recipe”). It also receives what Google collects on its own: an approximate location worked out from your connection, your device and browser type, and its own cookies. Recipe titles, ingredients, notes and searches are never sent.</p>
+        <div id="analytics-choice" class="choice"><p>Your choice appears here once the page has loaded.</p></div>
+        <p>Google’s privacy policy: <a href="https://policies.google.com/privacy">policies.google.com/privacy</a></p>
+      </section>
+
+      <section class="recipe-section" aria-labelledby="cookies">
+        <h2 id="cookies" class="section-label">Cookies</h2>
+        <p>Mirepoix sets no cookies of its own. Google Analytics sets its own, and only if you allow it.</p>
+      </section>
+
+      <p class="updated">Last updated 21 October 2026.</p>
+    </main>
+  </div>
+</body>
+</html>

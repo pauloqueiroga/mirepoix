@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 import { scenarios } from '../contract/recipe-store.js';
 
 const contract = fileURLToPath(new URL('../contract/recipe-store.js', import.meta.url));

@@ -56,16 +56,6 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 
 Every item ends with something you can do in the running app (`npm run dev`), not just new code.
 
-**After the first deploy.**
-
-- **R1.13 Privacy policy.** A short page, linked from the app, saying what Mirepoix keeps and where: in this browser only for now; from R2 also in your private GitHub repository, encrypted. Nothing is sent anywhere else, unless R1.14 changes that, in which case the page says exactly what and why.
-- **R1.14 Analytics (Google Analytics asked for).** *Needs a decision first.* Google Analytics loads Google's script and reports every visit to Google. D7 rules that out today (only our own scripts; the network reaches only GitHub), and so does "private by default". Options to decide between:
-  - Google Analytics behind a consent banner, with a CSP exception for Google's domains.
-  - A privacy-friendly counter, which still needs a CSP exception.
-  - The host's own visit statistics: cPanel usually includes AWStats. No code and no change to D7.
-- **R1.15 SEO.** Title, description and share preview (Open Graph tags plus an image from the stacked logo) for the public pages: the app's front door and the privacy page. Add `robots.txt`, plus a canonical address once the app has its own domain. Recipes stay private and are never indexable: they live on the device, and from R2 encrypted.
-- **R1.16 Number Spelling.** for the ingredients, make the parser smart enough to read written number quantities (e.g. "two") and save as the number (e.g. "2").
-
 ## In Progress
 
-- **R1.12 Deploy.** Apache shared hosting, uploaded over FTP/SFTP to https://pauloq.com/mirepoix/ (its own domain later). Ready: `app/.htaccess` with the security headers, version 0.1.0, and the deploy steps in the README. *Waiting on the maintainer:* upload `app/`, run `npm run check:deploy -- https://pauloq.com/mirepoix/`, tag `v0.1.0`.
+(nothing right now)

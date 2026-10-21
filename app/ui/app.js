@@ -1,3 +1,4 @@
+import { analyticsActive, askForAnalytics, screenShown, startAnalytics } from '../analytics.js';
 import { byTitle } from '../domain/recipe.js';
 import { openLocalStore, requestPersistentStorage } from '../store/local-store.js';
 import { matchRoute } from './router.js';
@@ -57,19 +58,29 @@ export async function startApp(root) {
     const save = (/** @type {import('../domain/recipe.js').Recipe} */ recipe) => store.put(recipe);
     let nodes;
     let title = 'Mirepoix';
+    let screen = 'not found'; // the only thing analytics ever hears about a screen (D14)
+    // Recipe titles stay out of the tab title while analytics is on, so they can't leak.
+    const named = (/** @type {string} */ recipeTitle, /** @type {string} */ generic) => (analyticsActive() ? generic : recipeTitle);
     if (route?.name === 'list') {
+      const state = /** @type {{ query?: unknown } | null} */ (history.state);
       nodes = listView((await store.list()).sort(byTitle), {
-        query: route.query.q ?? '',
-        // Keep the search in the address, so Back from a recipe returns to it.
-        remember: (query) => history.replaceState(null, '', query.trim() ? `#/?q=${encodeURIComponent(query)}` : '#/'),
+        query: typeof state?.query === 'string' ? state.query : '',
+        // The search lives in this history entry, not the address, so Back from
+        // a recipe returns to it and it never shows up in analytics.
+        remember: (query) => history.replaceState({ query }, ''),
       });
+      screen = 'recipes';
     } else if (route?.name === 'new') {
       nodes = editorView({ lang: preferredLang(), save, leave: () => go('#/'), leaving });
       title = 'New recipe · Mirepoix';
+      screen = 'new recipe';
     } else if (route?.name === 'recipe') {
       const recipe = await store.get(id);
       nodes = recipe ? recipeView(recipe) : messageView(NOT_FOUND);
-      if (recipe) title = `${recipe.title} · Mirepoix`;
+      if (recipe) {
+        title = named(`${recipe.title} · Mirepoix`, 'Recipe · Mirepoix');
+        screen = 'recipe';
+      }
     } else if (route?.name === 'edit') {
       const recipe = await store.get(id);
       nodes = recipe
@@ -82,10 +93,14 @@ export async function startApp(root) {
           leaving,
         })
         : messageView(NOT_FOUND);
-      if (recipe) title = `Edit ${recipe.title} · Mirepoix`;
+      if (recipe) {
+        title = named(`Edit ${recipe.title} · Mirepoix`, 'Edit recipe · Mirepoix');
+        screen = 'edit recipe';
+      }
     } else if (route?.name === 'backup') {
       nodes = backupView({ count: (await store.list()).length, list: () => store.list(), put: save });
       title = 'Keep a copy · Mirepoix';
+      screen = 'keep a copy';
     } else {
       nodes = messageView({ title: 'Page not found', text: 'That address doesn’t match anything in Mirepoix.', back: true });
     }
@@ -94,6 +109,7 @@ export async function startApp(root) {
     root.replaceChildren(...nodes);
     /** @type {HTMLElement | null} */ (root.querySelector('[autofocus]'))?.focus();
     scrollTo(0, 0);
+    screenShown(screen);
   };
 
   addEventListener('hashchange', () => {
@@ -106,7 +122,9 @@ export async function startApp(root) {
   addEventListener('beforeunload', (event) => {
     if (leaving.unsaved()) event.preventDefault();
   });
+  startAnalytics();
   await render();
+  askForAnalytics();
 }
 
 /** Portuguese for browsers set to Portuguese, English otherwise. */

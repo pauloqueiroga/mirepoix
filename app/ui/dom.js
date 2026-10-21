@@ -25,6 +25,11 @@ export function h(tag, attributes, ...children) {
   return element;
 }
 
+/** The small print at the bottom of a screen: the privacy page, for now. */
+export function footer() {
+  return h('footer', { class: 'app-footer' }, h('a', { href: 'privacy.html' }, 'Privacy'));
+}
+
 /**
  * The mark alone, as decoration.
  */

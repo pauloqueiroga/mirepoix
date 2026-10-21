@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { displayQuantity, formatQuantity, quantityValue, readQuantity } from '../../app/domain/quantity.js';
+import { displayQuantity, formatQuantity, quantityValue, readQuantity, wordsToDigits } from '../../app/domain/quantity.js';
 import { isCanonicalQuantity } from '../../app/domain/recipe.js';
 
 /** @type {[string, 'en' | 'pt', string, string][]} text, lang, quantity, rest */
@@ -50,6 +50,38 @@ test('reads what people write into canonical quantities', () => {
     assert.deepEqual(readQuantity(text, lang), { quantity, rest }, `${text} (${lang})`);
     assert.ok(isCanonicalQuantity(quantity), `${quantity} is canonical`);
   }
+});
+
+test('numbers written as words become digits, in English and Portuguese', () => {
+  /** @type {[string, string][]} */
+  const cases = [
+    ['two eggs', '2 eggs'],
+    ['Twelve sprigs', '12 sprigs'],
+    ['twenty-five almonds', '25 almonds'],
+    ['twenty five almonds', '25 almonds'],
+    ['vinte e cinco gramas', '25 gramas'],
+    ['três xícaras', '3 xícaras'],
+    ['duas colheres', '2 colheres'],
+    ['two or three cloves', '2 or 3 cloves'],
+    ['quatro a cinco tomates', '4 a 5 tomates'],
+    ['three quarters of a cup', '3/4 of a cup'],
+    ['three-quarters cup', '3/4 cup'],
+    ['dois terços de xícara', '2/3 de xícara'],
+    ['a quarter cup', '1/4 cup'],
+    ['um quarto de xícara', '1/4 de xícara'],
+    ['half an onion', '1/2 onion'],
+    ['meia cebola', '1/2 cebola'],
+    ['uma e meia xícara', '1 e meia xícara'],
+  ];
+  for (const [text, expected] of cases) assert.equal(wordsToDigits(text), expected, text);
+});
+
+test('words that only look like numbers are left alone', () => {
+  for (const text of ['five-spice powder', 'an egg', 'a pinch of salt', 'um pouco de sal', 'uma pouquinho', 'one-pot rice', 'salt']) {
+    assert.equal(wordsToDigits(text), text, text);
+  }
+  assert.deepEqual(readQuantity('um pouco de sal', 'pt'), null);
+  assert.deepEqual(readQuantity('two or three eggs', 'en'), { quantity: '2-3', rest: 'eggs' });
 });
 
 test('text that does not start with a number has no quantity', () => {

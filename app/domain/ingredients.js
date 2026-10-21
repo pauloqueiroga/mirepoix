@@ -21,7 +21,7 @@ const SIZE_WORDS = new Set(['sopa', 'cha', 'cafe', 'sobremesa', 'de sopa', 'de c
 const CONNECTORS = new Set(['of', 'de', 'do', 'da', 'dos', 'das']);
 const ONE = new Set(['a', 'an', 'one', 'um', 'uma']);
 const HALF = new Set(['half', 'meia', 'meio']);
-const APPROXIMATELY = /^(about|approx\.?|approximately|around|roughly|aprox\.?|aproximadamente|cerca de)\s+(?=[\d½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])/iu;
+const APPROXIMATELY = /^(about|approx\.?|approximately|around|roughly|aprox\.?|aproximadamente|cerca de)\s+/iu;
 const TRAILING_NOTE = /\s+(to taste|as needed|if needed|optional|for serving|to serve|for garnish|a gosto|à gosto|q\.?\s?b\.?|o quanto baste|quanto baste|opcional|para servir|para decorar)$/iu;
 const FIRST_COMMA = /(?<!\d),|,(?!\d)/u;
 
@@ -62,7 +62,7 @@ export function parseIngredient(line, lang) {
   let lead = '';
   let trailing = '';
   const approximately = APPROXIMATELY.exec(rest);
-  if (approximately) {
+  if (approximately && readQuantity(rest.slice(approximately[0].length), lang)) {
     lead = String(approximately[1]);
     rest = rest.slice(approximately[0].length);
   }
@@ -80,7 +80,7 @@ export function parseIngredient(line, lang) {
     quantity = read.quantity;
     words = read.rest.split(' ').filter(Boolean);
     if (/^[\d/]/u.test(words[0] ?? '')) doubts.push(doubt('unclear-quantity'));
-    const known = matchUnit(words);
+    const known = unitAfterQuantity(words);
     if (known) {
       unit = known.unit;
       words = words.slice(known.length);
@@ -263,6 +263,23 @@ function spelledQuantity(words) {
   const skip = half && ['a', 'an'].includes(normalizeWord(words[1] ?? '')) ? 2 : 1;
   const unit = matchUnit(words.slice(skip));
   return unit && { quantity: half ? '1/2' : '1', unit: unit.unit, length: skip + unit.length };
+}
+
+/**
+ * The unit right after a quantity, allowing "of a" or "de" between them:
+ * "3/4 of a cup", "1/4 de xícara".
+ * @param {string[]} words
+ * @returns {{ unit: string, length: number } | null} length counts the skipped words too
+ */
+function unitAfterQuantity(words) {
+  const direct = matchUnit(words);
+  if (direct) return direct;
+  for (let skip = 1; skip <= 2; skip++) {
+    if (!words.slice(0, skip).every((word) => ['of', 'de', 'a', 'an'].includes(normalizeWord(word)))) return null;
+    const unit = matchUnit(words.slice(skip));
+    if (unit) return { unit: unit.unit, length: unit.length + skip };
+  }
+  return null;
 }
 
 /**
