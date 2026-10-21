@@ -52,7 +52,7 @@ test('a recipe added in the editor opens from the list, ready to read', async ({
   await expect(massa.locator('.name')).toHaveText(['polvilho azedo', 'sal', 'queijo meia-cura ralado', 'queijo parmesão, a gosto']);
 });
 
-test('reading never offers anything to edit', async ({ page }) => {
+test('reading has nothing editable; only the Edit link leads to changes', async ({ page }) => {
   await page.goto('/');
   const id = await seed(page, {
     title: 'Brown butter cookies',
@@ -61,6 +61,7 @@ test('reading never offers anything to edit', async ({ page }) => {
   await page.goto(`/#/recipes/${id}`);
   await expect(page.getByRole('heading', { level: 1, name: 'Brown butter cookies' })).toBeVisible();
   await expect(page.locator('input, textarea, select, button, [contenteditable]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Edit' })).toHaveAttribute('href', `#/recipes/${id}/edit`);
   const address = page.url();
   await page.getByText('butter, browned').click();
   await page.getByRole('heading', { level: 1 }).click();

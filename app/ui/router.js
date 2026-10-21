@@ -1,9 +1,9 @@
-// Hash routes ("#/recipes/abc"): they work from any folder on any static host
-// and never reach the server.
+// Hash routes ("#/recipes/abc", "#/?q=pao"): they work from any folder on any
+// static host and never reach the server.
 
 /**
  * @typedef {{ name: string, path: string }} RouteDef  path like "/recipes/:id"
- * @typedef {{ name: string, params: Record<string, string> }} Route
+ * @typedef {{ name: string, params: Record<string, string>, query: Record<string, string> }} Route
  */
 
 /**
@@ -13,7 +13,9 @@
  * @returns {Route | null}
  */
 export function matchRoute(routes, hash) {
-  const parts = segments(hash.replace(/^#/, ''));
+  const [path = '', search = ''] = hash.replace(/^#/, '').split('?');
+  const parts = segments(path);
+  const query = Object.fromEntries(new URLSearchParams(search));
   for (const route of routes) {
     const pattern = segments(route.path);
     if (pattern.length !== parts.length) continue;
@@ -29,7 +31,7 @@ export function matchRoute(routes, hash) {
         return false;
       }
     });
-    if (matches) return { name: route.name, params };
+    if (matches) return { name: route.name, params, query };
   }
   return null;
 }

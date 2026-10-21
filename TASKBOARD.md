@@ -56,8 +56,6 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 
 Every item ends with something you can do in the running app (`npm run dev`), not just new code.
 
-- **R1.9 Change your mind.** Edit a recipe from its view, with the same live preview. Leaving the editor with unsaved changes, by any route, asks first (D10). Delete asks for confirmation.
-- **R1.10 Find it.** A search box on the list, covering titles and ingredient names and ignoring case and accents ("pao" finds "Pão de queijo").
 - **R1.11 Keep a copy.** Export all recipes as one versioned JSON file; import merges by id, so it can also combine two devices' recipes before R2. Until R2, the "This device only" chip points to Export.
 - **R1.12 Deploy.** Confirm the host details (HTTPS, server type, how files get there). Add security headers (CSP), write the deploy steps in the README, and tag the first release.
 

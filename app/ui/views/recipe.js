@@ -9,7 +9,8 @@ import { h } from '../dom.js';
 /** @typedef {import('../dom.js').Child} Child */
 
 /**
- * A recipe to read (R1.7, R1.8). Nothing on this screen changes it (D10).
+ * A recipe to read (R1.7, R1.8). Nothing on this screen changes it; the quiet
+ * Edit link in the corner opens the editor (D10).
  * @param {Recipe} recipe
  */
 export function recipeView(recipe) {
@@ -19,7 +20,8 @@ export function recipeView(recipe) {
   const preparation = recipe.preparation.filter((group) => group.heading || group.steps.length > 0);
   return [
     h('header', { class: 'bar' },
-      h('a', { class: 'back', href: '#/' }, 'Recipes')),
+      h('a', { class: 'back', href: '#/' }, 'Recipes'),
+      h('a', { class: 'edit-link', href: `#/recipes/${encodeURIComponent(recipe.id)}/edit` }, 'Edit')),
     h('main', { class: 'page recipe' },
       h('h1', { class: 'recipe-title', lang }, recipe.title),
       meta && h('p', { class: 'meta', lang }, meta),

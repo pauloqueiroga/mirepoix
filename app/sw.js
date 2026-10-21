@@ -24,6 +24,7 @@ const SHELL = [
   'domain/ingredients.js',
   'domain/quantity.js',
   'domain/recipe.js',
+  'domain/search.js',
   'domain/sections.js',
   'domain/units.js',
   'store/local-store.js',

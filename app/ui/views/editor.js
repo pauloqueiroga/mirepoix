@@ -1,4 +1,4 @@
-import { readDraft } from '../../domain/draft.js';
+import { draftOf, readDraft } from '../../domain/draft.js';
 import { displayAmount, parseIngredientList } from '../../domain/ingredients.js';
 import { displayQuantity } from '../../domain/quantity.js';
 import { describeSteps, parseSteps } from '../../domain/sections.js';
@@ -10,30 +10,46 @@ import { stepGroups } from './recipe.js';
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('../../domain/recipe.js').Ingredient} Ingredient */
 /** @typedef {import('../../domain/ingredients.js').ListLine} ListLine */
+/** @typedef {Required<import('../../domain/draft.js').Draft>} Draft */
+/** @typedef {'saved' | 'cancelled' | 'deleted'} Outcome */
 
 /**
- * The screen for adding a recipe (R1.6, R1.8): paste or type each part, watch
- * Mirepoix read the ingredients and count the steps, then save.
- * @param {{ lang: Lang, save: (recipe: Recipe) => Promise<void>, close: () => void }} options
+ * The screen for adding a recipe (R1.6, R1.8) or changing one (R1.9): paste or
+ * type each part, watch Mirepoix read it, then save.
+ * @param {{
+ *   lang: Lang,
+ *   recipe?: Recipe,
+ *   save: (recipe: Recipe) => Promise<void>,
+ *   remove?: (id: string) => Promise<void>,
+ *   leave: (outcome: Outcome) => void,
+ *   leaving: { unsaved: () => boolean },
+ * }} options
+ *   recipe: the one being edited, if any. leaving: the editor keeps
+ *   leaving.unsaved up to date, so the app can ask before any way out (D10).
  */
-export function editorView({ lang, save, close }) {
-  const title = h('input', { id: 'title', type: 'text', class: 'title-input', autocomplete: 'off', autofocus: true });
+export function editorView({ lang, recipe, save, remove, leave, leaving }) {
+  /** @type {Draft} */
+  const initial = recipe
+    ? draftOf(recipe)
+    : { title: '', lang, source: '', yield: '', ingredients: '', preparation: '', variations: '', notes: '' };
+
+  const title = h('input', { id: 'title', type: 'text', class: 'title-input', autocomplete: 'off', autofocus: !recipe });
   // Two radio buttons rather than a <select>: one tap on a phone, and WebKit's
   // <select> trips the strict style policy (D7).
   /** @param {Lang} value @param {string} label */
   const choice = (value, label) =>
-    h('label', null, h('input', { type: 'radio', name: 'lang', value, checked: lang === value }), h('span', null, label));
+    h('label', null, h('input', { type: 'radio', name: 'lang', value, checked: initial.lang === value }), h('span', null, label));
   const language = h('fieldset', { class: 'field' },
     h('legend', null, 'Language'),
     h('div', { class: 'segmented' }, choice('en', 'English'), choice('pt', 'Português')));
   const chosenLang = () => /** @type {HTMLInputElement | null} */ (language.querySelector('input:checked'))?.value === 'pt' ? 'pt' : 'en';
   const source = h('input', { id: 'source', type: 'text', autocomplete: 'off', placeholder: 'Book and page, website, family notebook…' });
-  const makes = h('input', { id: 'makes', type: 'text', autocomplete: 'off', placeholder: lang === 'pt' ? '30 unidades' : '24 cookies' });
+  const makes = h('input', { id: 'makes', type: 'text', autocomplete: 'off', placeholder: initial.lang === 'pt' ? '30 unidades' : '24 cookies' });
   const ingredients = h('textarea', {
     id: 'ingredients',
     rows: '12',
     spellcheck: 'false',
-    placeholder: lang === 'pt' ? '2 xícaras de farinha de trigo\n1 colher (chá) de sal' : '2 cups flour\n1 tsp salt',
+    placeholder: initial.lang === 'pt' ? '2 xícaras de farinha de trigo\n1 colher (chá) de sal' : '2 cups flour\n1 tsp salt',
   });
   const preparation = h('textarea', { id: 'preparation', rows: '8' });
   const variations = h('textarea', { id: 'variations', rows: '3', 'aria-label': 'Variations' });
@@ -41,9 +57,16 @@ export function editorView({ lang, save, close }) {
   const alert = h('p', { class: 'alert', role: 'alert', hidden: true });
   const preview = h('section', { class: 'preview', 'aria-label': 'How Mirepoix reads the ingredients' });
   const stepsPreview = h('section', { class: 'preview steps-preview', 'aria-label': 'How Mirepoix reads the preparation' });
-  const boxes = [title, source, makes, ingredients, preparation, variations, notes];
 
-  /** @returns {import('../../domain/draft.js').Draft} */
+  title.value = initial.title;
+  source.value = initial.source;
+  makes.value = initial.yield;
+  ingredients.value = initial.ingredients;
+  preparation.value = initial.preparation;
+  variations.value = initial.variations;
+  notes.value = initial.notes;
+
+  /** @returns {Draft} */
   const draft = () => ({
     title: title.value,
     lang: chosenLang(),
@@ -54,6 +77,17 @@ export function editorView({ lang, save, close }) {
     variations: variations.value,
     notes: notes.value,
   });
+  const changed = () => {
+    const now = draft();
+    return Object.entries(initial).some(([key, value]) => now[/** @type {keyof Draft} */ (key)] !== value);
+  };
+  leaving.unsaved = changed;
+  /** @param {Outcome} outcome */
+  const done = (outcome) => {
+    leaving.unsaved = () => false;
+    leave(outcome);
+  };
+
   const refreshIngredients = () => {
     const current = chosenLang();
     preview.replaceChildren(...previewContent(parseIngredientList(ingredients.value, current).lines, current));
@@ -62,23 +96,27 @@ export function editorView({ lang, save, close }) {
     stepsPreview.replaceChildren(...stepsPreviewContent(parseSteps(preparation.value), chosenLang()));
   };
   const cancel = () => {
-    const typed = boxes.some((box) => box.value.trim());
-    if (!typed || confirm('Discard this recipe?')) close();
+    if (!changed() || confirm(recipe ? 'Discard your changes?' : 'Discard this recipe?')) done('cancelled');
   };
   /** @param {Event} event */
   const submit = async (event) => {
     event.preventDefault();
-    const { recipe, problems } = readDraft(draft());
+    const { recipe: saved, problems } = readDraft(draft(), { base: recipe });
     alert.hidden = problems.length === 0;
     alert.textContent = problems.join(' ');
-    if (!recipe) return;
+    if (!saved) return;
     try {
-      await save(recipe);
-      close();
+      await save(saved);
+      done('saved');
     } catch (error) {
       alert.hidden = false;
       alert.textContent = `Couldn’t save this recipe: ${error instanceof Error ? error.message : String(error)}`;
     }
+  };
+  const deleteRecipe = async () => {
+    if (!recipe || !remove || !confirm(`Delete “${recipe.title}”? This can’t be undone.`)) return;
+    await remove(recipe.id);
+    done('deleted');
   };
 
   ingredients.addEventListener('input', refreshIngredients);
@@ -92,7 +130,7 @@ export function editorView({ lang, save, close }) {
     h('form', { class: 'screen', novalidate: true, onsubmit: submit },
       h('header', { class: 'bar' },
         h('button', { type: 'button', class: 'button quiet', onclick: cancel }, 'Cancel'),
-        h('h1', { class: 'bar-title' }, 'New recipe'),
+        h('h1', { class: 'bar-title' }, recipe ? 'Edit recipe' : 'New recipe'),
         h('button', { type: 'submit', class: 'button primary' }, 'Save')),
       h('main', { class: 'page editor' },
         alert,
@@ -118,8 +156,10 @@ export function editorView({ lang, save, close }) {
               'One step per line, blank lines between steps, or numbered steps. A short line ending in “:” starts a group.')),
           stepsPreview,
           h('div', { class: 'more-boxes' },
-            h('details', { class: 'more' }, h('summary', null, 'Variations'), variations),
-            h('details', { class: 'more' }, h('summary', null, 'Notes'), notes))))),
+            h('details', { class: 'more', open: Boolean(initial.variations) }, h('summary', null, 'Variations'), variations),
+            h('details', { class: 'more', open: Boolean(initial.notes) }, h('summary', null, 'Notes'), notes))),
+        recipe && remove && h('div', { class: 'danger-zone' },
+          h('button', { type: 'button', class: 'button danger', onclick: deleteRecipe }, 'Delete recipe')))),
   ];
 }
 
