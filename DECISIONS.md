@@ -161,7 +161,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 **Accepted** · 2026-10-21
 
 - **Context:** The maintainer wants to know how Mirepoix is used. D7 allowed no third-party code, and the app promises to be private by default.
-- **Decision:** Use Google Analytics, but only after a visitor says yes. A banner asks once per device, and the answer can be changed on the privacy page. Until then, nothing loads and nothing is sent. Analytics stays off entirely until a Measurement ID goes into `app/config.js`.
+- **Decision:** Use Google Analytics, but only after a visitor says yes. A banner asks once per device, and the answer can be changed on the privacy page. Until then, nothing loads and nothing is sent. The Measurement ID lives in `app/config.js` (set to `G-H72PWB3YHW` on 2026-10-21); an empty string switches analytics off entirely.
 - **What's sent:** the name of each screen ("recipes", "recipe", "new recipe", "edit recipe", "keep a copy", "privacy", "not found"). Each hit's address is rewritten to carry only that name. Recipe titles, ingredients, notes and searches are never sent:
   - The search lives in browser history state, not in the address.
   - While analytics is on, tab titles are generic ("Recipe · Mirepoix").

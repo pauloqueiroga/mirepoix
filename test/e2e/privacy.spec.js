@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 // Privacy page (R1.13), opt-in Google Analytics (R1.14, D14) and the public
 // pages' description for search engines and link previews (R1.15). Google's
@@ -55,6 +55,21 @@ test('the privacy page is linked from the app and says what is kept and sent', a
   await expect(page.getByText('Usage statistics are switched off on this site, so nothing is sent.')).toBeVisible();
   await page.getByRole('link', { name: 'Recipes' }).click();
   await expect(page.getByRole('heading', { name: 'No recipes yet' })).toBeVisible();
+});
+
+test('the shipped settings ask first, and nothing reaches Google before a yes', async ({ page, context }) => {
+  await context.unroute('**/config.js'); // the real app/config.js, with the real ID
+  /** @type {string[]} */
+  const google = [];
+  await page.route(/googletagmanager\.com|google-analytics\.com/, (route) => {
+    google.push(route.request().url());
+    return route.fulfill({ contentType: 'text/javascript', body: '' });
+  });
+  await page.goto('/');
+  await expect(banner(page)).toBeVisible();
+  expect(google).toEqual([]);
+  await banner(page).getByRole('button', { name: 'Allow' }).click();
+  await expect.poll(() => google.some((url) => url.includes('gtag/js?id=G-'))).toBe(true);
 });
 
 test('without a Measurement ID nothing asks and nothing loads', async ({ page }) => {

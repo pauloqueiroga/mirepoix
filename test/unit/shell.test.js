@@ -134,6 +134,11 @@ test('every address the site gives for itself agrees with package.json\'s homepa
   }
 });
 
+test('the analytics setting is a Google Analytics Measurement ID, or empty for off', async () => {
+  const { ANALYTICS_ID } = await import('../../app/config.js');
+  assert.match(ANALYTICS_ID, /^(G-[A-Z0-9]{6,12})?$/);
+});
+
 test('the share preview is a 1200×630 PNG', async () => {
   assert.equal(await pngSize('icons/social.png'), '1200x630');
 });

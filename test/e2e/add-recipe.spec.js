@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 /**
  * Collects console errors and page errors, including CSP violations.

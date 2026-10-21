@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test('the app starts under the production security policy', async ({ page }) => {
   /** @type {string[]} */

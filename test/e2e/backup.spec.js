@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { expect, test } from '@playwright/test';
+import { expect, test, withoutAnalytics } from './fixtures.js';
 
 /** @type {string[]} */
 let errors = [];
@@ -77,6 +77,7 @@ test('an export from one device imports into another, merging by id', async ({ p
   const { name, text } = await exportAll(page);
 
   const otherDevice = await browser.newContext({ baseURL: test.info().project.use.baseURL });
+  await withoutAnalytics(otherDevice);
   const other = await otherDevice.newPage();
   watch(other);
   await seed(other, ['Bolo de fubá']);

@@ -130,9 +130,10 @@ The app is the `app/` folder as it is: no build step. It runs from any folder, o
 - Upload the same folder to the new address.
 - Each web address keeps its own recipes in the browser, so on every device, use **This device only → Export** at the old address, then **Import** at the new one.
 
-**Turning on usage statistics** (Google Analytics, opt-in, D14):
-1. Put the web stream's Measurement ID into `app/config.js`, e.g. `export const ANALYTICS_ID = 'G-ABC123DEF4';`, then release and upload as above. Visitors are asked once; nothing loads unless they say yes.
-2. In Google Analytics, open Admin → Data streams → your stream → Enhanced measurement. Turn off **Page changes based on browser history events** and **Site search**, so Google only counts the screen names Mirepoix sends.
+**Usage statistics** (Google Analytics, opt-in, D14) are on. The Measurement ID `G-H72PWB3YHW` is in `app/config.js`, and an empty string there switches them off.
+- Visitors are asked once, and nothing loads unless they say yes.
+- In Google Analytics, open Admin → Data streams → your stream → Enhanced measurement. Turn off **Page changes based on browser history events** and **Site search**, so Google only counts the screen names Mirepoix sends.
+- Browser tests run with analytics off (`test/e2e/fixtures.js`), apart from the tests that are about analytics itself.
 
 **Search engines.** Crawlers only read `robots.txt` at a domain's root. While Mirepoix lives in a folder, add `Sitemap: https://pauloq.com/mirepoix/sitemap.xml` to `pauloq.com/robots.txt`, or submit the sitemap in Google Search Console. Once Mirepoix has its own domain, `app/robots.txt` takes over.
 

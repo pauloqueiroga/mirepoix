@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test('opens on the recipe list, empty at first', async ({ page }) => {
   await page.goto('/');
