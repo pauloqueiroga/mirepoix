@@ -64,6 +64,7 @@ Every item ends with something you can do in the running app (`npm run dev`), no
   - A privacy-friendly counter, which still needs a CSP exception.
   - The host's own visit statistics: cPanel usually includes AWStats. No code and no change to D7.
 - **R1.15 SEO.** Title, description and share preview (Open Graph tags plus an image from the stacked logo) for the public pages: the app's front door and the privacy page. Add `robots.txt`, plus a canonical address once the app has its own domain. Recipes stay private and are never indexable: they live on the device, and from R2 encrypted.
+- **R1.16 Number Spelling.** for the ingredients, make the parser smart enough to read written number quantities (e.g. "two") and save as the number (e.g. "2").
 
 ## In Progress
 
