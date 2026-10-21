@@ -24,12 +24,10 @@ try {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
   await page.setContent(`<style>
     * { margin: 0 }
-    body { display: grid; place-items: center; align-content: center; gap: 28px; height: 100vh; background: #FBF8F3;
-      font: 500 34px system-ui, "Segoe UI", sans-serif; color: #6B635A; }
-    img { height: 360px }
+    body { display: grid; place-items: center; height: 100vh; background: #FBF8F3 }
+    img { height: 520px }
   </style>
-  <img src="data:image/svg+xml;base64,${stacked}" alt="">
-  <p>A private recipe box</p>`);
+  <img src="data:image/svg+xml;base64,${stacked}" alt="">`);
   await page.locator('img').evaluate((img) => /** @type {HTMLImageElement} */ (img).decode());
   await page.screenshot({ path: fileURLToPath(new URL('social.png', icons)) });
   console.log('social.png (1200×630)');
