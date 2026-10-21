@@ -85,6 +85,17 @@ test('the preview follows the recipe language', async ({ page }) => {
   await expect(quantity).toHaveText('1500');
 });
 
+test('the preview reads numbers written as words', async ({ page }) => {
+  await page.goto('/#/new');
+  await page.getByRole('radio', { name: 'Português' }).check();
+  await page.getByLabel(/^Ingredients/).fill('dois ovos\ntrês quartos de xícara de leite\nvinte e cinco gramas de fermento');
+  const preview = page.getByRole('region', { name: 'How Mirepoix reads the ingredients' });
+  const row = (/** @type {string} */ name) => preview.getByRole('row').filter({ hasText: name }).first();
+  await expect(row('ovos').getByRole('cell')).toHaveText(['2', 'count', 'ovos']);
+  await expect(row('leite').getByRole('cell')).toHaveText(['¾', 'xícara', 'leite']);
+  await expect(row('fermento').getByRole('cell')).toHaveText(['25', 'g', 'fermento']);
+});
+
 test('says what is missing instead of saving', async ({ page }) => {
   await page.goto('/#/new');
   const alert = page.getByRole('alert');

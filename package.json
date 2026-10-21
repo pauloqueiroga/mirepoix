@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "The Queiroga way of capturing and using recipes.",
+  "homepage": "https://pauloq.com/mirepoix/",
   "type": "module",
   "engines": {
     "node": ">=24"

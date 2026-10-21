@@ -82,7 +82,7 @@ test('no match says so', async ({ page }) => {
 
 test('the search is still there after opening a recipe and coming back', async ({ page }) => {
   await page.getByRole('searchbox', { name: 'Search recipes' }).fill('ovos');
-  await expect(page).toHaveURL(/#\/\?q=ovos$/);
+  expect(page.url(), 'searches stay out of the address (D14)').not.toContain('ovos');
   await page.getByRole('link', { name: /Pão de queijo/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Pão de queijo' })).toBeVisible();
 

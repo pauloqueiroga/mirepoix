@@ -96,3 +96,21 @@ pinch of salt => 1 | pinch | salt | | | assumed-quantity
 1/4 cup + 2 tbsp sugar => 1/4 | cup | + 2 tbsp sugar | | | unclear-quantity
 2 15-oz cans black beans => 2 | count | 15-oz cans black beans | | | unclear-quantity
 2 | cups => 2 | cup | | | | no-name unclear-override
+
+# Numbers written as words (R1.16)
+two eggs => 2 | count | eggs
+Two large onions, diced => 2 | count | large onions | diced
+one cup milk => 1 | cup | milk
+twelve sprigs of thyme => 12 | sprig | thyme
+twenty-five almonds => 25 | count | almonds
+twenty five almonds => 25 | count | almonds
+two or three cloves garlic => 2-3 | clove | garlic
+three to four tbsp water => 3-4 | tbsp | water
+one and a half cups flour => 1 1/2 | cup | flour
+a quarter cup oil => 1/4 | cup | oil
+three quarters of a cup sugar => 3/4 | cup | sugar
+three-quarters cup sugar => 3/4 | cup | sugar
+two thirds cup milk => 2/3 | cup | milk
+half an onion => 1/2 | count | onion
+two dozen eggs => 2 | dozen | eggs
+five-spice powder, to taste => | | five-spice powder | to taste

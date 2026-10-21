@@ -66,6 +66,7 @@ The full reasoning, alternatives and trade-offs are in [DECISIONS.md](DECISIONS.
 | Languages | Recipes in English or Portuguese (per recipe); UI in English |
 | Tooling | Node.js LTS, `node --test`, Playwright (Chromium + WebKit), TypeScript for type-checking JSDoc |
 | Hosting | Static files over HTTPS on the existing web host |
+| Analytics | Google Analytics, opt-in, screen names only (D14). Off until `app/config.js` has a Measurement ID. |
 
 ## Repository layout
 
@@ -102,8 +103,8 @@ npm run dev          # serve app/ at http://localhost:5173
 npm run check        # type-check app/
 npm test             # unit tests
 npm run test:e2e     # browser journeys: desktop Chromium, iPhone-sized WebKit
-npm run icons        # after editing app/icons/icon.svg: re-render the PNGs
-npm run logos        # and redraw the logos with the lettered name
+npm run logos        # after editing app/icons/icon.svg: redraw the logos with the lettered name
+npm run icons        # then re-render the PNGs: home-screen icons and the share preview
 npm run release -- 0.1.1                              # set the version for a deploy
 npm run check:deploy -- https://pauloq.com/mirepoix/  # check a deployed site
 ```
@@ -124,7 +125,16 @@ The app is the `app/` folder as it is: no build step. It runs from any folder, o
 4. **Check from the outside:** `npm run check:deploy -- https://pauloq.com/mirepoix/`. It confirms the headers, that every file is there at this version, that `.htaccess` stays private, and that HTTP redirects to HTTPS.
 5. **Tag** the release in Git, e.g. `v0.1.1`.
 
-**Moving to another address later** (its own domain, for example): upload the same folder there. Each web address keeps its own recipes in the browser, so on every device, use **This device only → Export** at the old address, then **Import** at the new one.
+**Moving to another address later** (its own domain, for example):
+- Change `homepage` in `package.json`. `npm test` then lists every line in the pages, `robots.txt` and `sitemap.xml` that still names the old address.
+- Upload the same folder to the new address.
+- Each web address keeps its own recipes in the browser, so on every device, use **This device only → Export** at the old address, then **Import** at the new one.
+
+**Turning on usage statistics** (Google Analytics, opt-in, D14):
+1. Put the web stream's Measurement ID into `app/config.js`, e.g. `export const ANALYTICS_ID = 'G-ABC123DEF4';`, then release and upload as above. Visitors are asked once; nothing loads unless they say yes.
+2. In Google Analytics, open Admin → Data streams → your stream → Enhanced measurement. Turn off **Page changes based on browser history events** and **Site search**, so Google only counts the screen names Mirepoix sends.
+
+**Search engines.** Crawlers only read `robots.txt` at a domain's root. While Mirepoix lives in a folder, add `Sitemap: https://pauloq.com/mirepoix/sitemap.xml` to `pauloq.com/robots.txt`, or submit the sitemap in Google Search Console. Once Mirepoix has its own domain, `app/robots.txt` takes over.
 
 ## Working agreements
 

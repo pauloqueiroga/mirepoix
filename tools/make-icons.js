@@ -1,6 +1,7 @@
-// Renders app/icons/icon.svg to the PNG sizes home screens need. iOS only
-// takes PNG touch icons, and Chrome wants 192 and 512 px PNGs to install.
-// Run `npm run icons` after changing the SVG, and keep the PNGs in the repo.
+// Renders the PNG images: app/icons/icon.svg at the sizes home screens need
+// (iOS only takes PNG touch icons; Chrome wants 192 and 512 px to install), and
+// the 1200×630 share preview for links (R1.15) from the stacked logo.
+// Run `npm run logos` first, then `npm run icons`; keep the PNGs in the repo.
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
@@ -9,6 +10,7 @@ const icons = new URL('../app/icons/', import.meta.url);
 const sizes = { 'icon-192.png': 192, 'icon-512.png': 512, 'apple-touch-icon.png': 180 };
 
 const svg = await readFile(new URL('icon.svg', icons), 'utf8');
+const stacked = (await readFile(new URL('logo-stacked.svg', icons))).toString('base64');
 const browser = await chromium.launch();
 try {
   for (const [file, size] of Object.entries(sizes)) {
@@ -18,6 +20,19 @@ try {
     await page.close();
     console.log(`${file} (${size}×${size})`);
   }
+
+  const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+  await page.setContent(`<style>
+    * { margin: 0 }
+    body { display: grid; place-items: center; align-content: center; gap: 28px; height: 100vh; background: #FBF8F3;
+      font: 500 34px system-ui, "Segoe UI", sans-serif; color: #6B635A; }
+    img { height: 360px }
+  </style>
+  <img src="data:image/svg+xml;base64,${stacked}" alt="">
+  <p>A private recipe box</p>`);
+  await page.locator('img').evaluate((img) => /** @type {HTMLImageElement} */ (img).decode());
+  await page.screenshot({ path: fileURLToPath(new URL('social.png', icons)) });
+  console.log('social.png (1200×630)');
 } finally {
   await browser.close();
 }

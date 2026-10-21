@@ -19,15 +19,17 @@ const CONTENT_TYPES = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
 };
 
 export const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self'",
+    // Google Analytics, opt-in (D14): its script, and where it reports to.
+    "script-src 'self' https://*.googletagmanager.com",
     "style-src 'self'",
-    "img-src 'self' data:",
-    "connect-src 'self' https://api.github.com",
+    "img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com",
+    "connect-src 'self' https://api.github.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'self'",

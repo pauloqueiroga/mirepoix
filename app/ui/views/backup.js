@@ -1,5 +1,5 @@
 import { describeImport, exportFile, mergePlan, readExport } from '../../domain/backup.js';
-import { h } from '../dom.js';
+import { footer, h } from '../dom.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 
@@ -57,6 +57,7 @@ export function backupView({ count, list, put }) {
           'Adds the recipes from an export file, made on this device or another one. Nothing here is removed, and a recipe already here is only replaced by a newer version of itself. Moving Mirepoix to a new address? Export there, import here.'),
         file,
         h('label', { for: 'import-file', class: 'button secondary' }, 'Import from a file')),
-      status),
+      status,
+      footer()),
   ];
 }

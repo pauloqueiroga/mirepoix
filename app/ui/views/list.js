@@ -1,5 +1,5 @@
 import { searchRecipes } from '../../domain/search.js';
-import { brand, h, logo } from '../dom.js';
+import { brand, footer, h, logo } from '../dom.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('../../domain/search.js').Found} Found */
@@ -26,7 +26,8 @@ export function listView(recipes, { query = '', remember = () => {} } = {}) {
           h('h2', null, 'No recipes yet'),
           h('p', null, 'Tap + to add your first one. Recipes are kept in this browser, on this device.'),
           h('p', { class: 'aside' }, 'Have an export from another device? ', h('a', { href: '#/backup' }, 'Import it')))]
-        : searchable(recipes, query, remember))),
+        : searchable(recipes, query, remember)),
+      footer()),
     h('a', { class: 'fab', href: '#/new', 'aria-label': 'New recipe', title: 'New recipe' }),
   ];
 }
