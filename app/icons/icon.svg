@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!--
+    One bold M, an even zigzag: every stroke has the same slant, and both legs
+    and the valley stand on the same floor. The carrot is the whole stroke from
+    the valley's tip to the right peak; the onion and the celery are cut along
+    its two edges, so they butt against it.
+  -->
+  <defs>
+    <path id="m" d="M104 320 180 192 256 320 332 192 408 320"/>
+    <!-- Up-left of the carrot's top edge -->
+    <clipPath id="onion"><path d="M15.7 642.6 424.1-45.4-91.8-351.7-500.2 336.3Z"/></clipPath>
+    <!-- Down-right of the carrot's bottom edge -->
+    <clipPath id="celery"><path d="M87.9 685.4 496.3 0.8 1012.2 307.1 603.8 991.7Z"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="#2A2622"/>
+  <g fill="none" stroke-width="84" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#m" stroke="#E8742F"/>
+    <use href="#m" stroke="#F6EBD3" clip-path="url(#onion)"/>
+    <use href="#m" stroke="#8DB04F" clip-path="url(#celery)"/>
+  </g>
+  <!-- Thin gaps just outside the carrot's edges -->
+  <path fill="none" stroke="#2A2622" stroke-width="10" d="M185 347.6 333 98.2M265.8 395.6 429.1 120.4"/>
+</svg>

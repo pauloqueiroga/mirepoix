@@ -1,10 +1,14 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="app/icons/logo-stacked-dark.svg">
+  <img src="app/icons/logo-stacked.svg" alt="mirepoix: an M made of onion, carrot and celery, above the name" width="160">
+</picture>
+
 # Mirepoix
 
 The Queiroga way of capturing and using recipes.
 
 Mirepoix is a private recipe box that works on every device. You paste or type recipes from books, sites and notebooks, a chunk at a time if that's how they come, and Mirepoix turns every ingredient line into **quantity, unit and name**. You can read and cook from a recipe without ever changing it by accident, and leave notes for your future self while you cook.
 
-> **Status:** planning. Nothing runs yet.
 > See the [mockups](docs/mockups/index.html) (open the file in a browser), the [decisions](DECISIONS.md) and the [next work](TASKBOARD.md).
 
 ## What you get, release by release
@@ -13,11 +17,11 @@ Every release is usable on its own; each one adds to the last.
 
 | Release | What you get |
 | --- | --- |
-| **R1 · Recipe box** | Paste or type recipes into sections (Ingredients, Preparation, Variations, Notes). Ingredients are parsed in English and Portuguese, including equivalents like "2 cups (437 g)". A read-only recipe view, search, export/import, and offline use. Recipes live on that one device. |
-| **R2 · Every device** | The same recipes everywhere, synced end-to-end encrypted through a private GitHub repository. |
+| **R1 · Recipe box** | Paste or type recipes into sections (Ingredients, Preparation, Variations, Notes). Ingredients are parsed in English and Portuguese, including equivalents like "2 cups (437 g)". A read-only recipe view, search, export/import, and offline use. Recipes stay on the device they were captured on. |
+| **R2 · Every device** | The same recipes everywhere, synced end-to-end encrypted through a private GitHub repository. Everyone's R1 recipes merge into one shared recipe box. |
 | **R3 · Cook mode** | Big type, the screen stays on, tick off ingredients and steps, and add dated notes without touching the recipe. |
 | **R4 · Smart paste** | Paste a whole recipe (or any chunk) in one go, and Mirepoix finds the sections. |
-| **R5 · Measures your way** | Weights or volumes first, more ways to write equivalents, and your own units. |
+| **R5 · Your measures** | More ways to write equivalents ("2 cups / 437 g", "2 xícaras ou 437 g") and your own units. |
 
 ## Principles
 
@@ -76,8 +80,11 @@ app/              the shipped app; deploy this folder as-is
 test/
   unit/           node --test
   e2e/            Playwright journeys
+  contract/       behavior shared by a real implementation and its test twin
+  support/        test twins, e.g. the in-memory recipe store
   fixtures/       real ingredient lines (en, pt) with their expected parses
-tools/            dev server and small scripts
+tools/            dev server, icon renderer
+.github/          CI: check, unit and e2e on every push
 docs/mockups/     static design mockups
 DECISIONS.md      decision log
 TASKBOARD.md      kanban in a file
@@ -86,15 +93,24 @@ USER-MIND.md      what the users think, want and imagine
 
 ## Development
 
-You need Node.js LTS. These commands will work once task R1.1 is done:
+You need Node.js 24 LTS or newer.
 
 ```bash
 npm install          # dev tools only: TypeScript and Playwright
-npm run dev          # serve app/ locally
-npm run check        # type-check
+npm run browsers     # once: download Playwright's Chromium and WebKit
+npm run dev          # serve app/ at http://localhost:5173
+npm run check        # type-check app/
 npm test             # unit tests
-npm run test:e2e     # browser journeys on Chromium and WebKit
+npm run test:e2e     # browser journeys: desktop Chromium, iPhone-sized WebKit
+npm run icons        # after editing app/icons/icon.svg: re-render the PNGs
+npm run logos        # and redraw the logos with the lettered name
 ```
+
+- The dev server sends the same Content-Security-Policy as production (D7), so an inline script or style fails locally and in the tests, not after a deploy.
+- On `localhost` the service worker stays off, so edits show up on reload. Add `?sw` to the address to try offline behavior.
+- The service worker's file list (`SHELL` in `app/sw.js`) must match the files in `app/`; a unit test fails when they drift. Its `VERSION` moves with `package.json`'s version, and bumping both is what makes installed devices pick up a release.
+- The ingredient parser's expectations live in `test/fixtures/ingredients.en.txt` and `ingredients.pt.txt`, one case per line: `line => quantity | unit | name | note | equivalents | doubts`. When a real recipe line reads wrong, add it there first (the test fails), then fix the parser.
+- Only `app/`, the code that ships, is type-checked. Tests and tools run as plain JavaScript, which keeps `@types/node` out of the dependency list.
 
 ## Working agreements
 

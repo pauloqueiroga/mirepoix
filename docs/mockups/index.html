@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mirepoix Mockups</title>
+<meta name="description" content="First-pass static mockups for Mirepoix: recipe list, recipe view, editor, cook mode, cook's note and connecting a device.">
+<style>
+  :root {
+    --desk: #ECE6DC;
+    --paper: #FBF8F3;
+    --surface: #FFFFFF;
+    --sunken: #F3EEE6;
+    --ink: #2A2622;
+    --ink-2: #6B635A;
+    --line: #E4DCCF;
+    --carrot: #A84A18;
+    --carrot-soft: #FBE8DA;
+    --on-carrot: #FFFFFF;
+    --celery: #4E6B26;
+    --celery-soft: #E8F0DA;
+    --warn: #8A5A0B;
+    --warn-soft: #FCF1D6;
+    --scrim: rgb(28 24 20 / .45);
+    --shadow: 0 1px 2px rgb(42 38 34 / .06), 0 12px 32px rgb(42 38 34 / .10);
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --desk: #131210;
+      --paper: #1C1A17;
+      --surface: #25221E;
+      --sunken: #2C2824;
+      --ink: #EEE8E0;
+      --ink-2: #A9A096;
+      --line: #3A352F;
+      --carrot: #F0894A;
+      --carrot-soft: #3B2A1E;
+      --on-carrot: #1C1A17;
+      --celery: #A3C46B;
+      --celery-soft: #28311C;
+      --warn: #E7B85C;
+      --warn-soft: #3A2F1C;
+      --scrim: rgb(0 0 0 / .55);
+      --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 12px 32px rgb(0 0 0 / .35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --desk: #131210;
+    --paper: #1C1A17;
+    --surface: #25221E;
+    --sunken: #2C2824;
+    --ink: #EEE8E0;
+    --ink-2: #A9A096;
+    --line: #3A352F;
+    --carrot: #F0894A;
+    --carrot-soft: #3B2A1E;
+    --on-carrot: #1C1A17;
+    --celery: #A3C46B;
+    --celery-soft: #28311C;
+    --warn: #E7B85C;
+    --warn-soft: #3A2F1C;
+    --scrim: rgb(0 0 0 / .55);
+    --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 12px 32px rgb(0 0 0 / .35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--desk);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  svg.ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  svg.ico.sm { width: 14px; height: 14px; }
+  svg.ico.lg { width: 26px; height: 26px; stroke-width: 2.4; }
+
+  /* ---------- Page (documentation) ---------- */
+  .doc-head { padding: 40px 0 0; }
+  .eyebrow { font-size: 13px; color: var(--ink-2); letter-spacing: .04em; margin: 0 0 6px; }
+  h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 4.5vw, 42px); line-height: 1.1; margin: 0 0 12px; text-wrap: balance; }
+  .lede { max-width: 64ch; color: var(--ink-2); margin: 0 0 18px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .theme-btn {
+    margin-left: auto; font: inherit; font-size: 13px; padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+  }
+  .theme-btn:focus-visible { outline: 2px solid var(--carrot); outline-offset: 2px; }
+  .rel { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .rel.r1 { background: var(--carrot-soft); color: var(--carrot); }
+  .rel.r2 { background: var(--celery-soft); color: var(--celery); }
+  .rel.r3 { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+
+  .screens { display: flex; flex-wrap: wrap; gap: 44px 32px; justify-content: center; padding: 36px 0 8px; }
+  figure { margin: 0; width: 340px; max-width: 100%; }
+  figure.wide { width: 100%; max-width: 1040px; }
+  figcaption { padding: 14px 4px 0; font-size: 14px; }
+  .cap-head { display: flex; align-items: center; gap: 8px; }
+  .cap-head .num { font-family: var(--serif); color: var(--ink-2); font-size: 15px; }
+  figcaption h2 { font-size: 16px; margin: 0; }
+  figcaption ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); }
+  figcaption li { margin: 4px 0; }
+  figure.wide figcaption ul { columns: 2 320px; column-gap: 32px; }
+  figure.wide figcaption li { break-inside: avoid; }
+
+  /* ---------- Device frames ---------- */
+  .phone {
+    height: 740px; border-radius: 36px; border: 1px solid var(--line); background: var(--paper);
+    box-shadow: var(--shadow); overflow: hidden; position: relative;
+  }
+  .laptop { border-radius: 16px; border: 1px solid var(--line); background: var(--paper); box-shadow: var(--shadow); overflow: hidden; }
+  .chrome { height: 36px; display: flex; align-items: center; gap: 6px; padding: 0 14px; background: var(--sunken); border-bottom: 1px solid var(--line); }
+  .chrome i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); display: block; flex: none; }
+  .chrome .url {
+    margin-left: 10px; font-size: 12px; color: var(--ink-2); background: var(--paper); border: 1px solid var(--line);
+    border-radius: 6px; padding: 2px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+
+  /* ---------- App ---------- */
+  .app { height: 100%; display: flex; flex-direction: column; color: var(--ink); font-size: 15px; line-height: 1.4; position: relative; }
+  .status { height: 30px; padding: 10px 26px 0; font-size: 12px; font-weight: 700; flex: none; }
+  .bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 50px;
+    padding: 4px 16px 8px; border-bottom: 1px solid var(--line); flex: none;
+  }
+  .bar .back, .bar .quiet { display: inline-flex; align-items: center; gap: 3px; font-size: 15px; min-height: 44px; }
+  .bar .back { color: var(--carrot); font-weight: 600; margin-left: -4px; }
+  .bar .quiet { color: var(--ink-2); }
+  .bar .mid { font-family: var(--serif); font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wordmark { font-family: var(--serif); font-size: 23px; color: var(--carrot); font-weight: 600; letter-spacing: .01em; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .chip.ok { background: var(--celery-soft); color: var(--celery); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .body { flex: 1; overflow: hidden; position: relative; }
+  .body.fade::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 56px;
+    background: linear-gradient(to bottom, transparent, var(--paper)); pointer-events: none;
+  }
+  .foot { padding: 12px 16px 22px; border-top: 1px solid var(--line); flex: none; background: var(--paper); }
+  .btn {
+    display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; min-height: 48px;
+    padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 16px; background: var(--carrot); color: var(--on-carrot);
+  }
+  .btn.outline { background: transparent; color: var(--carrot); box-shadow: inset 0 0 0 1.5px var(--carrot); }
+  .btn.plain { background: transparent; color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
+
+  /* List */
+  .search {
+    display: flex; align-items: center; gap: 8px; margin: 12px 16px 2px; padding: 10px 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--ink-2);
+  }
+  .count { margin: 12px 16px 2px; font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li { padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .list .t { font-family: var(--serif); font-size: 18px; }
+  .list .m { font-size: 13px; color: var(--ink-2); }
+  .fab {
+    position: absolute; right: 18px; bottom: 24px; width: 58px; height: 58px; border-radius: 18px; z-index: 1;
+    background: var(--carrot); color: var(--on-carrot); display: grid; place-items: center; box-shadow: var(--shadow);
+  }
+
+  /* Recipe view */
+  .title { font-family: var(--serif); font-size: 29px; line-height: 1.12; font-weight: 600; margin: 12px 16px 4px; }
+  .meta { margin: 0 16px; color: var(--ink-2); font-size: 13.5px; }
+  .last {
+    display: flex; gap: 10px; margin: 14px 16px 4px; padding: 10px 12px; border-radius: 12px;
+    background: var(--celery-soft); color: var(--ink); font-size: 14px;
+  }
+  .last .ico { color: var(--celery); margin-top: 2px; }
+  .last b { display: block; font-size: 11px; color: var(--celery); text-transform: uppercase; letter-spacing: .07em; }
+  .sec { display: flex; justify-content: space-between; align-items: center; margin: 14px 16px 4px; min-height: 26px; }
+  .sec h3 { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--carrot); margin: 0; font-weight: 800; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 12px; background: var(--surface); }
+  .seg span { padding: 3px 10px; color: var(--ink-2); }
+  .seg .on { background: var(--ink); color: var(--paper); font-weight: 700; }
+  .ing { margin: 0 16px; }
+  .ing .i {
+    display: grid; grid-template-columns: 5.4em 1fr; column-gap: 12px; padding: 5px 0;
+    border-bottom: 1px solid var(--line); align-items: baseline;
+  }
+  .ing .amt { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ing .nm { font-family: var(--serif); font-size: 16.5px; }
+  .ing .nt { color: var(--ink-2); }
+  .ing .alt { display: block; font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+  .steps { list-style: none; counter-reset: s; margin: 0 16px; padding: 0; }
+  .steps li {
+    counter-increment: s; display: grid; grid-template-columns: 1.6em 1fr; gap: 6px; padding: 5px 0;
+    font-family: var(--serif); font-size: 16px;
+  }
+  .steps li::before { content: counter(s); font-family: var(--sans); font-weight: 800; color: var(--carrot); font-size: 14px; padding-top: 2px; }
+
+  /* Cook mode */
+  .ck { display: flex; gap: 12px; align-items: flex-start; padding: 6px 16px; border-bottom: 1px solid var(--line); font-size: 18px; }
+  .box {
+    width: 25px; height: 25px; border-radius: 8px; box-shadow: inset 0 0 0 2px var(--line); flex: none;
+    display: grid; place-items: center; margin-top: 1px; color: var(--on-carrot);
+  }
+  .ck.done .box { background: var(--celery); box-shadow: none; color: var(--paper); }
+  .ck.done .txt { color: var(--ink-2); text-decoration: line-through; }
+  .ck .txt b { font-variant-numeric: tabular-nums; }
+  .ck .txt span { font-family: var(--serif); }
+  .prog { font-size: 12px; color: var(--ink-2); font-weight: 700; }
+  .stp { display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding: 11px 16px; font-family: var(--serif); font-size: 19px; line-height: 1.42; }
+  .stp .n { font-family: var(--sans); font-weight: 800; color: var(--carrot); font-size: 16px; padding-top: 3px; }
+  .stp.done { color: var(--ink-2); }
+  .stp.done .n { color: var(--celery); }
+  .stp.now { background: var(--carrot-soft); box-shadow: inset 4px 0 0 var(--carrot); }
+
+  /* Sheet */
+  .scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 2; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; background: var(--surface);
+    border-radius: 24px 24px 0 0; padding: 10px 18px 24px; box-shadow: 0 -8px 30px rgb(0 0 0 / .18);
+  }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 14px; }
+  .sheet h3 { margin: 0 0 4px; font-family: var(--serif); font-size: 22px; font-weight: 600; }
+  .sheet .sub { margin: 0 0 12px; color: var(--ink-2); font-size: 13.5px; }
+  .note-ta {
+    min-height: 120px; padding: 10px 12px; border-radius: 12px; background: var(--paper);
+    box-shadow: inset 0 0 0 1.5px var(--carrot); font-family: var(--serif); font-size: 17px; line-height: 1.45;
+  }
+  .caret::after { content: ""; display: inline-block; width: 2px; height: 1.05em; background: var(--carrot); vertical-align: -3px; margin-left: 1px; }
+  .stamp { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); margin: 8px 2px 14px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
+
+  /* Connect */
+  .form { padding: 14px 16px; font-size: 14px; }
+  .lead { margin: 0 0 14px; color: var(--ink-2); display: flex; gap: 10px; }
+  .lead .ico { color: var(--celery); margin-top: 2px; }
+  .seg.big { width: 100%; display: grid; grid-template-columns: 1fr 1fr; font-size: 13.5px; border-radius: 10px; margin-bottom: 14px; }
+  .seg.big span { text-align: center; padding: 8px; }
+  .field { margin-bottom: 11px; }
+  .field label { display: block; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+  .input {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px;
+    min-height: 40px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .input.mono { font-family: var(--mono); font-size: 13.5px; }
+  .help { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+  .help.warn { color: var(--warn); font-weight: 600; }
+  .link { color: var(--carrot); font-weight: 600; }
+  .checks { list-style: none; padding: 0; margin: 14px 0 0; font-size: 13.5px; }
+  .checks li { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+  .checks .ico { color: var(--celery); }
+  .spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--celery); flex: none; }
+  .meter { height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; margin: 6px 0 0 26px; }
+  .meter i { display: block; height: 100%; width: 62%; background: var(--celery); }
+
+  /* Editor */
+  .ed-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+  .ed-bar .mid { font-family: var(--serif); font-size: 19px; font-weight: 600; }
+  .btn-sm { padding: 7px 18px; border-radius: 10px; font-weight: 700; font-size: 14px; background: var(--carrot); color: var(--on-carrot); }
+  .ed-meta { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 12px; padding: 16px 20px 4px; }
+  .input.ttl { font-family: var(--serif); font-size: 19px; font-weight: 600; }
+  .ed-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 12px 20px 22px; align-items: start; }
+  .ta { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 0; font-size: 14.5px; line-height: 1.8; }
+  .ta.focus { box-shadow: 0 0 0 3px var(--carrot-soft); border-color: var(--carrot); }
+  .ta .ln { padding: 0 12px; white-space: pre-wrap; }
+  .ta .ln.flag { background: var(--warn-soft); box-shadow: inset 3px 0 0 var(--warn); }
+  .ta.prose { font-family: var(--serif); font-size: 15.5px; line-height: 1.55; padding: 10px 0; }
+  .ta.prose p { margin: 0 12px 10px; }
+  .ta.prose p:last-child { margin-bottom: 0; }
+  .hint { font-size: 12.5px; color: var(--ink-2); margin: 6px 2px 16px; }
+  code { font-family: var(--mono); font-size: .92em; background: var(--sunken); border-radius: 4px; padding: 1px 5px; color: var(--ink); }
+  .adds { display: flex; flex-wrap: wrap; gap: 8px; }
+  .add {
+    display: inline-flex; gap: 6px; align-items: center; border: 1.5px dashed var(--line); border-radius: 10px;
+    padding: 7px 12px; color: var(--ink-2); font-size: 14px;
+  }
+  .pv { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .pv-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .pv-head strong { font-size: 14px; }
+  .pv-row {
+    display: grid; grid-template-columns: 3em 9em 1fr 5em; column-gap: 10px; row-gap: 2px; padding: 7px 14px;
+    border-bottom: 1px solid var(--line); font-size: 14px; align-items: baseline;
+  }
+  .pv-row:last-child { border-bottom: 0; }
+  .pv-row.hd { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); padding-top: 8px; padding-bottom: 6px; background: var(--sunken); }
+  .pv-row .q { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pv-row .nm { font-family: var(--serif); font-size: 15px; }
+  .pv-row .muted { color: var(--ink-2); font-style: italic; }
+  .pv-row .alt { display: block; font-size: 12px; color: var(--ink-2); }
+  .pv-row .nt { color: var(--ink-2); }
+  .pv-row.flag { background: var(--warn-soft); }
+  .pv-row .u.flagged { color: var(--warn); font-weight: 700; }
+  .flag-msg { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--warn); font-weight: 600; padding-top: 2px; }
+
+  @media (max-width: 760px) {
+    .ed-meta { grid-template-columns: 1fr 1fr; }
+    .ed-meta .field:first-child { grid-column: 1 / -1; }
+    .ed-cols { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .pv-row { grid-template-columns: 2.6em 7.2em 1fr; }
+    .pv-row .nt { grid-column: 3; }
+    .pv-row.hd .nt { display: none; }
+    .ed-bar, .ed-meta, .ed-cols { padding-left: 14px; padding-right: 14px; }
+  }
+
+  /* ---------- Design notes ---------- */
+  .notes { padding: 28px 0 56px; }
+  .notes h2 { font-family: var(--serif); font-size: 26px; font-weight: 600; margin: 0 0 14px; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .sw { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; font-size: 14px; }
+  .sw .chipc { width: 44px; height: 44px; border-radius: 12px; flex: none; box-shadow: inset 0 0 0 1px var(--line); }
+  .sw b { display: block; }
+  .sw span.d { color: var(--ink-2); font-size: 13px; }
+  .c-onion { background: var(--paper); }
+  .c-carrot { background: var(--carrot); }
+  .c-celery { background: var(--celery); }
+  .c-ink { background: var(--ink); }
+  .dn { margin: 0; padding-left: 18px; max-width: 78ch; }
+  .dn li { margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5v.01"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+  <symbol id="i-pot" viewBox="0 0 24 24"><path d="M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M2 10h2M20 10h2M9 6.5c0-1 1-1.5 1-2.5M13.5 6.5c0-1 1-1.5 1-2.5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+</svg>
+
+<header class="doc-head">
+  <div class="wrap">
+    <p class="eyebrow">Mirepoix · first-pass mockups · 19 Oct 2026</p>
+    <h1>How Mirepoix could look and feel</h1>
+    <p class="lede">
+      These are static drawings to react to, not the app. There are six screens across the first three releases, and each one is tagged with the release it arrives in.
+      Sample recipes are made up; sources are fictional. Reasoning lives in <code>DECISIONS.md</code>, and the order of work in <code>TASKBOARD.md</code>.
+    </p>
+    <div class="toolbar">
+      <span class="rel r1">R1 · Recipe box</span>
+      <span class="rel r2">R2 · Every device</span>
+      <span class="rel r3">R3 · Cook mode</span>
+      <button class="theme-btn" id="theme" type="button">Switch to dark</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Row 1: list + recipe -->
+  <section class="screens" aria-label="Finding and reading recipes">
+
+    <figure>
+      <div class="phone"><div class="app">
+        <div class="status">9:41</div>
+        <div class="bar">
+          <span class="wordmark">Mirepoix</span>
+          <span class="chip ok"><span class="dot"></span>Synced</span>
+        </div>
+        <div class="body fade">
+          <div class="search"><svg class="ico"><use href="#i-search"/></svg><span>Search recipes or ingredients</span></div>
+          <div class="count">128 recipes</div>
+          <ul class="list">
+            <li><div class="t">Bolo de fubá</div><div class="m">Family notebook</div></li>
+            <li><div class="t">Brown butter cookies</div><div class="m">The Flour Diaries, p. 88</div></li>
+            <li><div class="t">Caldo verde</div><div class="m">Family notebook</div></li>
+            <li><div class="t">Feijoada</div><div class="m">Sunday Tables, p. 212</div></li>
+            <li><div class="t">Moqueca de peixe</div><div class="m">Typed by hand</div></li>
+            <li><div class="t">Pão de queijo</div><div class="m">Family notebook</div></li>
+            <li><div class="t">Pâte brisée</div><div class="m">Pastry Basics, p. 14</div></li>
+            <li><div class="t">Ragù alla bolognese</div><div class="m">Pasted from a website</div></li>
+            <li><div class="t">Shakshuka</div><div class="m">Weeknight Pan, p. 41</div></li>
+            <li><div class="t">Torta de limão</div><div class="m">Family notebook</div></li>
+          </ul>
+          <div class="fab" aria-label="New recipe"><svg class="ico lg"><use href="#i-plus"/></svg></div>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="cap-head"><span class="num">1</span><h2>Your recipes</h2><span class="rel r1">R1</span></div>
+        <ul>
+          <li>Opens straight to the list. The app and the recipes are already on the device, so return visits have no login and no waiting.</li>
+          <li>Search covers titles and ingredients and ignores accents: “pao” finds “Pão de queijo”.</li>
+          <li>In R1 the chip reads “This device only” and links to Export. From R2 on, it shows sync status.</li>
+        </ul>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone"><div class="app">
+        <div class="status">9:41</div>
+        <div class="bar">
+          <span class="back"><svg class="ico"><use href="#i-back"/></svg>Recipes</span>
+          <span class="quiet"><svg class="ico sm"><use href="#i-pen"/></svg>&nbsp;Edit</span>
+        </div>
+        <div class="body fade">
+          <div class="title">Brown butter cookies</div>
+          <div class="meta">The Flour Diaries, p. 88 · Makes 24</div>
+          <div class="last">
+            <svg class="ico"><use href="#i-pen"/></svg>
+            <div><b>Last time · 12 Oct 2026</b>Rested the dough overnight. Do it again!</div>
+          </div>
+          <div class="sec"><h3>Ingredients</h3></div>
+          <div class="ing">
+            <div class="i"><span class="amt">1 cup<span class="alt">or 227 g</span></span><span class="nm">unsalted butter<span class="nt">, browned</span></span></div>
+            <div class="i"><span class="amt">1 ½ cups<span class="alt">or 300 g</span></span><span class="nm">light brown sugar<span class="nt">, packed</span></span></div>
+            <div class="i"><span class="amt">2</span><span class="nm">large eggs</span></div>
+            <div class="i"><span class="amt">2 ¼ cups<span class="alt">or 280 g</span></span><span class="nm">all-purpose flour</span></div>
+            <div class="i"><span class="amt"></span><span class="nm">flaky salt<span class="nt">, to taste</span></span></div>
+          </div>
+          <div class="sec"><h3>Preparation</h3></div>
+          <ol class="steps">
+            <li>Brown the butter until it smells nutty. Cool for 20 minutes.</li>
+            <li>Beat in the sugar, then the eggs and vanilla.</li>
+            <li>Fold in the flour and soda. Chill for an hour.</li>
+          </ol>
+        </div>
+        <div class="foot"><div class="btn"><svg class="ico"><use href="#i-pot"/></svg>Start cooking</div></div>
+      </div></div>
+      <figcaption>
+        <div class="cap-head"><span class="num">2</span><h2>Reading a recipe</h2><span class="rel r1">R1</span></div>
+        <ul>
+          <li>Read-only. Tapping the text does nothing. <b>Edit</b> sits quietly in the corner and opens a separate screen.</li>
+          <li>Amounts and names line up. When a recipe gives several measures, all of them show as “1 cup or 227 g”, so they never look like extra butter.</li>
+          <li>“Last time” shows your newest cook’s note (R3). Variations, Notes and every cook’s note follow further down.</li>
+        </ul>
+      </figcaption>
+    </figure>
+
+  </section>
+
+  <!-- Row 2: editor -->
+  <section class="screens" aria-label="Capturing a recipe">
+    <figure class="wide">
+      <div class="laptop">
+        <div class="chrome"><i></i><i></i><i></i><span class="url">your-site/mirepoix/#/new</span></div>
+        <div class="app">
+          <div class="ed-bar">
+            <span class="quiet" style="color:var(--ink-2)">Cancel</span>
+            <span class="mid">New recipe</span>
+            <span class="btn-sm">Save</span>
+          </div>
+          <div class="ed-meta">
+            <div class="field"><label>Title</label><div class="input ttl">Pão de queijo</div></div>
+            <div class="field"><label>Source</label><div class="input">Family notebook</div></div>
+            <div class="field"><label>Makes</label><div class="input">30 pieces</div></div>
+            <div class="field"><label>Language</label><div class="input">Português <svg class="ico sm"><use href="#i-down"/></svg></div></div>
+          </div>
+          <div class="ed-cols">
+            <div>
+              <div class="field"><label>Ingredients · paste or type, one per line</label></div>
+              <div class="ta focus">
+                <div class="ln">500 g de polvilho azedo</div>
+                <div class="ln">1 copo americano de leite</div>
+                <div class="ln">1/2 copo americano de óleo</div>
+                <div class="ln flag">pitada de sal</div>
+                <div class="ln">2 ovos</div>
+                <div class="ln">2 xícaras (200 g) de queijo meia-cura ralado</div>
+                <div class="ln"><span class="caret">queijo parmesão a gosto</span></div>
+              </div>
+              <p class="hint">To set it yourself, write <code>1 | punhado | salsinha</code> for quantity | unit | name.</p>
+
+              <div class="field"><label>Preparation · a blank line starts a new step</label></div>
+              <div class="ta prose">
+                <p>Ferva o leite, o óleo e o sal.</p>
+                <p>Escalde o polvilho com a mistura quente e mexa até ficar homogêneo. Deixe amornar.</p>
+                <p>Junte os ovos, um a um, e depois os queijos. Faça bolinhas com as mãos untadas.</p>
+                <p>Asse a 180 °C por 25 a 30 minutos.</p>
+              </div>
+              <p class="hint"></p>
+              <div class="adds">
+                <span class="add"><svg class="ico sm"><use href="#i-plus"/></svg>Variations</span>
+                <span class="add"><svg class="ico sm"><use href="#i-plus"/></svg>Notes</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="field"><label>How Mirepoix reads it</label></div>
+              <div class="pv">
+                <div class="pv-head"><strong>7 ingredients</strong><span class="chip warn"><svg class="ico sm"><use href="#i-warn"/></svg>1 to check</span></div>
+                <div class="pv-row hd"><span class="q">Qty</span><span>Unit</span><span>Ingredient</span><span class="nt">Note</span></div>
+                <div class="pv-row"><span class="q">500</span><span class="u">g</span><span class="nm">polvilho azedo</span><span class="nt"></span></div>
+                <div class="pv-row"><span class="q">1</span><span class="u">copo americano</span><span class="nm">leite</span><span class="nt"></span></div>
+                <div class="pv-row"><span class="q">½</span><span class="u">copo americano</span><span class="nm">óleo</span><span class="nt"></span></div>
+                <div class="pv-row flag">
+                  <span class="q">1</span><span class="u flagged">pitada</span><span class="nm">sal</span><span class="nt"></span>
+                  <span class="flag-msg"><svg class="ico sm"><use href="#i-warn"/></svg>No amount was given, so it reads as 1.</span>
+                </div>
+                <div class="pv-row"><span class="q">2</span><span class="u muted">count</span><span class="nm">ovos</span><span class="nt"></span></div>
+                <div class="pv-row"><span class="q">2</span><span class="u">xícaras<span class="alt">or 200 g</span></span><span class="nm">queijo meia-cura ralado</span><span class="nt"></span></div>
+                <div class="pv-row"><span class="q muted">–</span><span class="u muted">–</span><span class="nm">queijo parmesão</span><span class="nt">a gosto</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <div class="cap-head"><span class="num">3</span><h2>Capturing a recipe</h2><span class="rel r1">R1</span></div>
+        <ul>
+          <li>Each section is plain text. Paste a chunk from a site, type from a book, in any order. Mirepoix re-reads it as you go.</li>
+          <li>The right side shows exactly what will be saved: quantity, unit, name, note, and equivalents (“or 200 g”).</li>
+          <li>Doubtful lines are flagged, not guessed. “pitada de sal” gives no amount, so it reads as 1 and is highlighted on both sides. A unit Mirepoix doesn’t know yet is kept as written and flagged the same way.</li>
+          <li>The recipe’s language picks the vocabulary: xícara, colher de chá, a gosto, “2 xícaras <i>de</i> farinha”.</li>
+          <li>On a phone the preview stacks under the text. Smart paste (a whole recipe in one box, sections found for you) comes in R4.</li>
+        </ul>
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- Row 3: cook, note, connect -->
+  <section class="screens" aria-label="Cooking and connecting devices">
+
+    <figure>
+      <div class="phone"><div class="app">
+        <div class="status">9:41</div>
+        <div class="bar">
+          <span class="back"><svg class="ico"><use href="#i-x"/></svg>Done</span>
+          <span class="mid">Pão de queijo</span>
+          <span class="chip ok"><svg class="ico sm"><use href="#i-sun"/></svg>Screen on</span>
+        </div>
+        <div class="body fade">
+          <div class="sec"><h3>Ingredients</h3><span class="prog">2 of 7 ready</span></div>
+          <div class="ck done"><span class="box"><svg class="ico sm"><use href="#i-check"/></svg></span><span class="txt"><b>500 g</b> <span>polvilho azedo</span></span></div>
+          <div class="ck done"><span class="box"><svg class="ico sm"><use href="#i-check"/></svg></span><span class="txt"><b>1 copo americano</b> <span>leite</span></span></div>
+          <div class="ck"><span class="box"></span><span class="txt"><b>½ copo americano</b> <span>óleo</span></span></div>
+          <div class="ck"><span class="box"></span><span class="txt"><b>1 pitada</b> <span>sal</span></span></div>
+          <div class="ck"><span class="box"></span><span class="txt"><b>2</b> <span>ovos</span></span></div>
+          <div class="ck"><span class="box"></span><span class="txt"><b>2 xícaras</b> <span>queijo meia-cura ralado</span></span></div>
+          <div class="ck"><span class="box"></span><span class="txt"><span>queijo parmesão, a gosto</span></span></div>
+          <div class="sec"><h3>Preparation</h3><span class="prog">Step 2 of 4</span></div>
+          <div class="stp done"><span class="n"><svg class="ico sm"><use href="#i-check"/></svg></span><span>Ferva o leite, o óleo e o sal.</span></div>
+          <div class="stp now"><span class="n">2</span><span>Escalde o polvilho com a mistura quente e mexa até ficar homogêneo. Deixe amornar.</span></div>
+          <div class="stp"><span class="n">3</span><span>Junte os ovos, um a um, e depois os queijos.</span></div>
+        </div>
+        <div class="foot"><div class="btn outline"><svg class="ico"><use href="#i-pen"/></svg>Note for next time</div></div>
+      </div></div>
+      <figcaption>
+        <div class="cap-head"><span class="num">4</span><h2>Cook mode</h2><span class="rel r3">R3</span></div>
+        <ul>
+          <li>There are no edit controls here at all. Ticks and the current step are temporary and disappear when you tap Done.</li>
+          <li>The screen stays on while this view is open, on devices that support it.</li>
+          <li>Big type to read at arm’s length. Tap a step to move on.</li>
+        </ul>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone"><div class="app">
+        <div class="status">9:41</div>
+        <div class="bar">
+          <span class="back"><svg class="ico"><use href="#i-x"/></svg>Done</span>
+          <span class="mid">Pão de queijo</span>
+          <span class="chip ok"><svg class="ico sm"><use href="#i-sun"/></svg>Screen on</span>
+        </div>
+        <div class="body">
+          <div class="sec"><h3>Preparation</h3><span class="prog">Step 4 of 4</span></div>
+          <div class="stp done"><span class="n"><svg class="ico sm"><use href="#i-check"/></svg></span><span>Escalde o polvilho com a mistura quente…</span></div>
+          <div class="stp done"><span class="n"><svg class="ico sm"><use href="#i-check"/></svg></span><span>Junte os ovos, um a um, e depois os queijos…</span></div>
+          <div class="stp now"><span class="n">4</span><span>Asse a 180 °C por 25 a 30 minutos.</span></div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <h3>Note for next time</h3>
+          <p class="sub">This is added to Pão de queijo with today’s date. The recipe itself stays as it is.</p>
+          <div class="note-ta"><span class="caret">A massa ficou mole: usei 50 g a mais de polvilho e ficou ótimo.</span></div>
+          <div class="stamp"><svg class="ico sm"><use href="#i-clock"/></svg>19 Oct 2026, 19:42</div>
+          <div class="row2">
+            <div class="btn plain">Cancel</div>
+            <div class="btn">Save note</div>
+          </div>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="cap-head"><span class="num">5</span><h2>A note for future you</h2><span class="rel r3">R3</span></div>
+        <ul>
+          <li>This is the only thing cook mode can write: a dated note appended to the recipe.</li>
+          <li>Notes from different devices never conflict. They just add up.</li>
+          <li>Next time you open the recipe, it shows under “Last time” (screen 2).</li>
+        </ul>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone"><div class="app">
+        <div class="status">9:41</div>
+        <div class="bar">
+          <span class="back"><svg class="ico"><use href="#i-back"/></svg>Settings</span>
+          <span class="mid">Connect this device</span>
+          <span style="width:60px"></span>
+        </div>
+        <div class="body">
+          <div class="form">
+            <p class="lead"><svg class="ico"><use href="#i-lock"/></svg><span>Recipes are encrypted here, on this device, before they travel. GitHub only ever stores scrambled files.</span></p>
+            <div class="seg big"><span class="on">Join my recipes</span><span>Start fresh</span></div>
+            <div class="field">
+              <label>Private repository</label>
+              <div class="input mono">pauloqueiroga/mirepoix-data</div>
+            </div>
+            <div class="field">
+              <label>GitHub token</label>
+              <div class="input mono">github_pat_11A•••••••••••</div>
+              <div class="help">Fine-grained, this repository only, Contents read &amp; write. <span class="link">How?</span></div>
+            </div>
+            <div class="field">
+              <label>Passphrase</label>
+              <div class="input">••••••••••••••••</div>
+              <div class="help warn">It can’t be recovered. Keep a copy somewhere safe.</div>
+            </div>
+            <div class="btn">Connect</div>
+            <ul class="checks">
+              <li><svg class="ico"><use href="#i-check"/></svg>Repository found</li>
+              <li><svg class="ico"><use href="#i-check"/></svg>Passphrase opens your recipes</li>
+              <li><span class="spin"></span>Downloading 128 recipes…</li>
+            </ul>
+            <div class="meter"><i></i></div>
+          </div>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="cap-head"><span class="num">6</span><h2>Connecting a device</h2><span class="rel r2">R2</span></div>
+        <ul>
+          <li>Use “Start fresh” once, on the first device. Every other device uses “Join my recipes” with the same three things.</li>
+          <li>A wrong passphrase is caught before anything downloads.</li>
+          <li>The device keeps the derived key, never the passphrase. After this it opens straight into your recipes.</li>
+        </ul>
+      </figcaption>
+    </figure>
+
+  </section>
+
+  <section class="notes" aria-labelledby="dn">
+    <h2 id="dn">Design notes</h2>
+    <div class="swatches">
+      <div class="sw"><span class="chipc c-onion"></span><div><b>Onion</b><span class="d">Paper and backgrounds</span></div></div>
+      <div class="sw"><span class="chipc c-carrot"></span><div><b>Carrot</b><span class="d">Actions, section headings, the current step</span></div></div>
+      <div class="sw"><span class="chipc c-celery"></span><div><b>Celery</b><span class="d">“All good”: sync, ticks, cook’s notes</span></div></div>
+      <div class="sw"><span class="chipc c-ink"></span><div><b>Ink</b><span class="d">Text, with a softer ink for secondary text</span></div></div>
+    </div>
+    <ul class="dn">
+      <li><b>Type.</b> Recipe text is set in a bookish serif that’s already on your device (Iowan Old Style on Apple, Palatino on Windows). Controls use the system font. There are no web fonts to download.</li>
+      <li><b>Light and dark</b> follow the system. The toggle at the top flips this page.</li>
+      <li><b>Reading never edits.</b> There’s no inline editing and no autosave. Edit is its own screen with Save and Cancel, and cook mode can only add notes.</li>
+      <li><b>Flag, don’t guess.</b> When the parser isn’t sure, it says so and keeps your words.</li>
+      <li><b>Big targets.</b> Anything you tap is at least 44 px. Cook-mode type is readable at arm’s length.</li>
+      <li><b>Not drawn yet:</b> smart paste (R4) and your own units (R5).</li>
+    </ul>
+  </section>
+
+</main>
+
+<script>
+  (function () {
+    var btn = document.getElementById('theme');
+    var root = document.documentElement;
+    function isDark() {
+      if (root.dataset.theme) return root.dataset.theme === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function label() { btn.textContent = isDark() ? 'Switch to light' : 'Switch to dark'; }
+    btn.addEventListener('click', function () {
+      root.dataset.theme = isDark() ? 'light' : 'dark';
+      label();
+    });
+    label();
+  })();
+</script>
+</body>
+</html>

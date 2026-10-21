@@ -57,6 +57,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 **Accepted** · 2026-10-19
 
 - Because each recipe is its own file, a conflict needs the same recipe to be edited on two devices between syncs. That's rare.
+- Recipes captured separately on several people's devices before they connect (R1) never conflict. Ids are random, so connecting merges them as a union (2026-10-20).
 - Writes only succeed if the remote file is still the version we last saw; GitHub rejects stale writes. On a conflict, the remote version stays, and the local version is saved as a separate recipe, "Title (conflict, device, date)", to merge by hand.
 - Cook's notes are append-only, so they merge automatically (R3).
 - Deleting a recipe deletes its file. The data repo's history keeps it recoverable.
@@ -103,8 +104,8 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 ```
 
 - **Quantity** is text in a canonical form (`"2"`, `"1 1/2"`, `"0.5"`, `"2-3"`) and never a float, so ⅓ stays ⅓. The domain layer turns it into exact fractions when it needs to do math.
-- **Unit** is a canonical key for known units (`cup`, `tbsp`, `tsp`, `g`, `kg`, `ml`, `l`, `oz`, `fl oz`, `lb`, `pinch`, `count`, …). It's displayed in the recipe's language, so `cup` shows as "xícara" in a Portuguese recipe. Anything else is kept as written, e.g. "copo americano". Countable items use `count`, which is displayed as nothing. Lines like "to taste" have no quantity and no unit.
-- **Alternatives** are *equivalent* amounts of the same ingredient, shown as "or 300 g". They're never extra.
+- **Unit** is a canonical key for known units (`cup`, `tbsp`, `tsp`, `g`, `kg`, `ml`, `l`, `oz`, `fl oz`, `lb`, `pinch`, `count`, …). It's displayed in the recipe's language, so `cup` shows as "xícara" in a Portuguese recipe. Anything else is kept as written, e.g. "tablete". Countable items use `count`, which is displayed as nothing. Lines like "to taste" have no quantity and no unit.
+- **Alternatives** are *equivalent* amounts of the same ingredient, shown as "or 300 g". They're never extra. All of an ingredient's measures are always shown together; there's no volume/weight switch (2026-10-20).
 - **Sections:** the four sections the user asked for (Ingredients, Preparation, Variations, Notes), plus `cooksNotes`, the dated notes added while cooking. Ingredients and steps can be grouped under headings ("For the sauce").
 - **Text-first:** every ingredient renders to one line and parses back to the same structure. Tests enforce this round trip.
 - **Evolution:** fields can be added without bumping `schema`. Any other change ships with a migration and tests.
@@ -129,7 +130,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 
 ## D11. Hosting: static files on the existing web host
 
-**Proposed** · 2026-10-19
+**Accepted** · 2026-10-19
 
 - The app is only static files. They're served over HTTPS from the user's web host; HTTPS is required for service workers and Web Crypto. Deploying means copying the `app/` folder. The service worker picks up the new version on the next launch.
 - A public app URL is fine. Without the token and passphrase, it's an empty recipe box.
@@ -137,17 +138,18 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 
 ## D12. Testing: every released behavior stays protected
 
-**Proposed** · 2026-10-19
+**Accepted** · 2026-10-19
 
 - **Shape:** most logic lives in pure `domain/` modules with fast unit tests: parser, quantities, rendering, model validation, crypto round trips, and sync rules against an in-memory fake remote. On top of that sits a thin layer of Playwright journeys, one set per release, on Chromium and WebKit. They run against the real app with a fake remote. Tests never touch real GitHub.
 - **Rules:** a behavior isn't done until a test covers it. Every bug fix starts as a failing test. The full suite passes before changes are handed over, and CI (GitHub Actions) runs it on every push.
 
 ## D13. Look and feel
 
-**Proposed** · 2026-10-19
+**Accepted** · 2026-10-19
 
 - Mobile-first and responsive. Light and dark follow the system.
 - System fonts only, with nothing to download: a bookish serif for recipe text (Iowan Old Style on Apple, Palatino on Windows) and the platform UI font for controls.
+- The logo carries the name: lowercase "mirepoix" lettered in Fredoka and drawn as shapes inside the logo images (`app/icons/logo-*.svg`). `npm run logos` regenerates them; the font is used only by that tool and never ships (2026-10-20).
 - The palette comes from the mirepoix itself: **onion** for paper, **carrot** for actions and headings, **celery** for "all good" (sync, ticks, cook's notes). Contrast meets WCAG AA in both themes.
 - Touch targets are at least 44 px. Cook-mode type is readable at arm's length.
 - See [docs/mockups/index.html](docs/mockups/index.html).

@@ -1,0 +1,44 @@
+// What's typed in the editor becomes a recipe, or a short list of what's
+// still missing (R1.6, R1.8). Doubtful lines don't block saving; they're flagged.
+import { parseIngredientList } from './ingredients.js';
+import { newRecipe } from './recipe.js';
+import { parseItems, parseSteps } from './sections.js';
+
+/** @typedef {import('./recipe.js').Lang} Lang */
+/** @typedef {import('./recipe.js').Recipe} Recipe */
+/** @typedef {import('./ingredients.js').ListLine} ListLine */
+/**
+ * Every box of the editor, as typed. Only title, language and ingredients are required here.
+ * @typedef {{ title: string, lang: Lang, ingredients: string,
+ *   source?: string, yield?: string, preparation?: string, variations?: string, notes?: string }} Draft
+ */
+
+/**
+ * @param {Draft} draft
+ * @param {{ id?: string, now?: Date }} [options] fixed id and time, for tests
+ * @returns {{ recipe: Recipe | null, problems: string[], lines: ListLine[] }}
+ */
+export function readDraft(draft, { id, now } = {}) {
+  const { title, lang, ingredients, source = '', yield: makes = '', preparation = '', variations = '', notes = '' } = draft;
+  const { lines, groups } = parseIngredientList(ingredients, lang);
+  /** @type {string[]} */
+  const problems = [];
+  if (!title.trim()) problems.push('Give the recipe a title.');
+  for (const line of lines) {
+    if (line.kind === 'ingredient' && !line.ingredient.name) problems.push(`Line ${line.number} has no ingredient name.`);
+  }
+  if (problems.length > 0) return { recipe: null, problems, lines };
+  return {
+    recipe: {
+      ...newRecipe({ title: title.trim(), lang, id, now }),
+      source: source.trim(),
+      yield: makes.trim(),
+      ingredients: groups,
+      preparation: parseSteps(preparation),
+      variations: parseItems(variations),
+      notes: parseItems(notes),
+    },
+    problems,
+    lines,
+  };
+}
