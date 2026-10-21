@@ -1,0 +1,23 @@
+{
+  // Type-checks the shipped app only (D2, D3). Nothing is emitted.
+  // The service worker runs in a different global scope: see tsconfig.sw.json.
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["app/**/*.js"],
+  "exclude": ["app/sw.js"]
+}

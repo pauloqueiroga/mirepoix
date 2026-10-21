@@ -1,0 +1,25 @@
+{
+  "name": "mirepoix",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Queiroga way of capturing and using recipes.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node tools/serve.js",
+    "check": "tsc -p tsconfig.json && tsc -p tsconfig.sw.json",
+    "test": "node --test \"test/unit/**/*.test.js\"",
+    "test:e2e": "playwright test",
+    "browsers": "playwright install chromium webkit",
+    "icons": "node tools/make-icons.js",
+    "logos": "node tools/make-logos.js",
+    "release": "node tools/release.js",
+    "check:deploy": "node tools/check-deploy.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "typescript": "7.0.2"
+  }
+}

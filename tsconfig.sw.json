@@ -1,0 +1,9 @@
+{
+  // The service worker: same rules as the app, with worker globals instead of the DOM.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["es2023", "webworker"]
+  },
+  "include": ["app/sw.js"],
+  "exclude": []
+}

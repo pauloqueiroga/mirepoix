@@ -4,14 +4,68 @@ Update this file with Wish List items, To-Do items and In Progress items. Done i
 
 Commit changes to this file together with the changes being implemented.
 
+Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to them. `Dn` points to an entry in [DECISIONS.md](DECISIONS.md). An item is done only when its behavior is covered by tests (see README › Working agreements).
+
 ## Wish List
 
-(nothing right now)
+### Planned releases, in order
+
+**R2 · Every device.** The same recipes everywhere, end-to-end encrypted. (D5, D6, D7)
+
+- **R2.1 Crypto envelope.** PBKDF2 → AES-256-GCM, plus a `vault.json` holding the salt, iterations and a key check. A wrong passphrase and a tampered file are both detected and reported differently.
+- **R2.2 GitHub remote.** Branch-head check, tree listing, and get/put/delete of a file guarded by its last-seen version. Comes with a fake remote for tests.
+- **R2.3 Sync engine.** First download, incremental pull, a push queue that survives going offline and reloading, deletions, and conflict copies (D6).
+- **R2.4 Connect this device.** Start fresh (create the vault), join an existing vault, and disconnect. None of these ever discard recipes already on the device. The key is remembered on the device; the passphrase never is.
+- **R2.5 Sync status and errors.** A status chip, plus clear states for offline, an expired or revoked token, and a wrong passphrase.
+- **R2.6 Merge everyone's R1 recipes.** During R1, two or three people capture recipes on their own devices. When a device connects, the shared base becomes the union: the device uploads its recipes and downloads everyone else's. Ids are random (D8), so nothing collides or overwrites. If two people typed the same dish, both recipes are kept side by side for someone to merge or delete. *Done when* an e2e test with three devices (A starts fresh, B and C join, each with its own R1 recipes) ends with all three holding the same union.
+
+**R3 · Cook mode.** (D10)
+
+- **R3.1 Cook view.** Large type, no editing controls, and the screen kept awake.
+- **R3.2 Ticks.** Tap to tick ingredients and steps, with the current step highlighted. Ticks are temporary and never saved.
+- **R3.3 Note for next time.** Dated, append-only cook's notes. The newest shows as "Last time" on the recipe. They merge across devices without conflicts.
+
+**R4 · Smart paste.**
+
+- **R4.1 Whole-recipe paste.** One box. Sections are found by their headings in English or Portuguese (Ingredients/Ingredientes, Preparation/Method/Modo de preparo, Variations/Variações, Notes/Notas/Dicas).
+- **R4.2 Steps and stray ingredients.** Split steps on numbered lines and paragraphs, and spot ingredient-looking lines that have no heading.
+- **R4.3 Paste into an existing recipe.** The pasted text is appended to the section you choose.
+
+**R5 · Your measures.**
+
+- **R5.1 More ways to write equivalents.** `2 cups / 437 g`, `2 cups or 437 g`, `2 xícaras ou 437 g`.
+- **R5.2 My units.** Accept a new unit once ("copo americano") and it's recognized from then on.
+
+### Someday, maybe
+
+- Tags, and filtering by tag
+- Scale a recipe (×½, ×2, custom servings)
+- Print-friendly view
+- Export as Markdown (a human-readable backup)
+- Change the passphrase (re-encrypts everything)
+- Link a new device with a QR code
+- Recipe history and restore, using the data repo's commits
+- Portuguese UI
+- Links between recipes ("see Pâte brisée")
+- Photos of the dish or the book page, encrypted
+- Timers from step text ("bake 10–12 minutes")
 
 ## To-Do
 
-(nothing right now)
+**R1 · Recipe box (this device).** Capture, read and find recipes on one device. It's useful from day one and becomes the base for everything else. (D1–D4, D8–D13)
+
+Every item ends with something you can do in the running app (`npm run dev`), not just new code.
+
+**After the first deploy.**
+
+- **R1.13 Privacy policy.** A short page, linked from the app, saying what Mirepoix keeps and where: in this browser only for now; from R2 also in your private GitHub repository, encrypted. Nothing is sent anywhere else, unless R1.14 changes that, in which case the page says exactly what and why.
+- **R1.14 Analytics (Google Analytics asked for).** *Needs a decision first.* Google Analytics loads Google's script and reports every visit to Google. D7 rules that out today (only our own scripts; the network reaches only GitHub), and so does "private by default". Options to decide between:
+  - Google Analytics behind a consent banner, with a CSP exception for Google's domains.
+  - A privacy-friendly counter, which still needs a CSP exception.
+  - The host's own visit statistics: cPanel usually includes AWStats. No code and no change to D7.
+- **R1.15 SEO.** Title, description and share preview (Open Graph tags plus an image from the stacked logo) for the public pages: the app's front door and the privacy page. Add `robots.txt`, plus a canonical address once the app has its own domain. Recipes stay private and are never indexable: they live on the device, and from R2 encrypted.
+- **R1.16 Number Spelling.** for the ingredients, make the parser smart enough to read written number quantities (e.g. "two") and save as the number (e.g. "2").
 
 ## In Progress
 
-(nothing right now)
+- **R1.12 Deploy.** Apache shared hosting, uploaded over FTP/SFTP to https://pauloq.com/mirepoix/ (its own domain later). Ready: `app/.htaccess` with the security headers, version 0.1.0, and the deploy steps in the README. *Waiting on the maintainer:* upload `app/`, run `npm run check:deploy -- https://pauloq.com/mirepoix/`, tag `v0.1.0`.

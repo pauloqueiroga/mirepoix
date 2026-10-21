@@ -1,0 +1,99 @@
+# Portuguese ingredient lines and how Mirepoix reads them (R1.5, D9).
+#
+#   line  =>  quantity | unit | name | note | equivalents | doubts
+#
+# Trailing empty fields can be left out. Equivalents look like "240 g" or
+# "240 ml; 8 fl oz". Doubts are codes separated by spaces. Lines starting with
+# # are comments. Add every real-world line that surprised us.
+
+# Xícaras e colheres
+2 xícaras de farinha de trigo => 2 | cup | farinha de trigo
+1 xícara (chá) de açúcar => 1 | cup | açúcar
+1 xícara de chá de leite => 1 | cup | leite
+2 xíc. de leite => 2 | cup | leite
+1 xícara d'água => 1 | cup | água
+1 colher (sopa) de manteiga => 1 | tbsp | manteiga
+2 colheres (sopa) de azeite => 2 | tbsp | azeite
+1 colher de sopa de fermento em pó => 1 | tbsp | fermento em pó
+1 colher (chá) de sal => 1 | tsp | sal
+1 c. (chá) de canela => 1 | tsp | canela
+1 colher de sobremesa de mel => 1 | dessert spoon | mel
+1 colher (café) de noz-moscada => 1 | coffee spoon | noz-moscada
+1 xícara (café) de óleo => 1 | coffee cup | óleo
+1 colher de manteiga => 1 | spoon | manteiga
+1 copo de água => 1 | glass | água
+1 copo americano de leite => 1 | copo americano | leite
+2 copos americanos de leite => 2 | copo americano | leite
+
+# Peso e volume
+500 g de polvilho azedo => 500 | g | polvilho azedo
+500g de carne moída => 500 | g | carne moída
+1 kg de batata => 1 | kg | batata
+1,5 kg de costela => 1.5 | kg | costela
+1.500 g de farinha => 1500 | g | farinha
+0,5 kg de músculo => 0.5 | kg | músculo
+200 ml de creme de leite => 200 | ml | creme de leite
+1 litro de leite => 1 | l | leite
+
+# Pedaços e embalagens
+4 dentes de alho => 4 | clove | alho
+1 cabeça de alho => 1 | head | alho
+2 folhas de louro => 2 | leaf | louro
+1 maço de cheiro-verde => 1 | bunch | cheiro-verde
+2 fatias de pão de forma => 2 | slice | pão de forma
+1 dúzia de ovos => 1 | dozen | ovos
+1 lata de leite condensado => 1 | can | leite condensado
+1 caixinha de creme de leite => 1 | box | creme de leite
+1 pacote de biscoito maisena => 1 | package | biscoito maisena
+1 envelope de gelatina sem sabor => 1 | envelope | gelatina sem sabor
+1 pote de iogurte natural => 1 | jar | iogurte natural
+1 vidro de palmito => 1 | jar | palmito
+1 fio de azeite => 1 | drizzle | azeite
+1 punhado de salsinha => 1 | handful | salsinha
+
+# Contados, sem unidade
+2 ovos => 2 | count | ovos
+3 cebolas médias => 3 | count | cebolas médias
+1 cebola picada => 1 | count | cebola picada
+2 ou 3 tomates => 2-3 | count | tomates
+
+# Frações e intervalos
+1/2 xícara de óleo => 1/2 | cup | óleo
+½ xícara de óleo => 1/2 | cup | óleo
+1 e 1/2 xícara de açúcar => 1 1/2 | cup | açúcar
+1 e meia xícara de açúcar => 1 1/2 | cup | açúcar
+1 xícara e meia de açúcar => 1 1/2 | cup | açúcar
+2 a 3 colheres (sopa) de água => 2-3 | tbsp | água
+
+# Quantidades por extenso
+uma pitada de sal => 1 | pinch | sal
+um fio de azeite => 1 | drizzle | azeite
+meia xícara de leite => 1/2 | cup | leite
+meio quilo de carne => 1/2 | kg | carne
+cerca de 2 xícaras de caldo => 2 | cup | caldo | cerca de
+
+# Observações
+sal a gosto => | | sal | a gosto
+sal e pimenta a gosto => | | sal e pimenta | a gosto
+queijo parmesão a gosto => | | queijo parmesão | a gosto
+salsinha q.b. => | | salsinha | q.b.
+1 cebola, picada => 1 | count | cebola | picada
+200 g de queijo, ralado grosso => 200 | g | queijo | ralado grosso
+1,5 kg de farinha, peneirada => 1.5 | kg | farinha | peneirada
+1 colher (sopa) de açúcar (opcional) => 1 | tbsp | açúcar | opcional
+
+# Equivalências
+2 xícaras (240 g) de farinha => 2 | cup | farinha | | 240 g
+1 xícara (200 g) de queijo meia-cura ralado => 1 | cup | queijo meia-cura ralado | | 200 g
+1 lata (395 g) de leite condensado => 1 | can | leite condensado | | 395 g
+
+# Explícito: quantidade | unidade | nome
+1 | tablete | fermento biológico => 1 | tablete | fermento biológico
+3 | | ovos de codorna => 3 | count | ovos de codorna
+2 | punhado | salsinha => 2 | handful | salsinha
+
+# Dúvidas: lidas como estão, e sinalizadas
+1 tablete de fermento biológico => 1 | tablete | fermento biológico | | | unknown-unit
+3 ovos de codorna => 3 | ovos | codorna | | | unknown-unit
+pitada de sal => 1 | pinch | sal | | | assumed-quantity
+2 xícaras => 2 | cup | | | | no-name
