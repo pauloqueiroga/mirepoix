@@ -58,6 +58,7 @@ Every item ends with something you can do in the running app (`npm run dev`), no
 
 - **R1.11 Keep a copy.** Export all recipes as one versioned JSON file; import merges by id, so it can also combine two devices' recipes before R2. Until R2, the "This device only" chip points to Export.
 - **R1.12 Deploy.** Confirm the host details (HTTPS, server type, how files get there). Add security headers (CSP), write the deploy steps in the README, and tag the first release.
+- **R1.13 Number Spelling.** for the ingredients, make the parser smart enough to read written number quantities (e.g. "two") and save as the number (e.g. "2").
 
 ## In Progress
 
