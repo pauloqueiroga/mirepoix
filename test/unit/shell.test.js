@@ -5,18 +5,20 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { wantsServiceWorker } from '../../app/offline.js';
+import { SECURITY_HEADERS } from '../../tools/serve.js';
 
 const appDir = fileURLToPath(new URL('../../app/', import.meta.url));
 
 /** @param {string} path relative to app/ */
 const inApp = (path) => join(appDir, ...path.split('/'));
 
-/** Every file under app/, as "ui/app.js"-style paths. */
+/** Every file under app/ that a browser can load, as "ui/app.js"-style paths (not .htaccess). */
 async function appFiles() {
   const entries = await readdir(appDir, { recursive: true, withFileTypes: true });
   return entries
     .filter((entry) => entry.isFile())
-    .map((entry) => relative(appDir, join(entry.parentPath, entry.name)).split(sep).join('/'));
+    .map((entry) => relative(appDir, join(entry.parentPath, entry.name)).split(sep).join('/'))
+    .filter((path) => !path.split('/').some((part) => part.startsWith('.')));
 }
 
 /** Reads VERSION and SHELL from the service worker without a browser. */
@@ -86,6 +88,14 @@ test('the logos carry their lettering as shapes, never as text or fonts (D13)', 
     assert.match(svg, /<path [^>]*d="M/, `${path} draws its letters`);
     assert.doesNotMatch(svg, /<text|font-family|@font-face|<style|<script/i, `${path} has no text, fonts, styles or scripts`);
   }
+});
+
+test('the Apache config sends exactly the dev server\'s security headers', async () => {
+  const config = await readFile(inApp('.htaccess'), 'utf8');
+  const sent = Object.fromEntries([...config.matchAll(/^\s*Header always set (\S+) "([^"]*)"/gm)].map((m) => [m[1], m[2]]));
+  assert.deepEqual(sent, SECURITY_HEADERS);
+  assert.match(config, /RewriteRule \^ https:/, 'plain HTTP goes to HTTPS');
+  assert.match(config, /Header set Cache-Control "no-cache"/, 'browsers check for new versions');
 });
 
 test('every file index.html refers to exists', async () => {

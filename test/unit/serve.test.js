@@ -30,6 +30,12 @@ describe('resolveFile', () => {
     }
   });
 
+  test('never serves dot files, like Apache', () => {
+    assert.equal(resolveFile(root, '/.htaccess'), null);
+    assert.equal(resolveFile(root, '/icons/.hidden.svg'), null);
+    assert.equal(resolveFile(root, '/%2Ehtaccess'), null);
+  });
+
   test('refuses malformed paths', () => {
     assert.equal(resolveFile(root, '/%E0%A4%A'), null);
     assert.equal(resolveFile(root, '/index.html%00.js'), null);

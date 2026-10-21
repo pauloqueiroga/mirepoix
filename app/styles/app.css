@@ -755,3 +755,47 @@ code {
   font-size: 1.05rem;
   line-height: 1.5;
 }
+/* Keep a copy */
+
+a.chip { text-decoration: none; }
+
+.button.secondary {
+  background: transparent;
+  color: var(--carrot);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+/* Hidden from sight, still reachable by keyboard and assistive tech. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.visually-hidden:focus-visible + .button {
+  outline: 2px solid var(--carrot);
+  outline-offset: 2px;
+}
+
+.backup {
+  max-width: 46rem;
+  padding: 0 max(var(--gutter), env(safe-area-inset-right)) 48px max(var(--gutter), env(safe-area-inset-left));
+}
+
+.backup p { margin: 0 0 12px; }
+
+.backup .lead { color: var(--ink-2); }
+
+.status {
+  min-height: 1.5em;
+  margin-top: 20px;
+  font-weight: 600;
+}
+
+.empty .aside {
+  margin-top: 16px;
+  font-size: .9rem;
+}

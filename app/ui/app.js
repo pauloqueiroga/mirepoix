@@ -1,6 +1,7 @@
 import { byTitle } from '../domain/recipe.js';
 import { openLocalStore, requestPersistentStorage } from '../store/local-store.js';
 import { matchRoute } from './router.js';
+import { backupView } from './views/backup.js';
 import { editorView } from './views/editor.js';
 import { listView } from './views/list.js';
 import { messageView } from './views/message.js';
@@ -12,6 +13,7 @@ const ROUTES = [
   { name: 'new', path: '/new' },
   { name: 'recipe', path: '/recipes/:id' },
   { name: 'edit', path: '/recipes/:id/edit' },
+  { name: 'backup', path: '/backup' },
 ];
 
 const NOT_FOUND = { title: 'Recipe not found', text: 'It may have been deleted, or the address is wrong.', back: true };
@@ -81,6 +83,9 @@ export async function startApp(root) {
         })
         : messageView(NOT_FOUND);
       if (recipe) title = `Edit ${recipe.title} · Mirepoix`;
+    } else if (route?.name === 'backup') {
+      nodes = backupView({ count: (await store.list()).length, list: () => store.list(), put: save });
+      title = 'Keep a copy · Mirepoix';
     } else {
       nodes = messageView({ title: 'Page not found', text: 'That address doesn’t match anything in Mirepoix.', back: true });
     }

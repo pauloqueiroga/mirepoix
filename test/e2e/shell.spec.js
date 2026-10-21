@@ -41,6 +41,26 @@ test('no font is ever downloaded: system fonts only (D13)', async ({ page }) => 
   expect(fonts).toEqual([]);
 });
 
+test('no screen lets its content touch the edge of the window', async ({ page }) => {
+  await page.goto('/');
+  const id = await page.evaluate(async () => {
+    const { openLocalStore } = await import('/store/local-store.js');
+    const { newRecipe } = await import('/domain/recipe.js');
+    const recipe = newRecipe({ title: 'Feijoada' });
+    await (await openLocalStore()).put(recipe);
+    return recipe.id;
+  });
+  for (const address of ['/', '/#/new', `/#/recipes/${id}`, `/#/recipes/${id}/edit`, '/#/backup', '/#/nope']) {
+    await page.goto(address);
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+    // Text, not rows: list rows run edge to edge on purpose, with their text inset.
+    const text = 'main h1, main h2, main h3, main p, main label, main input, main textarea, main .title, main .amount, main .name';
+    const lefts = await page.locator(text).evaluateAll(
+      (elements) => elements.filter((el) => el.getClientRects().length > 0).map((el) => el.getBoundingClientRect().left));
+    expect(Math.min(...lefts), address).toBeGreaterThanOrEqual(12);
+  }
+});
+
 test('unknown addresses say so and lead back to the recipes', async ({ page }) => {
   await page.goto('/#/no-such-page');
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();

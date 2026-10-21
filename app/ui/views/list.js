@@ -16,7 +16,7 @@ export function listView(recipes, { query = '', remember = () => {} } = {}) {
   return [
     h('header', { class: 'bar' },
       h('h1', { class: 'wordmark' }, brand()),
-      h('span', { class: 'chip warn', title: 'Recipes are saved in this browser, on this device.' },
+      h('a', { class: 'chip warn', href: '#/backup', title: 'Recipes are saved in this browser, on this device. Tap to keep a copy.' },
         h('span', { class: 'dot', 'aria-hidden': 'true' }),
         'This device only')),
     h('main', { class: 'page' },
@@ -24,7 +24,8 @@ export function listView(recipes, { query = '', remember = () => {} } = {}) {
         ? [h('div', { class: 'empty' },
           logo(),
           h('h2', null, 'No recipes yet'),
-          h('p', null, 'Tap + to add your first one. Recipes are kept in this browser, on this device.'))]
+          h('p', null, 'Tap + to add your first one. Recipes are kept in this browser, on this device.'),
+          h('p', { class: 'aside' }, 'Have an export from another device? ', h('a', { href: '#/backup' }, 'Import it')))]
         : searchable(recipes, query, remember))),
     h('a', { class: 'fab', href: '#/new', 'aria-label': 'New recipe', title: 'New recipe' }),
   ];

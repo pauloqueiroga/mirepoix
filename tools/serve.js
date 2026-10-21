@@ -52,6 +52,8 @@ export function resolveFile(root, urlPath) {
     return null;
   }
   if (path.includes('\0') || path.includes('\\')) return null;
+  // Like Apache: dot files (.htaccess) are server configuration, never served.
+  if (path.split('/').some((part) => part.startsWith('.'))) return null;
   if (path.endsWith('/')) path += 'index.html';
   const base = resolve(root);
   const file = resolve(base, '.' + path);

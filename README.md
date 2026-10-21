@@ -104,6 +104,8 @@ npm test             # unit tests
 npm run test:e2e     # browser journeys: desktop Chromium, iPhone-sized WebKit
 npm run icons        # after editing app/icons/icon.svg: re-render the PNGs
 npm run logos        # and redraw the logos with the lettered name
+npm run release -- 0.1.1                              # set the version for a deploy
+npm run check:deploy -- https://pauloq.com/mirepoix/  # check a deployed site
 ```
 
 - The dev server sends the same Content-Security-Policy as production (D7), so an inline script or style fails locally and in the tests, not after a deploy.
@@ -111,6 +113,18 @@ npm run logos        # and redraw the logos with the lettered name
 - The service worker's file list (`SHELL` in `app/sw.js`) must match the files in `app/`; a unit test fails when they drift. Its `VERSION` moves with `package.json`'s version, and bumping both is what makes installed devices pick up a release.
 - The ingredient parser's expectations live in `test/fixtures/ingredients.en.txt` and `ingredients.pt.txt`, one case per line: `line => quantity | unit | name | note | equivalents | doubts`. When a real recipe line reads wrong, add it there first (the test fails), then fix the parser.
 - Only `app/`, the code that ships, is type-checked. Tests and tools run as plain JavaScript, which keeps `@types/node` out of the dependency list.
+
+## Deploy
+
+The app is the `app/` folder as it is: no build step. It runs from any folder, over HTTPS. Today it lives at **https://pauloq.com/mirepoix/** (Apache shared hosting, uploaded over FTP/SFTP).
+
+1. **Test:** `npm run check`, `npm test` and `npm run test:e2e` all pass.
+2. **Version:** `npm run release -- 0.1.1` (the next number). Installed apps only pick up new files when the version changes.
+3. **Upload** the *contents* of `app/` into the site's `mirepoix/` folder, replacing what's there. Turn on "show hidden files" in the FTP client so `.htaccess` goes too: it carries the security headers, the HTTPS redirect and the caching rules.
+4. **Check from the outside:** `npm run check:deploy -- https://pauloq.com/mirepoix/`. It confirms the headers, that every file is there at this version, that `.htaccess` stays private, and that HTTP redirects to HTTPS.
+5. **Tag** the release in Git, e.g. `v0.1.1`.
+
+**Moving to another address later** (its own domain, for example): upload the same folder there. Each web address keeps its own recipes in the browser, so on every device, use **This device only → Export** at the old address, then **Import** at the new one.
 
 ## Working agreements
 

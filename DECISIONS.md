@@ -135,6 +135,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - The app is only static files. They're served over HTTPS from the user's web host; HTTPS is required for service workers and Web Crypto. Deploying means copying the `app/` folder. The service worker picks up the new version on the next launch.
 - A public app URL is fine. Without the token and passphrase, it's an empty recipe box.
 - Security headers (CSP, caching) go in the host's configuration (e.g. `.htaccess` on Apache). The details get confirmed when R1 is deployed.
+- Confirmed 2026-10-20: Apache shared hosting at https://pauloq.com/mirepoix/, uploaded over FTP/SFTP, with its own domain later. `app/.htaccess` carries the headers; a unit test keeps them equal to the dev server's. It doesn't set HSTS, which would bind the whole domain. Moving to a new address means exporting and importing, because browser storage belongs to each address.
 
 ## D12. Testing: every released behavior stays protected
 
