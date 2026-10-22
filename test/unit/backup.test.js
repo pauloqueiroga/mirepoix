@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { describeImport, exportFile, mergePlan, readExport } from '../../app/domain/backup.js';
+import { exportFile, mergePlan, readExport } from '../../app/domain/backup.js';
 import { newRecipe } from '../../app/domain/recipe.js';
 
 const noon = new Date(2026, 9, 20, 12, 0, 0);
@@ -31,12 +31,11 @@ test('an export reads back to the same recipes', () => {
 });
 
 test('files that are not Mirepoix exports are refused with a reason', () => {
-  assert.deepEqual(readExport('not json at all'), { error: 'That file isn’t a Mirepoix export.' });
-  assert.deepEqual(readExport('{"recipes": []}'), { error: 'That file isn’t a Mirepoix export.' });
-  assert.deepEqual(readExport('[1, 2]'), { error: 'That file isn’t a Mirepoix export.' });
-  assert.deepEqual(readExport('{"format": "mirepoix-recipes", "version": 2, "recipes": []}'),
-    { error: 'That export comes from a newer Mirepoix. Update this one, then try again.' });
-  assert.deepEqual(readExport('{"format": "mirepoix-recipes", "version": 1}'), { error: 'That export has no recipes in it.' });
+  assert.deepEqual(readExport('not json at all'), { error: 'not-an-export' });
+  assert.deepEqual(readExport('{"recipes": []}'), { error: 'not-an-export' });
+  assert.deepEqual(readExport('[1, 2]'), { error: 'not-an-export' });
+  assert.deepEqual(readExport('{"format": "mirepoix-recipes", "version": 2, "recipes": []}'), { error: 'too-new' });
+  assert.deepEqual(readExport('{"format": "mirepoix-recipes", "version": 1}'), { error: 'no-recipes' });
 });
 
 test('recipes that are not valid are skipped and counted, never imported', () => {
@@ -65,11 +64,4 @@ test('the same moment written two ways is not newer', () => {
 test('importing into an empty recipe box adds everything', () => {
   const incoming = [recipe('Feijoada', 'a'), recipe('Pão de queijo', 'b')];
   assert.deepEqual(mergePlan([], incoming), { put: incoming, added: 2, updated: 0, unchanged: 0 });
-});
-
-test('the import summary says what happened in plain words', () => {
-  assert.equal(describeImport({ added: 3, updated: 1, unchanged: 2, skipped: 0 }), 'Added 3 recipes and updated 1. 2 were already here.');
-  assert.equal(describeImport({ added: 1, updated: 0, unchanged: 0, skipped: 1 }), 'Added 1 recipe. 1 couldn’t be read and was skipped.');
-  assert.equal(describeImport({ added: 0, updated: 0, unchanged: 4, skipped: 0 }), 'Nothing new to add. 4 were already here.');
-  assert.equal(describeImport({ added: 0, updated: 2, unchanged: 0, skipped: 3 }), 'Updated 2. 3 couldn’t be read and were skipped.');
 });

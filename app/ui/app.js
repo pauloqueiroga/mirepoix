@@ -1,6 +1,7 @@
 import { analyticsActive, askForAnalytics, screenShown, startAnalytics } from '../analytics.js';
 import { byTitle } from '../domain/recipe.js';
 import { openLocalStore, requestPersistentStorage } from '../store/local-store.js';
+import { t, uiLang } from './i18n.js';
 import { matchRoute } from './router.js';
 import { backupView } from './views/backup.js';
 import { editorView } from './views/editor.js';
@@ -17,7 +18,7 @@ const ROUTES = [
   { name: 'backup', path: '/backup' },
 ];
 
-const NOT_FOUND = { title: 'Recipe not found', text: 'It may have been deleted, or the address is wrong.', back: true };
+const NOT_FOUND = { title: t.recipeNotFound, text: t.recipeNotFoundText, back: true };
 
 /**
  * Opens the device's recipes, then renders the screen for the current hash,
@@ -25,6 +26,7 @@ const NOT_FOUND = { title: 'Recipe not found', text: 'It may have been deleted, 
  * @param {HTMLElement} root
  */
 export async function startApp(root) {
+  document.documentElement.lang = uiLang;
   /** @type {import('../store/local-store.js').RecipeStore} */
   let store;
   try {
@@ -32,8 +34,8 @@ export async function startApp(root) {
   } catch (error) {
     console.warn('Recipe storage is unavailable:', error);
     root.replaceChildren(...messageView({
-      title: 'This browser can’t keep recipes',
-      text: 'Private browsing or blocked site data stops Mirepoix from saving. Try a regular window, or allow this site to store data.',
+      title: t.noStorage,
+      text: t.noStorageText,
     }));
     return;
   }
@@ -71,14 +73,14 @@ export async function startApp(root) {
       });
       screen = 'recipes';
     } else if (route?.name === 'new') {
-      nodes = editorView({ lang: preferredLang(), save, leave: () => go('#/'), leaving });
-      title = 'New recipe · Mirepoix';
+      nodes = editorView({ lang: uiLang, save, leave: () => go('#/'), leaving });
+      title = `${t.newRecipe} · Mirepoix`;
       screen = 'new recipe';
     } else if (route?.name === 'recipe') {
       const recipe = await store.get(id);
       nodes = recipe ? recipeView(recipe) : messageView(NOT_FOUND);
       if (recipe) {
-        title = named(`${recipe.title} · Mirepoix`, 'Recipe · Mirepoix');
+        title = named(`${recipe.title} · Mirepoix`, `${t.recipe} · Mirepoix`);
         screen = 'recipe';
       }
     } else if (route?.name === 'edit') {
@@ -94,15 +96,15 @@ export async function startApp(root) {
         })
         : messageView(NOT_FOUND);
       if (recipe) {
-        title = named(`Edit ${recipe.title} · Mirepoix`, 'Edit recipe · Mirepoix');
+        title = named(`${t.editNamed(recipe.title)} · Mirepoix`, `${t.editRecipe} · Mirepoix`);
         screen = 'edit recipe';
       }
     } else if (route?.name === 'backup') {
       nodes = backupView({ count: (await store.list()).length, list: () => store.list(), put: save });
-      title = 'Keep a copy · Mirepoix';
+      title = `${t.keepACopy} · Mirepoix`;
       screen = 'keep a copy';
     } else {
-      nodes = messageView({ title: 'Page not found', text: 'That address doesn’t match anything in Mirepoix.', back: true });
+      nodes = messageView({ title: t.pageNotFound, text: t.pageNotFoundText, back: true });
     }
     if (ticket !== latest) return;
     document.title = title;
@@ -113,7 +115,7 @@ export async function startApp(root) {
   };
 
   addEventListener('hashchange', () => {
-    if (leaving.unsaved() && !confirm('Leave without saving? Your changes will be lost.')) {
+    if (leaving.unsaved() && !confirm(t.leaveUnsaved)) {
       history.pushState(null, '', shown); // stay put; pushState doesn't fire hashchange
       return;
     }
@@ -125,9 +127,4 @@ export async function startApp(root) {
   startAnalytics();
   await render();
   askForAnalytics();
-}
-
-/** Portuguese for browsers set to Portuguese, English otherwise. */
-function preferredLang() {
-  return navigator.language.toLowerCase().startsWith('pt') ? 'pt' : 'en';
 }

@@ -56,7 +56,9 @@ for (const lang of /** @type {const} */ (['en', 'pt'])) {
       const reading = parseIngredient(line, lang);
       assert.deepEqual(reading.ingredient, ingredient, `${where}: ${line}`);
       assert.deepEqual(reading.doubts.map((doubt) => doubt.code).sort(), doubts, `${where}: doubts for ${line}`);
-      for (const doubt of reading.doubts) assert.ok(doubt.message.length > 10, `${where}: ${doubt.code} explains itself`);
+      for (const doubt of reading.doubts.filter(({ code }) => code === 'unknown-unit')) {
+        assert.equal(doubt.detail, reading.ingredient.unit, `${where}: the doubt names the new unit`);
+      }
     }
   });
 

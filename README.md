@@ -17,7 +17,7 @@ Every release is usable on its own; each one adds to the last.
 
 | Release | What you get |
 | --- | --- |
-| **R1 · Recipe box** | Paste or type recipes into sections (Ingredients, Preparation, Variations, Notes). Ingredients are parsed in English and Portuguese, including equivalents like "2 cups (437 g)". A read-only recipe view, search, export/import, and offline use. Recipes stay on the device they were captured on. |
+| **R1 · Recipe box** | Paste or type recipes into sections (Ingredients, Preparation, Variations, Notes). Ingredients are parsed in English and Portuguese, including equivalents like "2 cups (437 g)". A read-only recipe view, search, export/import, and offline use. Screens in English or Portuguese. Recipes stay on the device they were captured on. |
 | **R2 · Every device** | The same recipes everywhere, synced end-to-end encrypted through a private GitHub repository. Everyone's R1 recipes merge into one shared recipe box. |
 | **R3 · Cook mode** | Big type, the screen stays on, tick off ingredients and steps, and add dated notes without touching the recipe. |
 | **R4 · Smart paste** | Paste a whole recipe (or any chunk) in one go, and Mirepoix finds the sections. |
@@ -63,7 +63,7 @@ The full reasoning, alternatives and trade-offs are in [DECISIONS.md](DECISIONS.
 | Data on the device | IndexedDB |
 | Sync | Private GitHub repository via the REST API, with a fine-grained token per device |
 | Encryption | AES-256-GCM, with the key derived from a passphrase by PBKDF2, using the browser's Web Crypto API |
-| Languages | Recipes in English or Portuguese (per recipe); UI in English |
+| Languages | Recipes in English or Portuguese (per recipe); screens in English or Portuguese, following the browser, with a switch at the bottom of the list (D15) |
 | Tooling | Node.js LTS, `node --test`, Playwright (Chromium + WebKit), TypeScript for type-checking JSDoc |
 | Hosting | Static files over HTTPS on the existing web host |
 | Analytics | Google Analytics, opt-in, screen names only (D14). Off until `app/config.js` has a Measurement ID. |
@@ -113,6 +113,7 @@ npm run check:deploy -- https://pauloq.com/mirepoix/  # check a deployed site
 - On `localhost` the service worker stays off, so edits show up on reload. Add `?sw` to the address to try offline behavior.
 - The service worker's file list (`SHELL` in `app/sw.js`) must match the files in `app/`; a unit test fails when they drift. Its `VERSION` moves with `package.json`'s version, and bumping both is what makes installed devices pick up a release.
 - The ingredient parser's expectations live in `test/fixtures/ingredients.en.txt` and `ingredients.pt.txt`, one case per line: `line => quantity | unit | name | note | equivalents | doubts`. When a real recipe line reads wrong, add it there first (the test fails), then fix the parser.
+- Every word on screen lives in `app/ui/i18n.js`, in English and Portuguese; new text goes in both. Type-checking and `npm test` fail when Portuguese is missing something English has. Browser tests run with an English browser (`playwright.config.js`); the Portuguese ones set their own.
 - Only `app/`, the code that ships, is type-checked. Tests and tools run as plain JavaScript, which keeps `@types/node` out of the dependency list.
 
 ## Deploy

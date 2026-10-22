@@ -1,5 +1,6 @@
 import { displayAmount } from '../../domain/ingredients.js';
 import { h } from '../dom.js';
+import { t } from '../i18n.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('../../domain/recipe.js').Ingredient} Ingredient */
@@ -15,24 +16,24 @@ import { h } from '../dom.js';
  */
 export function recipeView(recipe) {
   const { lang } = recipe;
-  const meta = [recipe.source, recipe.yield && `Makes ${recipe.yield}`].filter(Boolean).join(' · ');
+  const meta = [recipe.source, recipe.yield && t.makes(recipe.yield)].filter(Boolean).join(' · ');
   const ingredients = recipe.ingredients.filter((group) => group.heading || group.items.length > 0);
   const preparation = recipe.preparation.filter((group) => group.heading || group.steps.length > 0);
   return [
     h('header', { class: 'bar' },
-      h('a', { class: 'back', href: '#/' }, 'Recipes'),
-      h('a', { class: 'edit-link', href: `#/recipes/${encodeURIComponent(recipe.id)}/edit` }, 'Edit')),
+      h('a', { class: 'back', href: '#/' }, t.recipes),
+      h('a', { class: 'edit-link', href: `#/recipes/${encodeURIComponent(recipe.id)}/edit` }, t.edit)),
     h('main', { class: 'page recipe' },
       h('h1', { class: 'recipe-title', lang }, recipe.title),
       meta && h('p', { class: 'meta', lang }, meta),
-      section('ingredients', 'Ingredients',
+      section('ingredients', t.ingredients,
         ingredients.length > 0
           ? h('div', { class: 'ingredient-groups' }, ...ingredients.flatMap((group) => ingredientGroup(group, lang)))
-          : h('p', { class: 'nothing-yet' }, 'No ingredients yet.')),
-      preparation.length > 0 && section('preparation', 'Preparation', ...stepGroups(preparation, lang)),
-      recipe.variations.length > 0 && section('variations', 'Variations',
+          : h('p', { class: 'nothing-yet' }, t.noIngredients)),
+      preparation.length > 0 && section('preparation', t.preparation, ...stepGroups(preparation, lang)),
+      recipe.variations.length > 0 && section('variations', t.variations,
         h('ul', { class: 'bullets', lang }, ...recipe.variations.map((variation) => h('li', null, variation)))),
-      recipe.notes.length > 0 && section('notes', 'Notes',
+      recipe.notes.length > 0 && section('notes', t.notes,
         ...recipe.notes.map((note) => h('p', { class: 'note-text', lang }, note)))),
   ];
 }
@@ -55,7 +56,7 @@ function section(id, label, ...content) {
 function ingredientGroup({ heading, items }, lang) {
   return [
     heading && h('h3', { class: 'group-heading', lang }, heading),
-    h('ul', { class: 'ingredients', lang, 'aria-label': heading || 'Ingredients' }, ...items.map((item) => ingredientRow(item, lang))),
+    h('ul', { class: 'ingredients', lang, 'aria-label': heading || t.ingredients }, ...items.map((item) => ingredientRow(item, lang))),
   ];
 }
 
@@ -67,7 +68,7 @@ function ingredientRow(ingredient, lang) {
   return h('li', null,
     h('span', { class: 'amount' },
       displayAmount(ingredient, lang),
-      ...ingredient.alternatives.map((alternative) => h('span', { class: 'alt' }, `or ${displayAmount(alternative, lang)}`))),
+      ...ingredient.alternatives.map((alternative) => h('span', { class: 'alt' }, t.or(displayAmount(alternative, lang))))),
     h('span', { class: 'name' },
       ingredient.name,
       ingredient.note && h('span', { class: 'note' }, `, ${ingredient.note}`)));
@@ -86,7 +87,7 @@ export function stepGroups(groups, lang) {
     next += steps.length;
     return [
       heading && h('h3', { class: 'group-heading', lang }, heading),
-      steps.length > 0 && h('ol', { class: 'steps', lang, start: String(start), 'aria-label': heading || 'Steps' },
+      steps.length > 0 && h('ol', { class: 'steps', lang, start: String(start), 'aria-label': heading || t.steps },
         ...steps.map((step) => h('li', null, step))),
     ];
   });

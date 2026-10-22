@@ -98,7 +98,7 @@ test('the Apache config sends exactly the dev server\'s security headers', async
   assert.match(config, /Header set Cache-Control "no-cache"/, 'browsers check for new versions');
 });
 
-const PAGES = ['index.html', 'privacy.html'];
+const PAGES = ['index.html', 'privacy.html', 'privacy.pt.html'];
 
 /** @param {string} page */
 async function references(page) {

@@ -118,7 +118,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - Doubtful lines are **flagged, not silently guessed**. There's an explicit escape hatch: `2 | punhado | salsinha` sets quantity | unit | name directly.
 - The parser understands decimals with `.` or `,`, fractions (`1/2`, `½`, `1 1/2`), ranges (`2-3`, `2 a 3`, `2 to 3`), units with abbreviations and plurals (`cups`, `tbsp`, `xícara`, `xíc.`, `colher (sopa)`, `c. de chá`, …), the Portuguese connector "de" ("2 xícaras de farinha"), notes after a comma, "to taste" / "a gosto", and equivalents in parentheses ("2 cups (437 g)").
 - Quantities written as words are read too (R1.16, 2026-10-21): "two", "dois", "vinte e cinco", "twenty-five", "three quarters", "um terço", "half an onion", "dois ou três". They're saved as numbers. Look-alikes stay text: "five-spice powder", "um pouco de sal".
-- Each recipe has a language (`en` or `pt`), which picks the vocabulary for parsing and display. The UI itself is in English.
+- Each recipe has a language (`en` or `pt`), which picks the vocabulary for parsing and display. The UI itself is in English. **Superseded in part by D15:** the screens are in English or Portuguese.
 - Parser cases live in fixture files. They grow with every real-world line that surprised us.
 
 ## D10. Reading never edits; editing is deliberate
@@ -168,3 +168,15 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
   - Google signals and ad personalization are switched off.
 - **In Google Analytics' settings:** turn off Enhanced measurement's "page changes based on browser history events" and "site search", so Google doesn't collect page views on its own.
 - **Consequences:** the CSP gains `https://*.googletagmanager.com` for scripts, plus Google's analytics domains for images and connections (D7 superseded in part). The privacy page (R1.13) explains all of this. Saying no, or later stopping, deletes Google's `_ga` cookies.
+
+## D15. Screens in English or Portuguese
+
+**Accepted** · 2026-10-21
+
+- **Context:** Some of the people sharing the recipe box don't read English. D9 kept the screens in English.
+- **Decision:** Every word Mirepoix puts on screen comes in English and in Brazilian Portuguese. The language follows the browser (Portuguese for any `pt-*`, English for anything else) until someone picks one with the switch at the bottom of the recipe list. That choice is remembered on the device, and switching reloads the page.
+- **What follows the screens, and what doesn't:** Mirepoix's own words follow the screens: labels, buttons, hints, the preview's doubts, "or 200 g", "Makes …". What you typed, and its units, follow the recipe's language (D9), so a Portuguese recipe still shows "xícaras" on English screens. A new recipe starts in the screens' language.
+- **How:** All the words live in one file, `app/ui/i18n.js`, as two objects of the same shape. Type-checking and a unit test make sure Portuguese has everything English has. The domain returns codes (`no-title`, `unknown-unit`, `too-new`…) instead of sentences, and the screens put them into words. No library and no build step (D2).
+- **Privacy page:** one static page per language, `privacy.html` and `privacy.pt.html`, linked to each other. The app links to the one in its language.
+- **Not translated:** the screen names sent to analytics (D14) stay in English, so the numbers don't split by language. The search-engine description in `index.html` and the install manifest stay in English for now.
+- **Consequences:** every new piece of text needs both languages in the same change. A third language would be one more object in `i18n.js` and one more privacy page.

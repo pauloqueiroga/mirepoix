@@ -802,11 +802,27 @@ a.chip { text-decoration: none; }
 /* Small print, the privacy page, and the analytics question */
 
 .app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
   padding: 28px max(var(--gutter), env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
   font-size: .85rem;
 }
 
-.app-footer a { color: var(--ink-2); }
+/* The language switch is a button that looks like the links beside it. */
+.app-footer a,
+.app-footer .link {
+  color: var(--ink-2);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 .prose {
   max-width: 46rem;

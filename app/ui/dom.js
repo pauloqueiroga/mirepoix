@@ -1,5 +1,6 @@
 // Tiny DOM builder. Text always goes in as text, never parsed as HTML, so
 // recipe content can't inject markup.
+import { messages, pickLang, t, uiLang } from './i18n.js';
 
 /** @typedef {Node | string | null | undefined | false} Child */
 
@@ -25,9 +26,15 @@ export function h(tag, attributes, ...children) {
   return element;
 }
 
-/** The small print at the bottom of a screen: the privacy page, for now. */
+/**
+ * The small print at the bottom of a screen: the privacy page, and the other
+ * language, named in itself (R1.17).
+ */
 export function footer() {
-  return h('footer', { class: 'app-footer' }, h('a', { href: 'privacy.html' }, 'Privacy'));
+  const other = uiLang === 'pt' ? 'en' : 'pt';
+  return h('footer', { class: 'app-footer' },
+    h('a', { href: t.privacyPage }, t.privacy),
+    h('button', { type: 'button', class: 'link', lang: other, onclick: () => pickLang(other) }, messages[other].langName));
 }
 
 /**

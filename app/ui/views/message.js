@@ -1,4 +1,5 @@
 import { brand, h } from '../dom.js';
+import { t } from '../i18n.js';
 
 /**
  * A full-page message, such as "Page not found".
@@ -8,7 +9,7 @@ export function messageView({ title, text, back = false }) {
   return [
     h('header', { class: 'bar' },
       back
-        ? h('a', { class: 'back', href: '#/' }, 'Recipes')
+        ? h('a', { class: 'back', href: '#/' }, t.recipes)
         : h('span', { class: 'wordmark' }, brand())),
     h('main', { class: 'page' },
       h('div', { class: 'empty' },

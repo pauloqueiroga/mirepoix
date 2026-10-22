@@ -45,7 +45,6 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 - Change the passphrase (re-encrypts everything)
 - Link a new device with a QR code
 - Recipe history and restore, using the data repo's commits
-- Portuguese UI
 - Links between recipes ("see Pâte brisée")
 - Photos of the dish or the book page, encrypted
 - Timers from step text ("bake 10–12 minutes")

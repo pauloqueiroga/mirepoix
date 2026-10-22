@@ -1,5 +1,6 @@
-import { describeImport, exportFile, mergePlan, readExport } from '../../domain/backup.js';
+import { exportFile, mergePlan, readExport } from '../../domain/backup.js';
 import { footer, h } from '../dom.js';
+import { t } from '../i18n.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 
@@ -20,7 +21,7 @@ export function backupView({ count, list, put }) {
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    status.textContent = `Saved ${name}. Keep it somewhere safe, like your cloud drive or your email.`;
+    status.textContent = t.saved(name);
   };
 
   const file = h('input', { id: 'import-file', type: 'file', accept: '.json,application/json', class: 'visually-hidden' });
@@ -30,33 +31,29 @@ export function backupView({ count, list, put }) {
     const read = readExport(await chosen.text());
     file.value = '';
     if ('error' in read) {
-      status.textContent = read.error;
+      status.textContent = t.exportErrors[read.error];
       return;
     }
     const plan = mergePlan(await list(), read.recipes);
     for (const recipe of plan.put) await put(recipe);
-    status.replaceChildren(describeImport({ ...plan, skipped: read.skipped }), ' ', h('a', { href: '#/' }, 'See your recipes'));
+    status.replaceChildren(t.imported({ ...plan, skipped: read.skipped }), ' ', h('a', { href: '#/' }, t.seeRecipes));
   });
 
   return [
     h('header', { class: 'bar' },
-      h('a', { class: 'back', href: '#/' }, 'Recipes')),
+      h('a', { class: 'back', href: '#/' }, t.recipes)),
     h('main', { class: 'page backup' },
-      h('h1', { class: 'recipe-title' }, 'Keep a copy'),
-      h('p', { class: 'lead' },
-        'Your recipes live in this browser, on this device. Until syncing arrives, export them now and then and keep the file somewhere safe. If this browser’s data is ever cleared, the file brings them back.'),
+      h('h1', { class: 'recipe-title' }, t.keepACopy),
+      h('p', { class: 'lead' }, t.keepACopyLead),
       h('section', { class: 'recipe-section', 'aria-labelledby': 'export-heading' },
-        h('h2', { id: 'export-heading', class: 'section-label' }, 'Export'),
-        count > 0
-          ? h('p', null, `Saves all ${count} ${count === 1 ? 'recipe' : 'recipes'} in one file.`)
-          : h('p', null, 'Nothing to export yet.'),
-        count > 0 && h('button', { type: 'button', class: 'button primary', onclick: exportAll }, 'Export all recipes')),
+        h('h2', { id: 'export-heading', class: 'section-label' }, t.export),
+        h('p', null, count > 0 ? t.exportCount(count) : t.nothingToExport),
+        count > 0 && h('button', { type: 'button', class: 'button primary', onclick: exportAll }, t.exportAll)),
       h('section', { class: 'recipe-section', 'aria-labelledby': 'import-heading' },
-        h('h2', { id: 'import-heading', class: 'section-label' }, 'Import'),
-        h('p', null,
-          'Adds the recipes from an export file, made on this device or another one. Nothing here is removed, and a recipe already here is only replaced by a newer version of itself. Moving Mirepoix to a new address? Export there, import here.'),
+        h('h2', { id: 'import-heading', class: 'section-label' }, t.import),
+        h('p', null, t.importText),
         file,
-        h('label', { for: 'import-file', class: 'button secondary' }, 'Import from a file')),
+        h('label', { for: 'import-file', class: 'button secondary' }, t.importFromFile)),
       status,
       footer()),
   ];

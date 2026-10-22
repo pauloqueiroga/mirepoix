@@ -8,7 +8,7 @@ import { isKnownUnit, matchUnit, normalizeWord, unitFromText, unitText } from '.
 /** @typedef {import('./recipe.js').Ingredient} Ingredient */
 /** @typedef {import('./recipe.js').IngredientGroup} IngredientGroup */
 /** @typedef {'unknown-unit' | 'assumed-quantity' | 'unclear-quantity' | 'no-name' | 'unclear-override'} DoubtCode */
-/** @typedef {{ code: DoubtCode, message: string }} Doubt */
+/** @typedef {{ code: DoubtCode, detail: string }} Doubt  detail: the unit, for unknown-unit; the screens word the rest */
 /** @typedef {{ ingredient: Ingredient, doubts: Doubt[] }} Reading */
 /**
  * One non-blank line of an Ingredients box; number counts from 1, blank lines included.
@@ -354,22 +354,13 @@ function normalizePhrase(text) {
   return text.split(' ').filter(Boolean).map(normalizeWord).join(' ');
 }
 
-/** @type {Record<DoubtCode, (detail: string) => string>} */
-const MESSAGES = {
-  'unknown-unit': (unit) => `New unit “${unit}”. It’s kept as written, so check it’s right.`,
-  'assumed-quantity': () => 'No amount was given, so it reads as 1.',
-  'unclear-quantity': () => 'The amount is unclear. Check it, or write it as quantity | unit | name.',
-  'no-name': () => 'There’s no ingredient name.',
-  'unclear-override': () => 'Write exactly three parts: quantity | unit | name.',
-};
-
 /**
  * @param {DoubtCode} code
  * @param {string} [detail]
  * @returns {Doubt}
  */
 function doubt(code, detail = '') {
-  return { code, message: MESSAGES[code](detail) };
+  return { code, detail };
 }
 
 // Writing helpers

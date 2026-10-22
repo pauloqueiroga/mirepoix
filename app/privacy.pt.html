@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Privacidade · Mirepoix</title>
+  <meta name="description" content="O que o Mirepoix guarda, onde guarda e o que ele nunca envia. Suas receitas ficam com você.">
+  <link rel="canonical" href="https://pauloq.com/mirepoix/privacy.pt.html">
+  <link rel="alternate" hreflang="en" href="https://pauloq.com/mirepoix/privacy.html">
+  <link rel="alternate" hreflang="pt" href="https://pauloq.com/mirepoix/privacy.pt.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Mirepoix">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Privacidade · Mirepoix">
+  <meta property="og:description" content="O que o Mirepoix guarda, onde guarda e o que ele nunca envia.">
+  <meta property="og:url" content="https://pauloq.com/mirepoix/privacy.pt.html">
+  <meta property="og:image" content="https://pauloq.com/mirepoix/icons/social.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="O logo do Mirepoix: um M feito de cebola, cenoura e salsão, em cima do nome.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#FBF8F3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1C1A17" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles/app.css">
+  <script type="module" src="privacy.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="bar">
+      <a class="back" href="./">Receitas</a>
+    </header>
+    <main class="page prose">
+      <h1 class="recipe-title">Privacidade</h1>
+      <p class="lead">Resumindo: suas receitas ficam com você.</p>
+
+      <section class="recipe-section" aria-labelledby="keeps">
+        <h2 id="keeps" class="section-label">O que o Mirepoix guarda, e onde</h2>
+        <p>As receitas que você adiciona ficam guardadas neste navegador, neste aparelho. Elas só saem daqui se você exportar para um arquivo.</p>
+        <p>Quando a sincronização chegar, as receitas também vão ficar num repositório privado do GitHub que você controla. Cada uma é criptografada no seu aparelho antes, com uma senha que só você sabe, então o GitHub só vê arquivos embaralhados.</p>
+      </section>
+
+      <section class="recipe-section" aria-labelledby="sends">
+        <h2 id="sends" class="section-label">O que o Mirepoix envia</h2>
+        <p>Nada sobre as suas receitas, para ninguém. Não há contas nem anúncios.</p>
+        <p>Como todo site, o servidor que entrega o aplicativo (pauloq.com) registra os dados comuns de cada visita: o endereço de onde você se conecta, o seu navegador e quando.</p>
+      </section>
+
+      <section class="recipe-section" aria-labelledby="statistics">
+        <h2 id="statistics" class="section-label">Estatísticas de uso, só se você concordar</h2>
+        <p>O Mirepoix pode usar o Google Analytics para contar como as telas são usadas. Nada carrega a não ser que você diga sim. Se disser, o Google recebe o nome de cada tela que você abre (como “recipes”, “recipe” ou “edit recipe”). Ele também recebe o que o Google coleta por conta própria: uma localização aproximada, calculada pela sua conexão, o tipo do seu aparelho e do navegador, e os cookies dele. Títulos de receitas, ingredientes, notas e buscas nunca são enviados.</p>
+        <div id="analytics-choice" class="choice"><p>A sua escolha aparece aqui assim que a página carregar.</p></div>
+        <p>A política de privacidade do Google: <a href="https://policies.google.com/privacy?hl=pt-BR">policies.google.com/privacy</a></p>
+      </section>
+
+      <section class="recipe-section" aria-labelledby="cookies">
+        <h2 id="cookies" class="section-label">Cookies</h2>
+        <p>O Mirepoix não cria cookies próprios. O Google Analytics cria os dele, e só se você permitir.</p>
+      </section>
+
+      <p class="updated">Atualizado em 21 de outubro de 2026. <a href="privacy.html" hreflang="en" lang="en">In English</a></p>
+    </main>
+  </div>
+</body>
+</html>

@@ -5,6 +5,7 @@ import { recipeProblems } from './recipe.js';
 
 /** @typedef {import('./recipe.js').Recipe} Recipe */
 /** @typedef {{ put: Recipe[], added: number, updated: number, unchanged: number }} Plan */
+/** @typedef {'not-an-export' | 'too-new' | 'no-recipes'} ExportError  why a file can't be imported; the screens word it */
 
 export const FORMAT = 'mirepoix-recipes';
 export const VERSION = 1;
@@ -27,7 +28,7 @@ export function exportFile(recipes, now = new Date()) {
  * Reads an export file. Recipes that aren't valid are skipped and counted,
  * never stored.
  * @param {string} text
- * @returns {{ recipes: Recipe[], skipped: number } | { error: string }}
+ * @returns {{ recipes: Recipe[], skipped: number } | { error: ExportError }}
  */
 export function readExport(text) {
   /** @type {unknown} */
@@ -35,15 +36,13 @@ export function readExport(text) {
   try {
     data = JSON.parse(text);
   } catch {
-    return { error: 'That file isn’t a Mirepoix export.' };
+    return { error: 'not-an-export' };
   }
   if (typeof data !== 'object' || data === null || !('format' in data) || data.format !== FORMAT) {
-    return { error: 'That file isn’t a Mirepoix export.' };
+    return { error: 'not-an-export' };
   }
-  if (!('version' in data) || data.version !== VERSION) {
-    return { error: 'That export comes from a newer Mirepoix. Update this one, then try again.' };
-  }
-  if (!('recipes' in data) || !Array.isArray(data.recipes)) return { error: 'That export has no recipes in it.' };
+  if (!('version' in data) || data.version !== VERSION) return { error: 'too-new' };
+  if (!('recipes' in data) || !Array.isArray(data.recipes)) return { error: 'no-recipes' };
   /** @type {Recipe[]} */
   const recipes = data.recipes.filter((recipe) => recipeProblems(recipe).length === 0);
   return { recipes, skipped: data.recipes.length - recipes.length };
@@ -72,19 +71,4 @@ export function mergePlan(existing, incoming) {
     plan.put.push(recipe);
   }
   return plan;
-}
-
-/**
- * "Added 3 recipes and updated 1. 2 were already here." and so on.
- * @param {{ added: number, updated: number, unchanged: number, skipped: number }} result
- */
-export function describeImport({ added, updated, unchanged, skipped }) {
-  const recipes = (/** @type {number} */ n) => `${n} ${n === 1 ? 'recipe' : 'recipes'}`;
-  const changes = [added > 0 && `added ${recipes(added)}`, updated > 0 && `updated ${updated}`].filter(Boolean).join(' and ');
-  const sentences = [
-    changes ? `${changes[0]?.toUpperCase()}${changes.slice(1)}.` : 'Nothing new to add.',
-    unchanged > 0 && `${unchanged === 1 ? '1 was' : `${unchanged} were`} already here.`,
-    skipped > 0 && `${skipped === 1 ? '1 couldn’t' : `${skipped} couldn’t`} be read and ${skipped === 1 ? 'was' : 'were'} skipped.`,
-  ];
-  return sentences.filter(Boolean).join(' ');
 }
