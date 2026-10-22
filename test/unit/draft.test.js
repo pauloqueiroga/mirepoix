@@ -98,13 +98,13 @@ test('editing keeps the id, creation time, cook\'s notes and fields from newer v
 test('a recipe needs a title', () => {
   const { recipe, problems } = readDraft({ title: '   ', lang: 'en', ingredients: '2 eggs' });
   assert.equal(recipe, null);
-  assert.deepEqual(problems, ['Give the recipe a title.']);
+  assert.deepEqual(problems, [{ code: 'no-title' }]);
 });
 
 test('every ingredient needs a name, and the problem says which line', () => {
   const { recipe, problems } = readDraft({ title: 'Cookies', lang: 'en', ingredients: '2 eggs\n\n2 cups\n1 tsp' });
   assert.equal(recipe, null);
-  assert.deepEqual(problems, ['Line 3 has no ingredient name.', 'Line 4 has no ingredient name.']);
+  assert.deepEqual(problems, [{ code: 'no-name', line: 3 }, { code: 'no-name', line: 4 }]);
 });
 
 test('doubtful lines do not block saving', () => {

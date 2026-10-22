@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { describeSteps, parseItems, parseSteps, renderItems, renderSteps } from '../../app/domain/sections.js';
+import { parseItems, parseSteps, renderItems, renderSteps } from '../../app/domain/sections.js';
 
 /** @param {string[]} steps */
 const one = (steps) => [{ heading: '', steps }];
@@ -51,10 +51,4 @@ test('steps and items write back as text that reads back the same', () => {
   assert.deepEqual(parseSteps(renderSteps(one(['Just one step.']))), one(['Just one step.']));
   const items = ['Swap half the flour for rye.', 'Add walnuts.'];
   assert.deepEqual(parseItems(renderItems(items)), items);
-});
-
-test('the step count says how a Preparation box reads', () => {
-  assert.equal(describeSteps([]), '0 steps');
-  assert.equal(describeSteps(one(['Mix.'])), '1 step');
-  assert.equal(describeSteps([{ heading: 'A', steps: ['x', 'y'] }, { heading: 'B', steps: ['z'] }]), '3 steps in 2 groups');
 });

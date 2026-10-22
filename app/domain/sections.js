@@ -96,16 +96,6 @@ export function renderItems(items) {
   return items.join('\n\n');
 }
 
-/**
- * "4 steps", "1 step", "5 steps in 2 groups": how a Preparation box reads.
- * @param {StepGroup[]} groups
- */
-export function describeSteps(groups) {
-  const steps = groups.reduce((count, group) => count + group.steps.length, 0);
-  const counted = `${steps} ${steps === 1 ? 'step' : 'steps'}`;
-  return groups.length > 1 ? `${counted} in ${groups.length} groups` : counted;
-}
-
 /** @param {string} line */
 function isHeading(line) {
   return line.endsWith(':') && !MARKER.test(line) && line.split(' ').length <= HEADING_MAX_WORDS;

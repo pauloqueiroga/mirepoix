@@ -1,5 +1,6 @@
 import { searchRecipes } from '../../domain/search.js';
 import { brand, footer, h, logo } from '../dom.js';
+import { t } from '../i18n.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('../../domain/search.js').Found} Found */
@@ -16,19 +17,19 @@ export function listView(recipes, { query = '', remember = () => {} } = {}) {
   return [
     h('header', { class: 'bar' },
       h('h1', { class: 'wordmark' }, brand()),
-      h('a', { class: 'chip warn', href: '#/backup', title: 'Recipes are saved in this browser, on this device. Tap to keep a copy.' },
+      h('a', { class: 'chip warn', href: '#/backup', title: t.thisDeviceOnlyTip },
         h('span', { class: 'dot', 'aria-hidden': 'true' }),
-        'This device only')),
+        t.thisDeviceOnly)),
     h('main', { class: 'page' },
       ...(recipes.length === 0
         ? [h('div', { class: 'empty' },
           logo(),
-          h('h2', null, 'No recipes yet'),
-          h('p', null, 'Tap + to add your first one. Recipes are kept in this browser, on this device.'),
-          h('p', { class: 'aside' }, 'Have an export from another device? ', h('a', { href: '#/backup' }, 'Import it')))]
+          h('h2', null, t.noRecipes),
+          h('p', null, t.noRecipesText),
+          h('p', { class: 'aside' }, t.haveExport, h('a', { href: '#/backup' }, t.importIt)))]
         : searchable(recipes, query, remember)),
       footer()),
-    h('a', { class: 'fab', href: '#/new', 'aria-label': 'New recipe', title: 'New recipe' }),
+    h('a', { class: 'fab', href: '#/new', 'aria-label': t.newRecipe, title: t.newRecipe }),
   ];
 }
 
@@ -41,8 +42,8 @@ function searchable(recipes, query, remember) {
   const search = h('input', {
     type: 'search',
     class: 'search',
-    placeholder: 'Search recipes or ingredients',
-    'aria-label': 'Search recipes',
+    placeholder: t.searchPlaceholder,
+    'aria-label': t.searchLabel,
     autocomplete: 'off',
     enterkeyhint: 'search',
   });
@@ -53,13 +54,13 @@ function searchable(recipes, query, remember) {
   const show = () => {
     const found = searchRecipes(recipes, search.value);
     const words = search.value.trim();
-    const total = `${recipes.length} ${recipes.length === 1 ? 'recipe' : 'recipes'}`;
-    count.textContent = words ? `${found.length} of ${total}` : total;
+    const total = t.recipeCount(recipes.length);
+    count.textContent = words ? t.foundOf(found.length, total) : total;
     results.replaceChildren(found.length > 0
-      ? h('ul', { class: 'list', 'aria-label': 'Recipes' }, ...found.map(row))
+      ? h('ul', { class: 'list', 'aria-label': t.recipes }, ...found.map(row))
       : h('div', { class: 'empty' },
-        h('h2', null, 'No matches'),
-        h('p', null, `No title or ingredient matches “${words}”.`)));
+        h('h2', null, t.noMatches),
+        h('p', null, t.noMatchesText(words))));
   };
   search.addEventListener('input', () => {
     show();
@@ -72,7 +73,7 @@ function searchable(recipes, query, remember) {
 
 /** @param {Found} found */
 function row({ recipe, ingredients }) {
-  const detail = ingredients.length > 0 ? `with ${ingredients.join(', ')}` : recipe.source;
+  const detail = ingredients.length > 0 ? t.withIngredients(ingredients) : recipe.source;
   return h('li', null,
     h('a', { href: `#/recipes/${encodeURIComponent(recipe.id)}` },
       h('div', { class: 'title' }, recipe.title),

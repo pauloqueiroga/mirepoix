@@ -12,6 +12,8 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: `http://localhost:${port}`,
+    // The screens follow the browser's language (D15); tests pick it, not the machine.
+    locale: 'en-US',
     trace: 'on-first-retry',
   },
   projects: [

@@ -3,6 +3,7 @@
 // ingredients, notes or searches.
 import { ANALYTICS_ID } from './config.js';
 import { h } from './ui/dom.js';
+import { t } from './ui/i18n.js';
 
 const KEY = 'mirepoix.analytics';
 const GTAG = 'https://www.googletagmanager.com/gtag/js';
@@ -79,13 +80,11 @@ export function askForAnalytics() {
     setAnalyticsChoice(choice);
     if (choice === 'granted') trackScreen(currentScreen);
   };
-  const banner = h('aside', { class: 'consent', 'aria-label': 'Usage statistics' },
-    h('p', null,
-      'Help improve Mirepoix? Allow anonymous usage statistics from Google Analytics: which screens get used, never your recipes. ',
-      h('a', { href: 'privacy.html' }, 'Privacy')),
+  const banner = h('aside', { class: 'consent', 'aria-label': t.statistics },
+    h('p', null, t.statisticsAsk, h('a', { href: t.privacyPage }, t.privacy)),
     h('div', { class: 'consent-actions' },
-      h('button', { type: 'button', class: 'button quiet', onclick: answer('denied') }, 'No thanks'),
-      h('button', { type: 'button', class: 'button primary', onclick: answer('granted') }, 'Allow')));
+      h('button', { type: 'button', class: 'button quiet', onclick: answer('denied') }, t.noThanks),
+      h('button', { type: 'button', class: 'button primary', onclick: answer('granted') }, t.allow)));
   document.body.append(banner);
 }
 
