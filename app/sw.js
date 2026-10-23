@@ -36,6 +36,8 @@ const SHELL = [
   'domain/search.js',
   'domain/sections.js',
   'domain/units.js',
+  'store/base64.js',
+  'store/crypto.js',
   'store/local-store.js',
   'ui/app.js',
   'ui/dom.js',
