@@ -44,7 +44,6 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 
 **R2 · Every device.** The same recipes everywhere, end-to-end encrypted. (D5, D6, D7)
 
-- **R2.2 GitHub remote.** Branch-head check, tree listing, and get/put/delete of a file guarded by its last-seen version. Comes with a fake remote for tests.
 - **R2.3 Sync engine.** First download, incremental pull, a push queue that survives going offline and reloading, deletions, and conflict copies (D6).
 - **R2.4 Connect this device.** Start fresh (create the vault), join an existing vault, and disconnect. None of these ever discard recipes already on the device. The key is remembered on the device; the passphrase never is.
 - **R2.5 Sync status and errors.** A status chip, plus clear states for offline, an expired or revoked token, and a wrong passphrase.

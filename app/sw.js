@@ -38,6 +38,7 @@ const SHELL = [
   'domain/units.js',
   'store/base64.js',
   'store/crypto.js',
+  'store/github.js',
   'store/local-store.js',
   'ui/app.js',
   'ui/dom.js',
