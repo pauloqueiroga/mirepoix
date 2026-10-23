@@ -58,6 +58,8 @@ test.describe('a browser set to Portuguese', () => {
   test('keeping a copy, and the privacy page, are in Portuguese too', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Só neste aparelho' }).click();
+    await expect(page.getByRole('heading', { name: 'Conectar este aparelho' })).toBeVisible();
+    await page.getByRole('link', { name: 'Exportar ou importar uma cópia' }).click();
     await expect(page.getByRole('heading', { name: 'Guardar uma cópia' })).toBeVisible();
     await expect(page.getByText('Nada para exportar ainda.')).toBeVisible();
     await page.getByLabel('Importar de um arquivo')
@@ -71,6 +73,23 @@ test.describe('a browser set to Portuguese', () => {
     await expect(page.getByText('As estatísticas de uso estão desligadas neste site, então nada é enviado.')).toBeVisible();
     await page.getByRole('link', { name: 'Receitas' }).click();
     await expect(page.getByRole('heading', { name: 'Nenhuma receita ainda' })).toBeVisible();
+  });
+
+  test('connecting a device is in Portuguese too (R2.4)', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Só neste aparelho' }).click();
+    await expect(page).toHaveTitle('Conectar este aparelho · Mirepoix');
+    await expect(page.getByText('O GitHub só guarda arquivos embaralhados.')).toBeVisible();
+    await page.getByRole('radio', { name: 'Começar do zero' }).check();
+    await expect(page.getByText('Não dá para recuperá-la. Guarde uma cópia num lugar seguro.')).toBeVisible();
+    await page.getByRole('button', { name: 'Conectar' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Preencha o repositório, o token e a frase secreta.');
+    await page.getByLabel('Repositório privado').fill('isto não é um repositório');
+    await page.getByLabel('Token do GitHub').fill('token');
+    await page.getByLabel('Frase secreta', { exact: true }).fill('curta');
+    await page.getByLabel('Frase secreta de novo').fill('curta');
+    await page.getByRole('button', { name: 'Conectar' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Escreva o repositório como dono/nome, por exemplo voce/mirepoix-data, ou cole o endereço dele.');
   });
 
   test('asks about usage statistics in Portuguese', async ({ page }) => {

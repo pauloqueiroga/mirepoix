@@ -51,6 +51,7 @@ const SHELL = [
   'ui/views/list.js',
   'ui/views/message.js',
   'ui/views/recipe.js',
+  'ui/views/sync.js',
 ];
 
 const sw = /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (self));

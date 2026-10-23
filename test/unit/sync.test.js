@@ -470,6 +470,10 @@ test('the syncer keeps a status, runs one pass at a time, and says when recipes 
   await Promise.all([syncer.run(), syncer.run(), syncer.run()]);
   assert.equal(syncer.status.state, 'synced');
   assert.equal(syncer.status.lastSynced, today().toISOString());
+  const afterReload = createSyncer({ store: a.store, conflictTitle });
+  await afterReload.refresh();
+  assert.equal(afterReload.status.lastSynced, today().toISOString(), 'when it last synced is kept on the device');
+  assert.equal(afterReload.status.state, 'syncing', 'a connected device is about to sync');
   assert.equal(seen.filter((s) => s.startsWith('synced')).length, 2, 'one pass, then one more for the asks that came during it');
 
   const b = await device(github);

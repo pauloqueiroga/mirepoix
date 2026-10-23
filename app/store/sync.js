@@ -482,13 +482,15 @@ export function createSyncer({ store, conflictTitle, remoteFor = (connection) =>
         now,
         progress: (progress) => update({ progress }),
       });
+      const lastSynced = now().toISOString();
+      await store.setSetting('synced', lastSynced);
       update({
         state: 'synced',
         problem: null,
         unreadable: report.unreadable,
         pending: await pendingChanges(store),
         progress: null,
-        lastSynced: now().toISOString(),
+        lastSynced,
       }, report.changed);
     } catch (error) {
       const problem = problemOf(error);
@@ -526,10 +528,16 @@ export function createSyncer({ store, conflictTitle, remoteFor = (connection) =>
       });
       return running;
     },
-    /** Counts what's waiting to go up, without syncing. */
+    /** Counts what's waiting to go up, without syncing. A connected device that hasn't synced yet is about to. */
     async refresh() {
       const connection = await store.setting('connection');
-      update(connection ? { pending: await pendingChanges(store) } : { state: 'off', pending: 0 });
+      update(connection
+        ? {
+          pending: await pendingChanges(store),
+          state: status.state === 'off' ? 'syncing' : status.state,
+          lastSynced: status.lastSynced ?? (await store.setting('synced')) ?? null,
+        }
+        : { state: 'off', problem: null, pending: 0, unreadable: 0, lastSynced: null });
     },
   };
 }

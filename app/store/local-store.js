@@ -35,8 +35,9 @@ import { assertValidRecipe } from '../domain/recipe.js';
  * @property {string[]} [forget] ids whose base goes
  */
 /**
- * @typedef {{ connection: import('./sync.js').Connection, head: string }} Settings
- *   head: the remote commit every base reflects, so an unchanged head means nothing to download
+ * @typedef {{ connection: import('./sync.js').Connection, head: string, synced: string }} Settings
+ *   head: the remote commit every base reflects, so an unchanged head means nothing to download;
+ *   synced: when the last pass finished, as an ISO timestamp
  */
 /**
  * The recipe store, and what syncing keeps.

@@ -56,9 +56,11 @@ async function exportAll(page) {
   return { name: file.suggestedFilename(), text: await readFile(await file.path(), 'utf8') };
 }
 
-test('the "This device only" chip leads to Export, which saves every recipe in one file', async ({ page }) => {
+test('the "This device only" chip leads, past connecting, to Export, which saves every recipe in one file', async ({ page }) => {
   await seed(page, ['Feijoada', 'Pão de queijo']);
   await page.getByRole('link', { name: 'This device only' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Connect this device' })).toBeVisible();
+  await page.getByRole('link', { name: 'Export or import a copy' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Keep a copy' })).toBeVisible();
   await expect(page.getByText('Saves all 2 recipes in one file.')).toBeVisible();
 
@@ -81,7 +83,7 @@ test('an export from one device imports into another, merging by id', async ({ p
   const other = await otherDevice.newPage();
   watch(other);
   await seed(other, ['Bolo de fubá']);
-  await other.getByRole('link', { name: 'This device only' }).click();
+  await other.goto('/#/backup');
   const file = { name, mimeType: 'application/json', buffer: Buffer.from(text) };
 
   await other.getByLabel('Import from a file').setInputFiles(file);
