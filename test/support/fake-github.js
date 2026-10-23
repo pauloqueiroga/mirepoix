@@ -137,9 +137,9 @@ export function createFakeGitHub() {
         return answer(200, { full_name: name, private: repo.private, default_branch: repo.branch });
       }
 
-      const commitMatch = /^\/commits\/([^/]+)$/.exec(rest);
+      const commitMatch = /^\/commits\/(.+)$/.exec(rest);
       if (commitMatch && method === 'GET') {
-        if (decodeURIComponent(commitMatch[1] ?? '') !== repo.branch) return answer(422, { message: 'No commit found for SHA' });
+        if ((commitMatch[1] ?? '').split('/').map(decodeURIComponent).join('/') !== repo.branch) return answer(422, { message: 'No commit found for SHA' });
         if (!repo.head) return answer(409, { message: 'Git Repository is empty.' });
         if (headers.accept === 'application/vnd.github.sha') return { status: 200, headers: { ...CORS, 'content-type': 'application/vnd.github.sha; charset=utf-8' }, body: repo.head };
         return answer(200, { sha: repo.head });

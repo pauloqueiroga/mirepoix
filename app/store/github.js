@@ -85,7 +85,7 @@ export function githubRemote({ repository, branch, token, fetch = globalFetch })
   return {
     async head() {
       try {
-        const sha = await call(fetch, token, 'GET', `${repo}/commits/${encodeURIComponent(branch)}`, undefined, 'application/vnd.github.sha');
+        const sha = await call(fetch, token, 'GET', `${repo}/commits/${branch.split('/').map(encodeURIComponent).join('/')}`, undefined, 'application/vnd.github.sha');
         if (typeof sha !== 'string' || !/^[0-9a-f]{40,64}$/.test(sha.trim())) throw new RemoteError('unavailable', 'unexpected answer');
         return sha.trim();
       } catch (error) {

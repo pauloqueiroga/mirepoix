@@ -1,4 +1,4 @@
-import { connect, deviceName, disconnect, problemOf, reopenVault, replaceToken } from '../../store/sync.js';
+import { connect, deviceName, problemOf, reopenVault, replaceToken } from '../../store/sync.js';
 import { footer, h } from '../dom.js';
 import { t, uiLang } from '../i18n.js';
 
@@ -9,7 +9,12 @@ import { t, uiLang } from '../i18n.js';
  * What the sync screen needs from the app.
  * @typedef {object} Syncing
  * @property {LocalStore} store
- * @property {{ status: SyncStatus, run: () => Promise<void>, listen: (listener: (status: SyncStatus) => void) => () => void }} syncer
+ * @property {{
+ *   status: SyncStatus,
+ *   run: () => Promise<void>,
+ *   listen: (listener: (status: SyncStatus) => void) => () => void,
+ *   disconnect: () => Promise<void>,
+ * }} syncer
  * @property {(cleanup: () => void) => void} onLeave called when the screen goes away
  * @property {() => void} done connecting finished: show the recipes
  * @property {() => void} again show this screen again, e.g. once connected or disconnected
@@ -256,8 +261,7 @@ function statusPart(connection, { store, syncer, onLeave, again }) {
   const leave = async () => {
     const pending = syncer.status.pending;
     if (!confirm(t.confirmDisconnect(pending))) return;
-    await disconnect(store);
-    await syncer.run();
+    await syncer.disconnect();
     again();
   };
 

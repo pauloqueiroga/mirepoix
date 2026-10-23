@@ -456,6 +456,7 @@ export function createSyncer({ store, conflictTitle, remoteFor = (connection) =>
   /** @type {Promise<void> | null} */
   let running = null;
   let again = false;
+  let stopping = false;
 
   /**
    * @param {Partial<SyncStatus>} change
@@ -514,6 +515,7 @@ export function createSyncer({ store, conflictTitle, remoteFor = (connection) =>
     },
     /** Runs a pass now, or right after the one running. @returns {Promise<void>} */
     run() {
+      if (stopping) return Promise.resolve();
       if (running) {
         again = true;
         return running;
@@ -527,6 +529,21 @@ export function createSyncer({ store, conflictTitle, remoteFor = (connection) =>
         running = null;
       });
       return running;
+    },
+    /**
+     * Stops syncing on this device (R2.4), once any pass under way has
+     * finished, so nothing that pass writes outlives the connection. Every
+     * recipe stays here.
+     */
+    async disconnect() {
+      stopping = true;
+      try {
+        while (running) await running;
+        await store.forgetSync();
+      } finally {
+        stopping = false;
+      }
+      await this.run();
     },
     /** Counts what's waiting to go up, without syncing. A connected device that hasn't synced yet is about to. */
     async refresh() {

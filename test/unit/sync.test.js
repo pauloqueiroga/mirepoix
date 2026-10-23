@@ -493,6 +493,32 @@ test('the syncer keeps a status, runs one pass at a time, and says when recipes 
   assert.deepEqual([syncer.status.state, syncer.status.problem], ['stuck', 'unauthorized']);
 });
 
+test('disconnecting waits for a pass under way, so nothing it writes outlives the connection', async () => {
+  const github = world();
+  const a = await device(github, { recipes: [recipe('Bolo'), recipe('Pastel')] });
+  await a.connect('fresh');
+  const syncer = createSyncer({ store: a.store, conflictTitle, remoteFor: (c) => githubRemote({ ...c, fetch: github.fetch }) });
+  const passing = syncer.run();
+  const leaving = syncer.disconnect();
+  syncer.run(); // asked while stopping: ignored
+  await Promise.all([passing, leaving]);
+  assert.equal(await a.store.setting('connection'), undefined);
+  assert.equal(await a.store.setting('head'), undefined);
+  assert.deepEqual(await a.store.bases(), []);
+  assert.equal(syncer.status.state, 'off');
+  assert.deepEqual(await a.titles(), ['Bolo', 'Pastel']);
+  assert.equal(Object.keys(github.files(REPO)).length, 3, 'the pass under way finished first');
+});
+
+test('a branch with a slash in its name is asked for as it is', async () => {
+  const github = createFakeGitHub();
+  github.addRepo(REPO, { branch: 'kitchen/main', files: { 'vault.json': '{}' } });
+  github.addToken('good', [REPO]);
+  const remote = githubRemote({ repository: REPO, branch: 'kitchen/main', token: 'good', fetch: github.fetch });
+  assert.match(String(await remote.head()), /^[0-9a-f]{40}$/);
+  assert.equal(github.requests.at(-1)?.path, `/repos/${REPO}/commits/kitchen/main`);
+});
+
 test('a ConnectError carries its code', () => {
   const error = new ConnectError('has-vault');
   assert.equal(error.code, 'has-vault');
