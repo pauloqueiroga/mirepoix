@@ -51,7 +51,8 @@ test('the privacy page is linked from the app and says what is kept and sent', a
   await expect(page).toHaveTitle('Privacy · Mirepoix');
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
   await expect(page.getByText('your recipes stay with you')).toBeVisible();
-  await expect(page.getByText('Nothing about your recipes, to anyone.')).toBeVisible();
+  await expect(page.getByText('Nothing readable about your recipes, to anyone.')).toBeVisible();
+  await expect(page.getByText('the passphrase itself is never kept anywhere', { exact: false })).toBeVisible();
   await expect(page.getByText('Usage statistics are switched off on this site, so nothing is sent.')).toBeVisible();
   await page.getByRole('link', { name: 'Recipes' }).click();
   await expect(page.getByRole('heading', { name: 'No recipes yet' })).toBeVisible();

@@ -42,9 +42,7 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 
 ## To-Do
 
-**R2 · Every device.** The same recipes everywhere, end-to-end encrypted. (D5, D6, D7)
-
-- **R2.6 Merge everyone's R1 recipes.** During R1, two or three people capture recipes on their own devices. When a device connects, the shared base becomes the union: the device uploads its recipes and downloads everyone else's. Ids are random (D8), so nothing collides or overwrites. If two people typed the same dish, both recipes are kept side by side for someone to merge or delete. *Done when* an e2e test with three devices (A starts fresh, B and C join, each with its own R1 recipes) ends with all three holding the same union.
+(nothing right now)
 
 Every item ends with something you can do in the running app (`npm run dev`), not just new code.
 

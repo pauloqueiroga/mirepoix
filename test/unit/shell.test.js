@@ -118,7 +118,7 @@ test('every address the site gives for itself agrees with package.json\'s homepa
   const pkg = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
   const home = String(pkg.homepage);
   assert.match(home, /^https:\/\/.+\/$/);
-  const own = (/** @type {string} */ url) => !/^https?:\/\/(policies\.google\.com|schema\.org|www\.sitemaps\.org)/.test(url);
+  const own = (/** @type {string} */ url) => !/^https?:\/\/(policies\.google\.com|docs\.github\.com|schema\.org|www\.sitemaps\.org)/.test(url);
   const files = [...PAGES, 'robots.txt', 'sitemap.xml'];
   for (const file of files) {
     const text = await readFile(inApp(file), 'utf8');
