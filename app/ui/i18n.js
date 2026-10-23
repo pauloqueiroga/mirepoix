@@ -19,6 +19,7 @@ const en = {
   edit: 'Edit',
   privacy: 'Privacy',
   privacyPage: 'privacy.html',
+  supportOnKofi: 'Support Mirepoix on Ko-fi',
   recipeCount: (/** @type {number} */ n) => `${n} ${n === 1 ? 'recipe' : 'recipes'}`,
 
   // The app around the screens
@@ -148,6 +149,7 @@ const pt = {
   edit: 'Editar',
   privacy: 'Privacidade',
   privacyPage: 'privacy.pt.html',
+  supportOnKofi: 'Apoie o Mirepoix no Ko-fi',
   recipeCount: (n) => `${n} ${n === 1 ? 'receita' : 'receitas'}`,
 
   noStorage: 'Este navegador não consegue guardar receitas',

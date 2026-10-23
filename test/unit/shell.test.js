@@ -139,6 +139,11 @@ test('the analytics setting is a Google Analytics Measurement ID, or empty for o
   assert.match(ANALYTICS_ID, /^(G-[A-Z0-9]{6,12})?$/);
 });
 
+test('the Ko-fi setting is a Ko-fi page over HTTPS, or empty to hide the link (R2.0.1)', async () => {
+  const { KOFI_URL } = await import('../../app/config.js');
+  assert.match(KOFI_URL, /^(https:\/\/ko-fi\.com\/\w+)?$/);
+});
+
 test('the share preview is a 1200×630 PNG', async () => {
   assert.equal(await pngSize('icons/social.png'), '1200x630');
 });

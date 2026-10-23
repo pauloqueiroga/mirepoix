@@ -180,3 +180,12 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Privacy page:** one static page per language, `privacy.html` and `privacy.pt.html`, linked to each other. The app links to the one in its language.
 - **Not translated:** the screen names sent to analytics (D14) stay in English, so the numbers don't split by language. The search-engine description in `index.html` and the install manifest stay in English for now.
 - **Consequences:** every new piece of text needs both languages in the same change. A third language would be one more object in `i18n.js` and one more privacy page.
+
+## D16. Ko-fi: a plain link, not Ko-fi's widget
+
+**Proposed** · 2026-10-23
+
+- **Context:** The maintainer wants a way for people to support Mirepoix on Ko-fi (R2.0.1). Ko-fi offers a button widget and badge images, but both load from Ko-fi's servers, which D7 rules out.
+- **Decision:** One ordinary link at the bottom of the list and Keep a copy screens, "Support Mirepoix on Ko-fi" / "Apoie o Mirepoix no Ko-fi", with a cup drawn in our own CSS. It opens in a new tab. The address lives in `app/config.js` (`KOFI_URL`); an empty string hides the link.
+- **Consequences:** Nothing from Ko-fi loads until someone follows the link, so the CSP stays as it is and the privacy promise holds. A unit test keeps the setting a `https://ko-fi.com/…` address or empty.
+- **To confirm:** the address is set to `https://ko-fi.com/pauloqueiroga`, a guess. Check it before deploying.

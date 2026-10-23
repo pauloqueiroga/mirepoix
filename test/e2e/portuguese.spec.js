@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures.js';
+import { configWith, expect, test } from './fixtures.js';
 
 // Mirepoix in Portuguese (R1.17, D15): the screens follow the browser's
 // language, and the footer switches it on this device.
@@ -64,6 +64,7 @@ test.describe('a browser set to Portuguese', () => {
       .setInputFiles({ name: 'notes.json', mimeType: 'application/json', buffer: Buffer.from('not json') });
     await expect(page.getByRole('status')).toHaveText('Esse arquivo não é uma exportação do Mirepoix.');
 
+    await expect(page.getByRole('link', { name: 'Apoie o Mirepoix no Ko-fi' })).toBeVisible();
     await page.getByRole('link', { name: 'Privacidade' }).click();
     await expect(page).toHaveTitle('Privacidade · Mirepoix');
     await expect(page.getByText('suas receitas ficam com você')).toBeVisible();
@@ -74,7 +75,7 @@ test.describe('a browser set to Portuguese', () => {
 
   test('asks about usage statistics in Portuguese', async ({ page }) => {
     await page.route('**/config.js', (route) =>
-      route.fulfill({ contentType: 'text/javascript', body: "export const ANALYTICS_ID = 'G-TEST12345';" }));
+      route.fulfill({ contentType: 'text/javascript', body: configWith('G-TEST12345') }));
     await page.goto('/');
     const banner = page.getByRole('complementary', { name: 'Estatísticas de uso' });
     await expect(banner.getByRole('link', { name: 'Privacidade' })).toHaveAttribute('href', 'privacy.pt.html');
