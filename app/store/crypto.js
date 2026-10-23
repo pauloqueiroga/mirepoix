@@ -91,14 +91,22 @@ export function readVault(text) {
  */
 export async function openVault(vault, passphrase) {
   const key = await deriveKey(passphrase, fromBase64(vault.kdf.salt), vault.kdf.iterations);
-  let text;
-  try {
-    text = new TextDecoder().decode(await open(key, CHECK.context, vault.check));
-  } catch {
-    throw new CryptoError('wrong-passphrase');
-  }
-  if (text !== CHECK.text) throw new CryptoError('wrong-passphrase');
+  if (!(await keyOpens(vault, key))) throw new CryptoError('wrong-passphrase');
   return key;
+}
+
+/**
+ * Whether a key kept on this device still opens a vault, which may have been
+ * written again since (R2.5).
+ * @param {Vault} vault
+ * @param {CryptoKey} key
+ */
+export async function keyOpens(vault, key) {
+  try {
+    return new TextDecoder().decode(await open(key, CHECK.context, vault.check)) === CHECK.text;
+  } catch {
+    return false;
+  }
 }
 
 /**
