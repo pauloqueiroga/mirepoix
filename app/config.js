@@ -9,4 +9,4 @@ export const ANALYTICS_ID = 'G-H72PWB3YHW';
 // link, so nothing from Ko-fi loads until someone follows it. An empty string
 // hides it.
 /** @type {string} */
-export const KOFI_URL = 'https://ko-fi.com/pauloqueiroga';
+export const KOFI_URL = 'https://ko-fi.com/pqstudio';
