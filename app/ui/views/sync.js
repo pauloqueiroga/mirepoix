@@ -1,3 +1,4 @@
+import { canEncrypt } from '../../store/crypto.js';
 import { connect, deviceName, problemOf, reopenVault, replaceToken } from '../../store/sync.js';
 import { footer, h } from '../dom.js';
 import { t, uiLang } from '../i18n.js';
@@ -52,9 +53,20 @@ export function syncView(connection, syncing) {
       h('a', { class: 'back', href: '#/' }, t.recipes)),
     h('main', { class: 'page sync' },
       h('h1', { class: 'recipe-title' }, connection ? t.sync : t.connectThisDevice),
-      ...(connection ? statusPart(connection, syncing) : connectPart(syncing)),
+      ...(connection ? statusPart(connection, syncing) : canEncrypt() ? connectPart(syncing) : insecurePart()),
       h('p', { class: 'aside' }, h('a', { href: '#/backup' }, t.keepACopyLink)),
       footer()),
+  ];
+}
+
+/**
+ * Why this page can't connect: browsers only encrypt on secure pages, and
+ * this one was opened at a plain http:// address.
+ */
+function insecurePart() {
+  return [
+    h('p', { class: 'alert', role: 'alert' }, t.problems.insecure),
+    h('p', null, ...t.openedAt(h('code', null, location.origin))),
   ];
 }
 

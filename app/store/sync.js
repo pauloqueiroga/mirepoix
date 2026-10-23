@@ -18,8 +18,8 @@
 // device asks for the branch head first: one small request. Only a head that
 // moved means listing the files and downloading the changed ones.
 import { fingerprint } from '../domain/fingerprint.js';
-import { recipeProblems } from '../domain/recipe.js';
-import { CryptoError, createVault, keyOpens, openVault, readVault, seal, unseal } from './crypto.js';
+import { newId, recipeProblems } from '../domain/recipe.js';
+import { CryptoError, canEncrypt, createVault, keyOpens, openVault, readVault, seal, unseal } from './crypto.js';
 import { RemoteError, findRepository, githubRemote, parseRepository } from './github.js';
 
 /** @typedef {import('../domain/recipe.js').Recipe} Recipe */
@@ -46,7 +46,8 @@ import { RemoteError, findRepository, githubRemote, parseRepository } from './gi
  * - has-vault: starting fresh, but the repository already holds recipes
  * - no-vault: joining, but there's nothing to join yet
  * - short-passphrase: fewer than 8 characters for a new vault
- * @typedef {'bad-repository' | 'public-repository' | 'has-vault' | 'no-vault' | 'short-passphrase'} ConnectProblem
+ * - insecure: the page isn't secure (https://), so the browser offers no encryption
+ * @typedef {'bad-repository' | 'public-repository' | 'has-vault' | 'no-vault' | 'short-passphrase' | 'insecure'} ConnectProblem
  */
 /** @typedef {RemoteProblem | CryptoProblem | ConnectProblem} SyncProblem */
 /** @typedef {{ done: number, total: number }} Progress */
@@ -139,6 +140,7 @@ export function problemOf(error) {
  * @returns {Promise<Connection>} rejects with a ConnectError, RemoteError or CryptoError
  */
 export async function connect({ store, mode, repository: typed, token, passphrase, device, step = () => {}, fetch, iterations }) {
+  if (!canEncrypt()) throw new ConnectError('insecure');
   const repository = parseRepository(typed);
   if (!repository) throw new ConnectError('bad-repository');
   if (mode === 'fresh' && [...passphrase.normalize('NFC')].length < SHORTEST_PASSPHRASE) throw new ConnectError('short-passphrase');
@@ -343,7 +345,7 @@ export async function syncOnce({ store, remote, connection, conflictTitle, now =
     }
     // Changed on both sides: theirs stays, and ours is kept beside it (D6).
     const when = now();
-    const copy = { ...local, id: crypto.randomUUID(), title: conflictTitle(local.title, connection.device, when), createdAt: when.toISOString(), updatedAt: when.toISOString() };
+    const copy = { ...local, id: newId(), title: conflictTitle(local.title, connection.device, when), createdAt: when.toISOString(), updatedAt: when.toISOString() };
     if (await settle({ expect: { [id]: mine }, put: [theirs, copy], bases: [newBase] }, true)) {
       report.conflicts += 1;
       uploads.push({ id: copy.id, over: null, tries: 0 });

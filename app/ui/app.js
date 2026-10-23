@@ -1,6 +1,6 @@
 import { analyticsActive, askForAnalytics, screenShown, startAnalytics } from '../analytics.js';
 import { fingerprint } from '../domain/fingerprint.js';
-import { byTitle } from '../domain/recipe.js';
+import { byTitle, newId } from '../domain/recipe.js';
 import { openLocalStore, requestPersistentStorage } from '../store/local-store.js';
 import { createSyncer, deviceName } from '../store/sync.js';
 import { t, uiLang } from './i18n.js';
@@ -134,7 +134,7 @@ export async function startApp(root) {
             if (now && fingerprint(now) !== fingerprint(recipe)) {
               const at = new Date();
               const device = deviceName(navigator.userAgent, navigator.maxTouchPoints);
-              edited = { ...edited, id: crypto.randomUUID(), title: t.conflictTitle(edited.title, device, at), createdAt: at.toISOString() };
+              edited = { ...edited, id: newId(), title: t.conflictTitle(edited.title, device, at), createdAt: at.toISOString() };
             }
             await save(edited);
             landed = edited.id;

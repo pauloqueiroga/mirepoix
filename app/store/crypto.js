@@ -24,6 +24,15 @@ import { fromBase64, toBase64 } from './base64.js';
  * }} Vault
  */
 
+/**
+ * Whether this page can encrypt at all. Browsers only offer Web Crypto on
+ * secure pages: an https:// address, or localhost on the same computer.
+ * @param {{ crypto?: { subtle?: unknown } }} [scope]
+ */
+export function canEncrypt(scope = globalThis) {
+  return Boolean(scope.crypto?.subtle);
+}
+
 /** PBKDF2 iterations for a new vault (D7). Stored in the vault, so it can be raised later. */
 export const ITERATIONS = 600_000;
 // A vault asking for more than this is refused rather than left to hang the device.

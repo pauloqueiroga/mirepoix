@@ -130,6 +130,7 @@ npm run check:deploy -- https://pauloq.com/mirepoix/  # check a deployed site
 
 - The dev server sends the same Content-Security-Policy as production (D7), so an inline script or style fails locally and in the tests, not after a deploy.
 - On `localhost` the service worker stays off, so edits show up on reload. Add `?sw` to the address to try offline behavior.
+- Syncing needs a secure page: browsers only offer encryption on `https://` addresses, or on `localhost` on the same computer. A phone reaching a laptop's plain `http://` address can add and read recipes but can't connect; try syncing on a second device through the deployed `https://` site.
 - The service worker's file list (`SHELL` in `app/sw.js`) must match the files in `app/`; a unit test fails when they drift. Its `VERSION` moves with `package.json`'s version, and bumping both is what makes installed devices pick up a release.
 - The ingredient parser's expectations live in `test/fixtures/ingredients.en.txt` and `ingredients.pt.txt`, one case per line: `line => quantity | unit | name | note | equivalents | doubts`. When a real recipe line reads wrong, add it there first (the test fails), then fix the parser.
 - Every word on screen lives in `app/ui/i18n.js`, in English and Portuguese; new text goes in both. Type-checking and `npm test` fail when Portuguese is missing something English has. Browser tests run with an English browser (`playwright.config.js`); the Portuguese ones set their own.

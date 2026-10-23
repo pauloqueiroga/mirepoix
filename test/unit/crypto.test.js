@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { decodeText, encodeText, fromBase64, toBase64 } from '../../app/store/base64.js';
-import { CryptoError, ITERATIONS, createVault, openVault, readVault, seal, unseal } from '../../app/store/crypto.js';
+import { CryptoError, ITERATIONS, canEncrypt, createVault, openVault, readVault, seal, unseal } from '../../app/store/crypto.js';
 
 // The crypto envelope (R2.1, D7). Vaults here use few iterations so the
 // tests stay fast; one test checks the real default.
@@ -25,6 +25,12 @@ test('base64 carries bytes and UTF-8 text both ways, ignoring line breaks', () =
   const big = Uint8Array.from({ length: 100_000 }, (_, i) => (i * 7919) % 256);
   assert.deepEqual(fromBase64(toBase64(big)), big);
   assert.throws(() => decodeText('not base64!'));
+});
+
+test('encryption needs Web Crypto, which browsers only offer on secure pages', () => {
+  assert.equal(canEncrypt(), true);
+  assert.equal(canEncrypt({ crypto: { subtle: undefined } }), false, 'a plain http:// page');
+  assert.equal(canEncrypt({}), false);
 });
 
 test('a new vault opens with its passphrase, and the key opens what it sealed', async () => {

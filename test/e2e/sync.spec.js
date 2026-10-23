@@ -171,6 +171,25 @@ test('connecting explains what is wrong: nothing to join yet, or recipes already
   await other.context().close();
 });
 
+test('on a plain http:// page, where browsers offer no encryption, the sync screen says why, and recipes still work', async ({ page }) => {
+  // What a browser leaves out on an insecure page, such as a laptop's address on the local network.
+  await page.addInitScript(() => {
+    Object.defineProperty(window.crypto, 'subtle', { value: undefined });
+    Object.defineProperty(window.crypto, 'randomUUID', { value: undefined });
+  });
+  await page.goto('/#/sync');
+  await expect(page.getByRole('alert')).toHaveText(/^Syncing needs a secure page\. Browsers only encrypt on https:\/\/ addresses/);
+  await expect(page.getByText('This page was opened at http://localhost:', { exact: false })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Connect' })).toHaveCount(0);
+
+  await page.goto('/#/new');
+  await page.getByLabel('Title').fill('Feijoada');
+  await page.getByLabel(/^Ingredients/).fill('500 g feijão preto');
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByRole('list', { name: 'Recipes' }).getByRole('listitem')).toHaveText(['Feijoada']);
+  await expect(chip(page)).toHaveText('This device only');
+});
+
 test('a change on one device reaches the other; deleting does too', async ({ page, browser }) => {
   await seed(page, ['Feijoada', 'Pastel']);
   await connectDevice(page, { mode: 'fresh' });
