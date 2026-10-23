@@ -103,6 +103,9 @@ test('starting fresh: the vault is made, recipes go up sealed, and the device op
   await chip(page).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Connect this device' })).toBeVisible();
   await expect(page.getByText('GitHub only ever stores scrambled files.')).toBeVisible();
+  await page.getByText('How do I get these?').click();
+  await expect(page.getByText('“Developer settings” → “Personal access tokens” → “Fine-grained tokens”', { exact: false })).toBeVisible();
+  await expect(page.getByText('GitHub moves its menus around now and then', { exact: false })).toBeVisible();
   await connectDevice(page, { mode: 'fresh' });
 
   await expect(page.getByRole('list', { name: 'Recipes' }).getByRole('listitem')).toHaveText(['Feijoada', 'Pão de queijo']);

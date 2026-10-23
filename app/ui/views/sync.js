@@ -162,6 +162,7 @@ function connectPart({ store, syncer, onLeave, done, again }) {
       h('details', { class: 'how' },
         h('summary', null, t.howTo),
         h('ol', null, ...t.howToSteps.map((step) => h('li', null, step))),
+        h('p', { class: 'caveat' }, t.howToCaveat),
         h('p', null,
           h('a', { href: 'https://github.com/new', target: '_blank', rel: 'noopener' }, t.createRepository),
           ' · ',

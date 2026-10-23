@@ -984,6 +984,8 @@ input.mono {
 
 .how p { margin: 8px 14px 12px; }
 
+.how .caveat { color: var(--ink-2); }
+
 .checks {
   margin: 0;
   padding: 0;

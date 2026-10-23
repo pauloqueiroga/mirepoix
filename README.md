@@ -60,7 +60,12 @@ The full reasoning, alternatives and trade-offs are in [DECISIONS.md](DECISIONS.
 Do this once, on GitHub:
 
 1. Create a **private** repository for the recipes, e.g. `mirepoix-data`. It can start empty.
-2. For each device, make a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new): *Only select repositories* → the recipes repository, and *Repository permissions → Contents: Read and write*. Nothing else. One token per device means a lost phone can be cut off on its own.
+2. For each device, make a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new). From your profile picture at the top right: *Settings → Developer settings* (at the bottom of the left-hand menu) *→ Personal access tokens → Fine-grained tokens → Generate new token*. Then:
+   - *Repository access*: *Only select repositories* → the recipes repository.
+   - *Permissions*: *Contents* (a repository permission) → *Read and write*. Nothing else.
+   - Copy the token straight away; GitHub shows it only once. One token per device means a lost phone can be cut off on its own.
+
+   GitHub rearranges its menus now and then. If these names don't match, look for *Developer settings* and *Fine-grained tokens*, or search GitHub's help for "fine-grained personal access token".
 
 Then, in Mirepoix, tap the chip in the corner of the recipe list (**This device only**):
 
