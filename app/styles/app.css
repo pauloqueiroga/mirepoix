@@ -226,6 +226,7 @@ a { color: var(--carrot); }
 
 .chip.warn { background: var(--warn-soft); color: var(--warn); }
 .chip.ok { background: var(--celery-soft); color: var(--celery); }
+.chip.alert { background: var(--carrot-soft); color: var(--carrot); }
 
 .chip .dot {
   width: 7px;
@@ -444,6 +445,7 @@ fieldset.field {
 }
 
 input[type="text"],
+input[type="password"],
 textarea {
   width: 100%;
   padding: 9px 11px;
@@ -455,6 +457,7 @@ textarea {
 }
 
 input[type="text"]:focus-visible,
+input[type="password"]:focus-visible,
 textarea:focus-visible {
   border-color: var(--carrot);
   outline-offset: 0;
@@ -815,6 +818,30 @@ a.chip { text-decoration: none; }
   color: var(--ink-2);
 }
 
+/* Ko-fi (R2.0.1, D16): our own small badge rather than Ko-fi's widget, so
+   nothing loads from Ko-fi until someone follows the link. */
+.app-footer a.kofi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--carrot);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app-footer a.kofi:hover { text-decoration: underline; }
+
+.kofi::before {
+  content: "";
+  width: 1.2em;
+  height: 1.2em;
+  background: currentColor;
+  -webkit-mask: var(--cup) center / contain no-repeat;
+  mask: var(--cup) center / contain no-repeat;
+  --cup: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z'/%3E%3Cpath d='M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16'/%3E%3Cpath d='M8 3.5c0 1.2 1 1.3 1 2.5M12 3.5c0 1.2 1 1.3 1 2.5'/%3E%3C/svg%3E");
+}
+
 .link {
   padding: 0;
   border: 0;
@@ -879,3 +906,149 @@ a.chip { text-decoration: none; }
   gap: 8px;
   margin-left: auto;
 }
+
+/* Sync (R2): connecting a device, and how syncing goes */
+
+.sync {
+  max-width: 46rem;
+  padding: 0 max(var(--gutter), env(safe-area-inset-right)) 48px max(var(--gutter), env(safe-area-inset-left));
+}
+
+.sync p { margin: 0 0 12px; }
+
+.sync .lead { color: var(--ink-2); }
+
+/* A padlock before the promise that recipes are encrypted. */
+.lead.secure {
+  display: flex;
+  gap: 10px;
+}
+
+.lead.secure::before {
+  content: "";
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  background: var(--celery);
+  -webkit-mask: var(--lock) center / contain no-repeat;
+  mask: var(--lock) center / contain no-repeat;
+  --lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E");
+}
+
+.connect {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.connect .field .hint { margin-top: 4px; }
+
+.hint.warn {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+input.mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace;
+  font-size: .9rem;
+}
+
+.connect > .button { justify-self: start; }
+
+.button:disabled {
+  opacity: .6;
+  cursor: progress;
+}
+
+.how {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: .9rem;
+}
+
+.how summary {
+  padding: 9px 12px;
+  font-weight: 700;
+  color: var(--carrot);
+  cursor: pointer;
+}
+
+.how ol {
+  margin: 0;
+  padding: 0 14px 0 34px;
+}
+
+.how li { padding: 3px 0; }
+
+.how p { margin: 8px 14px 12px; }
+
+.how .caveat { color: var(--ink-2); }
+
+.checks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: .95rem;
+}
+
+.checks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.checks li::before {
+  content: "";
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.checks li.done::before {
+  background: var(--celery);
+  -webkit-mask: var(--tick) center / contain no-repeat;
+  mask: var(--tick) center / contain no-repeat;
+  --tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12.5l5 5L20 6.5'/%3E%3C/svg%3E");
+}
+
+.checks li.working::before {
+  border: 2.5px solid var(--line);
+  border-top-color: var(--celery);
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .checks li.working::before { animation: none; }
+}
+
+.sync-status {
+  margin: 4px 0 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.sync-status p:last-child { margin-bottom: 0; }
+
+.status-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.fix:empty { display: none; }
+
+.fix { margin-bottom: 12px; }
+
+.actions { margin-top: 4px; }
+
+.sync .aside { margin-top: 24px; }
+

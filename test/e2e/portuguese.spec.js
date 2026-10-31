@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures.js';
+import { configWith, expect, test } from './fixtures.js';
 
 // Mirepoix in Portuguese (R1.17, D15): the screens follow the browser's
 // language, and the footer switches it on this device.
@@ -58,12 +58,15 @@ test.describe('a browser set to Portuguese', () => {
   test('keeping a copy, and the privacy page, are in Portuguese too', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Só neste aparelho' }).click();
+    await expect(page.getByRole('heading', { name: 'Conectar este aparelho' })).toBeVisible();
+    await page.getByRole('link', { name: 'Exportar ou importar uma cópia' }).click();
     await expect(page.getByRole('heading', { name: 'Guardar uma cópia' })).toBeVisible();
     await expect(page.getByText('Nada para exportar ainda.')).toBeVisible();
     await page.getByLabel('Importar de um arquivo')
       .setInputFiles({ name: 'notes.json', mimeType: 'application/json', buffer: Buffer.from('not json') });
     await expect(page.getByRole('status')).toHaveText('Esse arquivo não é uma exportação do Mirepoix.');
 
+    await expect(page.getByRole('link', { name: 'Apoie o Mirepoix no Ko-fi' })).toBeVisible();
     await page.getByRole('link', { name: 'Privacidade' }).click();
     await expect(page).toHaveTitle('Privacidade · Mirepoix');
     await expect(page.getByText('suas receitas ficam com você')).toBeVisible();
@@ -72,9 +75,26 @@ test.describe('a browser set to Portuguese', () => {
     await expect(page.getByRole('heading', { name: 'Nenhuma receita ainda' })).toBeVisible();
   });
 
+  test('connecting a device is in Portuguese too (R2.4)', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Só neste aparelho' }).click();
+    await expect(page).toHaveTitle('Conectar este aparelho · Mirepoix');
+    await expect(page.getByText('O GitHub só guarda arquivos embaralhados.')).toBeVisible();
+    await page.getByRole('radio', { name: 'Começar do zero' }).check();
+    await expect(page.getByText('Não dá para recuperá-la. Guarde uma cópia num lugar seguro.')).toBeVisible();
+    await page.getByRole('button', { name: 'Conectar' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Preencha o repositório, o token e a frase secreta.');
+    await page.getByLabel('Repositório privado').fill('isto não é um repositório');
+    await page.getByLabel('Token do GitHub').fill('token');
+    await page.getByLabel('Frase secreta', { exact: true }).fill('curta');
+    await page.getByLabel('Frase secreta de novo').fill('curta');
+    await page.getByRole('button', { name: 'Conectar' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Escreva o repositório como dono/nome, por exemplo voce/mirepoix-data, ou cole o endereço dele.');
+  });
+
   test('asks about usage statistics in Portuguese', async ({ page }) => {
     await page.route('**/config.js', (route) =>
-      route.fulfill({ contentType: 'text/javascript', body: "export const ANALYTICS_ID = 'G-TEST12345';" }));
+      route.fulfill({ contentType: 'text/javascript', body: configWith('G-TEST12345') }));
     await page.goto('/');
     const banner = page.getByRole('complementary', { name: 'Estatísticas de uso' });
     await expect(banner.getByRole('link', { name: 'Privacidade' })).toHaveAttribute('href', 'privacy.pt.html');

@@ -7,6 +7,7 @@
 /** @typedef {import('../domain/ingredients.js').DoubtCode} DoubtCode */
 /** @typedef {import('../domain/draft.js').Problem} Problem */
 /** @typedef {import('../domain/backup.js').ExportError} ExportError */
+/** @typedef {import('../store/sync.js').SyncProblem} SyncProblem */
 /** @typedef {{ added: number, updated: number, unchanged: number, skipped: number }} ImportResult */
 
 const KEY = 'mirepoix.lang';
@@ -19,6 +20,7 @@ const en = {
   edit: 'Edit',
   privacy: 'Privacy',
   privacyPage: 'privacy.html',
+  supportOnKofi: 'Support Mirepoix on Ko-fi',
   recipeCount: (/** @type {number} */ n) => `${n} ${n === 1 ? 'recipe' : 'recipes'}`,
 
   // The app around the screens
@@ -33,9 +35,10 @@ const en = {
 
   // The list
   thisDeviceOnly: 'This device only',
-  thisDeviceOnlyTip: 'Recipes are saved in this browser, on this device. Tap to keep a copy.',
+  thisDeviceOnlyTip: 'Recipes are saved in this browser, on this device. Tap to sync them with your other devices.',
   noRecipes: 'No recipes yet',
   noRecipesText: 'Tap + to add your first one. Recipes are kept in this browser, on this device.',
+  noRecipesSyncedText: 'Tap + to add your first one. It syncs to your other devices.',
   haveExport: 'Have an export from another device? ',
   importIt: 'Import it',
   searchPlaceholder: 'Search recipes or ingredients',
@@ -102,7 +105,7 @@ const en = {
 
   // Keep a copy
   keepACopy: 'Keep a copy',
-  keepACopyLead: 'Your recipes live in this browser, on this device. Until syncing arrives, export them now and then and keep the file somewhere safe. If this browser’s data is ever cleared, the file brings them back.',
+  keepACopyLead: 'An export is one file with every recipe in it, readable without Mirepoix, GitHub or your passphrase. Make one now and then and keep it somewhere safe. If this browser’s data is ever cleared, the file brings the recipes back.',
   export: 'Export',
   exportCount: (/** @type {number} */ n) => `Saves all ${n} ${n === 1 ? 'recipe' : 'recipes'} in one file.`,
   nothingToExport: 'Nothing to export yet.',
@@ -128,6 +131,98 @@ const en = {
     ].filter(Boolean).join(' ');
   },
 
+  // Sync (R2): the chip on the list, connecting a device, and its status
+  sync: 'Sync',
+  syncing: 'Syncing…',
+  synced: 'Synced',
+  offline: 'Offline',
+  syncTip: 'Sync with your other devices. Tap for details.',
+  /** The chip's word for each problem that stops syncing; anything else is "Sync problem". */
+  chipProblems: /** @type {Partial<Record<SyncProblem, string>>} */ ({
+    unauthorized: 'Token expired',
+    forbidden: 'Token can’t write',
+    'not-found': 'Repository not found',
+    'wrong-passphrase': 'Passphrase needed',
+  }),
+  syncProblem: 'Sync problem',
+  connectThisDevice: 'Connect this device',
+  connectLead: 'Recipes are encrypted here, on this device, before they travel. GitHub only ever stores scrambled files.',
+  joinMine: 'Join my recipes',
+  startFresh: 'Start fresh',
+  modeHint: 'Use Start fresh once, on the first device. Every other device joins with the same repository and passphrase, and a token of its own.',
+  repository: 'Private repository',
+  repositoryPlaceholder: 'you/mirepoix-data',
+  token: 'GitHub token',
+  tokenHint: 'Fine-grained, for this repository only, with Contents: Read and write.',
+  howTo: 'How do I get these?',
+  // GitHub's own menus are in English, so their names stay in English in both languages.
+  howToSteps: [
+    'Create the repository: on github.com, open the + menu at the top right and choose “New repository”. Name it something like mirepoix-data, pick “Private”, and create it. It can start empty.',
+    'Make a token: click your profile picture at the top right, then “Settings”. At the bottom of the menu on the left, open “Developer settings” → “Personal access tokens” → “Fine-grained tokens”, and choose “Generate new token”.',
+    'Name it after the device (“Mirepoix on my iPhone”) and pick an expiration. When a token runs out, Mirepoix asks for a new one, and the recipes stay put.',
+    'Under “Repository access”, choose “Only select repositories”, and pick the recipes repository.',
+    'Under “Permissions”, find “Contents” among the repository permissions and give it “Read and write”. Leave the rest as it is.',
+    'Generate the token and copy it straight away: GitHub shows it only once. Paste it in the token box above.',
+    'Make one token per device, so a lost phone can be cut off on its own.',
+  ],
+  howToCaveat: 'GitHub moves its menus around now and then, so these names may have changed since this was written. If something doesn’t match, look for “Developer settings” and “Fine-grained tokens”, or search GitHub’s help for “fine-grained personal access token”.',
+  createRepository: 'Create a repository on GitHub',
+  createToken: 'Make a token on GitHub',
+  passphrase: 'Passphrase',
+  passphraseAgain: 'Passphrase again',
+  passphraseWarn: 'It can’t be recovered. Keep a copy somewhere safe.',
+  passphraseJoinHint: 'The one chosen when these recipes first synced.',
+  connect: 'Connect',
+  connecting: 'Connecting…',
+  fillIn: 'Fill in the repository, the token and the passphrase.',
+  passphrasesDiffer: 'The two passphrases don’t match.',
+  stepRepository: 'Repository found',
+  stepPassphraseJoin: 'Passphrase opens your recipes',
+  stepPassphraseFresh: 'Vault created, locked with your passphrase',
+  stepSyncing: (/** @type {number} */ done, /** @type {number} */ total) => `Syncing: ${done} of ${total}…`,
+  stepDone: 'All synced',
+  /** @type {Record<SyncProblem, string>} */
+  problems: {
+    offline: 'GitHub can’t be reached. Check the connection.',
+    unauthorized: 'GitHub doesn’t accept this token. It may be mistyped, expired or revoked.',
+    forbidden: 'This token can’t write to the repository. It needs Contents: Read and write.',
+    'not-found': 'There’s no such repository, or this token can’t see it. A fine-grained token only sees the repositories picked for it.',
+    conflict: 'Someone changed the repository at the same moment. Try again.',
+    'rate-limited': 'GitHub asks to slow down. Try again in a few minutes.',
+    unavailable: 'GitHub isn’t answering properly right now. Try again later.',
+    'not-a-vault': 'The repository’s vault.json is missing or damaged, so its recipes can’t be opened. Nothing was deleted here.',
+    'too-new': 'The recipes there come from a newer Mirepoix. Update this one, then try again.',
+    'wrong-passphrase': 'That passphrase doesn’t open these recipes.',
+    tampered: 'A file in the repository was changed outside Mirepoix and can’t be trusted.',
+    'bad-repository': 'Write the repository as owner/name, like you/mirepoix-data, or paste its address.',
+    'public-repository': 'That repository is public. Recipes only sync to a private one.',
+    'has-vault': 'That repository already has recipes. Use Join my recipes instead.',
+    'no-vault': 'There are no recipes there yet. Use Start fresh on your first device.',
+    'short-passphrase': 'Use a passphrase of at least 8 characters. A few words work well.',
+    insecure: 'Syncing needs a secure page. Browsers only encrypt on https:// addresses (or on localhost, on the same computer), so open Mirepoix at its https:// address to connect this device.',
+  },
+  openedAt: (/** @type {Node} */ address) => ['This page was opened at ', address, '. Recipes can still be added and read here; they just stay on this device.'],
+  syncedWith: (/** @type {Node} */ repository) => ['Recipes sync with ', repository, ' on GitHub, end-to-end encrypted.'],
+  lastSynced: (/** @type {string} */ when) => `Last synced ${when}.`,
+  notSyncedYet: 'Not synced yet.',
+  pendingChanges: (/** @type {number} */ n) => `${n} ${n === 1 ? 'change is' : 'changes are'} waiting to go up.`,
+  unreadable: (/** @type {number} */ n) =>
+    `${n === 1 ? '1 recipe' : `${n} recipes`} on GitHub couldn’t be opened here: damaged, or from a newer Mirepoix. ${n === 1 ? 'It’s' : 'They’re'} left as ${n === 1 ? 'it is' : 'they are'}.`,
+  offlineNote: 'You’re offline. Changes wait on this device and go up when you’re back.',
+  tokenProblem: 'Paste a new token to keep syncing. Recipes and the passphrase stay as they are.',
+  passphraseChanged: 'The recipes on GitHub now open with a different passphrase. Type it to keep syncing.',
+  newToken: 'New GitHub token',
+  useToken: 'Use this token',
+  unlock: 'Unlock',
+  syncNow: 'Sync now',
+  disconnect: 'Disconnect this device',
+  confirmDisconnect: (/** @type {number} */ pending) => (pending > 0
+    ? `Disconnect? ${pending === 1 ? '1 change hasn’t' : `${pending} changes haven’t`} reached GitHub yet, and will stay on this device only. Every recipe stays here either way.`
+    : 'Stop syncing on this device? Every recipe stays here, and GitHub keeps its copy.'),
+  keepACopyLink: 'Export or import a copy',
+  /** The copy kept when a recipe changed on two devices at once (D6). */
+  conflictTitle: (/** @type {string} */ title, /** @type {string} */ device, /** @type {Date} */ at) => `${title} (conflict, ${device}, ${day(at)})`,
+
   // Usage statistics (D14)
   statistics: 'Usage statistics',
   statisticsAsk: 'Help improve Mirepoix? Allow anonymous usage statistics from Google Analytics: which screens get used, never your recipes. ',
@@ -148,6 +243,7 @@ const pt = {
   edit: 'Editar',
   privacy: 'Privacidade',
   privacyPage: 'privacy.pt.html',
+  supportOnKofi: 'Apoie o Mirepoix no Ko-fi',
   recipeCount: (n) => `${n} ${n === 1 ? 'receita' : 'receitas'}`,
 
   noStorage: 'Este navegador não consegue guardar receitas',
@@ -160,9 +256,10 @@ const pt = {
   editNamed: (title) => `Editar ${title}`,
 
   thisDeviceOnly: 'Só neste aparelho',
-  thisDeviceOnlyTip: 'As receitas ficam salvas neste navegador, neste aparelho. Toque para guardar uma cópia.',
+  thisDeviceOnlyTip: 'As receitas ficam salvas neste navegador, neste aparelho. Toque para sincronizar com seus outros aparelhos.',
   noRecipes: 'Nenhuma receita ainda',
   noRecipesText: 'Toque em + para adicionar a primeira. As receitas ficam guardadas neste navegador, neste aparelho.',
+  noRecipesSyncedText: 'Toque em + para adicionar a primeira. Ela vai para os seus outros aparelhos.',
   haveExport: 'Tem um arquivo exportado de outro aparelho? ',
   importIt: 'Importe aqui',
   searchPlaceholder: 'Buscar receitas ou ingredientes',
@@ -223,7 +320,7 @@ const pt = {
   },
 
   keepACopy: 'Guardar uma cópia',
-  keepACopyLead: 'Suas receitas ficam neste navegador, neste aparelho. Até a sincronização chegar, exporte de vez em quando e guarde o arquivo num lugar seguro. Se os dados deste navegador forem apagados, o arquivo traz as receitas de volta.',
+  keepACopyLead: 'Uma exportação é um arquivo com todas as receitas, que dá para ler sem o Mirepoix, sem o GitHub e sem a sua frase secreta. Faça uma de vez em quando e guarde num lugar seguro. Se os dados deste navegador forem apagados, o arquivo traz as receitas de volta.',
   export: 'Exportar',
   exportCount: (n) => (n === 1 ? 'Salva a receita num arquivo.' : `Salva todas as ${n} receitas num arquivo.`),
   nothingToExport: 'Nada para exportar ainda.',
@@ -251,6 +348,94 @@ const pt = {
     ].filter(Boolean).join(' ');
   },
 
+  sync: 'Sincronização',
+  syncing: 'Sincronizando…',
+  synced: 'Sincronizado',
+  offline: 'Sem conexão',
+  syncTip: 'Sincronize com seus outros aparelhos. Toque para ver os detalhes.',
+  chipProblems: {
+    unauthorized: 'Token expirado',
+    forbidden: 'Token sem permissão',
+    'not-found': 'Repositório não encontrado',
+    'wrong-passphrase': 'Falta a frase secreta',
+  },
+  syncProblem: 'Problema na sincronização',
+  connectThisDevice: 'Conectar este aparelho',
+  connectLead: 'As receitas são criptografadas aqui, neste aparelho, antes de saírem dele. O GitHub só guarda arquivos embaralhados.',
+  joinMine: 'Juntar às minhas receitas',
+  startFresh: 'Começar do zero',
+  modeHint: 'Use Começar do zero uma vez só, no primeiro aparelho. Os outros se juntam com o mesmo repositório e a mesma frase secreta, cada um com o seu próprio token.',
+  repository: 'Repositório privado',
+  repositoryPlaceholder: 'voce/mirepoix-data',
+  token: 'Token do GitHub',
+  tokenHint: 'Do tipo fine-grained, só para este repositório, com Contents: Read and write.',
+  howTo: 'Como consigo isso?',
+  howToSteps: [
+    'Crie o repositório: no github.com, abra o menu + no canto superior direito e escolha “New repository”. Dê um nome como mirepoix-data, marque “Private” e crie. Ele pode começar vazio.',
+    'Crie um token: clique na sua foto de perfil no canto superior direito e depois em “Settings”. No fim do menu da esquerda, abra “Developer settings” → “Personal access tokens” → “Fine-grained tokens” e escolha “Generate new token”.',
+    'Dê ao token o nome do aparelho (“Mirepoix no meu iPhone”) e escolha uma validade. Quando um token vence, o Mirepoix pede um novo, e as receitas continuam onde estão.',
+    'Em “Repository access”, escolha “Only select repositories” e selecione o repositório das receitas.',
+    'Em “Permissions”, procure “Contents” entre as permissões do repositório e escolha “Read and write”. Deixe o resto como está.',
+    'Gere o token e copie na hora: o GitHub só mostra uma vez. Cole no campo do token, mais acima.',
+    'Faça um token para cada aparelho, assim um celular perdido pode ser desligado sozinho.',
+  ],
+  howToCaveat: 'O GitHub muda os menus de lugar de vez em quando, então esses nomes podem ter mudado desde que isto foi escrito. Os menus dele aparecem em inglês. Se algo não bater, procure “Developer settings” e “Fine-grained tokens”, ou busque na ajuda do GitHub por “fine-grained personal access token”.',
+  createRepository: 'Criar um repositório no GitHub',
+  createToken: 'Criar um token no GitHub',
+  passphrase: 'Frase secreta',
+  passphraseAgain: 'Frase secreta de novo',
+  passphraseWarn: 'Não dá para recuperá-la. Guarde uma cópia num lugar seguro.',
+  passphraseJoinHint: 'A que foi escolhida quando estas receitas foram sincronizadas pela primeira vez.',
+  connect: 'Conectar',
+  connecting: 'Conectando…',
+  fillIn: 'Preencha o repositório, o token e a frase secreta.',
+  passphrasesDiffer: 'As duas frases secretas não são iguais.',
+  stepRepository: 'Repositório encontrado',
+  stepPassphraseJoin: 'A frase secreta abre suas receitas',
+  stepPassphraseFresh: 'Cofre criado, trancado com a sua frase secreta',
+  stepSyncing: (done, total) => `Sincronizando: ${done} de ${total}…`,
+  stepDone: 'Tudo sincronizado',
+  problems: {
+    offline: 'Não foi possível falar com o GitHub. Confira a conexão.',
+    unauthorized: 'O GitHub não aceita este token. Talvez esteja digitado errado, vencido ou revogado.',
+    forbidden: 'Este token não pode gravar no repositório. Ele precisa de Contents: Read and write.',
+    'not-found': 'Esse repositório não existe, ou este token não consegue vê-lo. Um token fine-grained só vê os repositórios escolhidos para ele.',
+    conflict: 'Alguém mudou o repositório no mesmo instante. Tente de novo.',
+    'rate-limited': 'O GitHub pediu para ir mais devagar. Tente de novo daqui a alguns minutos.',
+    unavailable: 'O GitHub não está respondendo direito agora. Tente mais tarde.',
+    'not-a-vault': 'O vault.json do repositório sumiu ou está danificado, então as receitas de lá não podem ser abertas. Nada foi apagado aqui.',
+    'too-new': 'As receitas de lá vêm de um Mirepoix mais novo. Atualize este e tente de novo.',
+    'wrong-passphrase': 'Essa frase secreta não abre estas receitas.',
+    tampered: 'Um arquivo do repositório foi mudado fora do Mirepoix e não é confiável.',
+    'bad-repository': 'Escreva o repositório como dono/nome, por exemplo voce/mirepoix-data, ou cole o endereço dele.',
+    'public-repository': 'Esse repositório é público. As receitas só sincronizam com um privado.',
+    'has-vault': 'Esse repositório já tem receitas. Use Juntar às minhas receitas.',
+    'no-vault': 'Ainda não há receitas lá. Use Começar do zero no seu primeiro aparelho.',
+    'short-passphrase': 'Use uma frase secreta com pelo menos 8 caracteres. Algumas palavras funcionam bem.',
+    insecure: 'A sincronização precisa de uma página segura. Os navegadores só criptografam em endereços https:// (ou em localhost, no mesmo computador), então abra o Mirepoix pelo endereço https:// para conectar este aparelho.',
+  },
+  openedAt: (address) => ['Esta página foi aberta em ', address, '. Dá para adicionar e ler receitas aqui; elas só ficam neste aparelho.'],
+  syncedWith: (repository) => ['As receitas sincronizam com ', repository, ' no GitHub, criptografadas de ponta a ponta.'],
+  lastSynced: (when) => `Última sincronização: ${when}.`,
+  notSyncedYet: 'Ainda não sincronizou.',
+  pendingChanges: (n) => (n === 1 ? '1 mudança está esperando para subir.' : `${n} mudanças estão esperando para subir.`),
+  unreadable: (n) => (n === 1
+    ? '1 receita no GitHub não pôde ser aberta aqui: está danificada, ou vem de um Mirepoix mais novo. Ela fica como está.'
+    : `${n} receitas no GitHub não puderam ser abertas aqui: estão danificadas, ou vêm de um Mirepoix mais novo. Elas ficam como estão.`),
+  offlineNote: 'Você está sem conexão. As mudanças esperam neste aparelho e sobem quando a conexão voltar.',
+  tokenProblem: 'Cole um token novo para continuar sincronizando. As receitas e a frase secreta continuam como estão.',
+  passphraseChanged: 'As receitas no GitHub agora abrem com outra frase secreta. Digite-a para continuar sincronizando.',
+  newToken: 'Novo token do GitHub',
+  useToken: 'Usar este token',
+  unlock: 'Desbloquear',
+  syncNow: 'Sincronizar agora',
+  disconnect: 'Desconectar este aparelho',
+  confirmDisconnect: (pending) => (pending > 0
+    ? `Desconectar? ${pending === 1 ? '1 mudança ainda não chegou' : `${pending} mudanças ainda não chegaram`} ao GitHub e ${pending === 1 ? 'vai ficar' : 'vão ficar'} só neste aparelho. Todas as receitas continuam aqui de qualquer jeito.`
+    : 'Parar de sincronizar neste aparelho? Todas as receitas continuam aqui, e o GitHub guarda a cópia dele.'),
+  keepACopyLink: 'Exportar ou importar uma cópia',
+  conflictTitle: (title, device, at) => `${title} (conflito, ${device}, ${day(at)})`,
+
   statistics: 'Estatísticas de uso',
   statisticsAsk: 'Quer ajudar a melhorar o Mirepoix? Permita estatísticas de uso anônimas do Google Analytics: quais telas são usadas, nunca as suas receitas. ',
   noThanks: 'Não permitir',
@@ -261,6 +446,15 @@ const pt = {
   stopStatistics: 'Parar de enviar estatísticas de uso',
   allowStatistics: 'Permitir estatísticas de uso',
 };
+
+/**
+ * A date as year-month-day, in local time: the same in both languages, and
+ * free of the commas that separate the parts of a conflict copy's title.
+ * @param {Date} at
+ */
+function day(at) {
+  return [at.getFullYear(), at.getMonth() + 1, at.getDate()].map((n) => String(n).padStart(2, '0')).join('-');
+}
 
 /** Every language's words, for pages written in one language (privacy.pt.html). */
 export const messages = { en, pt };

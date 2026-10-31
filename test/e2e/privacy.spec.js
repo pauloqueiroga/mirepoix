@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures.js';
+import { configWith, expect, test } from './fixtures.js';
 
 // Privacy page (R1.13), opt-in Google Analytics (R1.14, D14) and the public
 // pages' description for search engines and link previews (R1.15). Google's
@@ -26,7 +26,7 @@ async function withAnalytics(page) {
   /** @type {string[]} */
   const google = [];
   await page.route('**/config.js', (route) =>
-    route.fulfill({ contentType: 'text/javascript', body: "export const ANALYTICS_ID = 'G-TEST12345';" }));
+    route.fulfill({ contentType: 'text/javascript', body: configWith('G-TEST12345') }));
   await page.route(/googletagmanager\.com|google-analytics\.com/, (route) => {
     google.push(route.request().url());
     return route.fulfill({ contentType: 'text/javascript', body: 'window.gtagStandIn = true;' });
@@ -51,7 +51,8 @@ test('the privacy page is linked from the app and says what is kept and sent', a
   await expect(page).toHaveTitle('Privacy · Mirepoix');
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
   await expect(page.getByText('your recipes stay with you')).toBeVisible();
-  await expect(page.getByText('Nothing about your recipes, to anyone.')).toBeVisible();
+  await expect(page.getByText('Nothing readable about your recipes, to anyone.')).toBeVisible();
+  await expect(page.getByText('the passphrase itself is never kept anywhere', { exact: false })).toBeVisible();
   await expect(page.getByText('Usage statistics are switched off on this site, so nothing is sent.')).toBeVisible();
   await page.getByRole('link', { name: 'Recipes' }).click();
   await expect(page.getByRole('heading', { name: 'No recipes yet' })).toBeVisible();

@@ -50,7 +50,7 @@ test('no screen lets its content touch the edge of the window', async ({ page })
     await (await openLocalStore()).put(recipe);
     return recipe.id;
   });
-  for (const address of ['/', '/#/new', `/#/recipes/${id}`, `/#/recipes/${id}/edit`, '/#/backup', '/#/nope']) {
+  for (const address of ['/', '/#/new', `/#/recipes/${id}`, `/#/recipes/${id}/edit`, '/#/backup', '/#/sync', '/#/nope']) {
     await page.goto(address);
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
     // Text, not rows: list rows run edge to edge on purpose, with their text inset.
@@ -106,4 +106,20 @@ test('Chromium reads the manifest without errors', async ({ page, browserName })
   expect(manifest?.name).toBe('Mirepoix');
   expect(manifest?.display).toMatch(/standalone/i); // Chromium reports "kStandalone"
   expect(manifest?.icons).toHaveLength(3);
+});
+
+test('the footer has a Ko-fi link, and nothing loads from Ko-fi until it is followed (R2.0.1, D16)', async ({ page }) => {
+  /** @type {string[]} */
+  const kofi = [];
+  page.on('request', (request) => {
+    if (/ko-fi/.test(request.url())) kofi.push(request.url());
+  });
+  await page.goto('/');
+  const link = page.getByRole('link', { name: 'Support Mirepoix on Ko-fi' });
+  await expect(link).toHaveAttribute('href', /^https:\/\/ko-fi\.com\/\w+$/);
+  await expect(link).toHaveAttribute('target', '_blank');
+  await expect(link).toHaveAttribute('rel', 'noopener');
+  await page.goto('/#/backup');
+  await expect(page.getByRole('link', { name: 'Support Mirepoix on Ko-fi' })).toBeVisible();
+  expect(kofi).toEqual([]);
 });

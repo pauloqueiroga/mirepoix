@@ -53,7 +53,26 @@ flowchart LR
 - **Sync** stores one encrypted file per recipe in a private GitHub repository through GitHub's API. A returning device needs one small request to know whether anything changed, and every save is a commit, so history comes for free.
 - **Encryption** happens on the device, with a key derived from your passphrase. GitHub only ever stores ciphertext. The passphrase is typed once per device.
 
-The full reasoning, alternatives and trade-offs are in [DECISIONS.md](DECISIONS.md).
+The full reasoning, alternatives and trade-offs are in [DECISIONS.md](DECISIONS.md); syncing as built is D17.
+
+### Setting up sync
+
+Do this once, on GitHub:
+
+1. Create a **private** repository for the recipes, e.g. `mirepoix-data`. It can start empty.
+2. For each device, make a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new). From your profile picture at the top right: *Settings → Developer settings* (at the bottom of the left-hand menu) *→ Personal access tokens → Fine-grained tokens → Generate new token*. Then:
+   - *Repository access*: *Only select repositories* → the recipes repository.
+   - *Permissions*: *Contents* (a repository permission) → *Read and write*. Nothing else.
+   - Copy the token straight away; GitHub shows it only once. One token per device means a lost phone can be cut off on its own.
+
+   GitHub rearranges its menus now and then. If these names don't match, look for *Developer settings* and *Fine-grained tokens*, or search GitHub's help for "fine-grained personal access token".
+
+Then, in Mirepoix, tap the chip in the corner of the recipe list (**This device only**):
+
+- On the **first** device, choose **Start fresh**, and pick a passphrase of at least 8 characters. It can't be recovered, so keep a copy somewhere safe.
+- On **every other** device, choose **Join my recipes**, with the same repository and passphrase and the device's own token.
+
+Each device keeps the recipes it already had: connecting merges everyone's recipes into one box. If two people typed the same dish, both are kept, side by side. The chip then shows how syncing goes (*Synced*, *Offline*, *Token expired*…), and the Sync screen says what to do when it's stuck. **Export** still works, and makes a file that opens without GitHub or the passphrase.
 
 ## Tech at a glance
 
@@ -82,7 +101,7 @@ test/
   unit/           node --test
   e2e/            Playwright journeys
   contract/       behavior shared by a real implementation and its test twin
-  support/        test twins, e.g. the in-memory recipe store
+  support/        test twins: the in-memory recipe store, a stand-in for GitHub's API
   fixtures/       real ingredient lines (en, pt) with their expected parses
 tools/            dev server, icon renderer
 .github/          CI: check, unit and e2e on every push
@@ -111,9 +130,11 @@ npm run check:deploy -- https://pauloq.com/mirepoix/  # check a deployed site
 
 - The dev server sends the same Content-Security-Policy as production (D7), so an inline script or style fails locally and in the tests, not after a deploy.
 - On `localhost` the service worker stays off, so edits show up on reload. Add `?sw` to the address to try offline behavior.
+- Syncing needs a secure page: browsers only offer encryption on `https://` addresses, or on `localhost` on the same computer. A phone reaching a laptop's plain `http://` address can add and read recipes but can't connect; try syncing on a second device through the deployed `https://` site.
 - The service worker's file list (`SHELL` in `app/sw.js`) must match the files in `app/`; a unit test fails when they drift. Its `VERSION` moves with `package.json`'s version, and bumping both is what makes installed devices pick up a release.
 - The ingredient parser's expectations live in `test/fixtures/ingredients.en.txt` and `ingredients.pt.txt`, one case per line: `line => quantity | unit | name | note | equivalents | doubts`. When a real recipe line reads wrong, add it there first (the test fails), then fix the parser.
 - Every word on screen lives in `app/ui/i18n.js`, in English and Portuguese; new text goes in both. Type-checking and `npm test` fail when Portuguese is missing something English has. Browser tests run with an English browser (`playwright.config.js`); the Portuguese ones set their own.
+- Tests never touch real GitHub (D12). `test/support/fake-github.js` answers like the parts of GitHub's API that Mirepoix uses; browser tests route `api.github.com` to it, so separate browser contexts act as devices sharing one repository.
 - Only `app/`, the code that ships, is type-checked. Tests and tools run as plain JavaScript, which keeps `@types/node` out of the dependency list.
 
 ## Deploy

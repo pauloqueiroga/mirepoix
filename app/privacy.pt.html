@@ -38,13 +38,15 @@
 
       <section class="recipe-section" aria-labelledby="keeps">
         <h2 id="keeps" class="section-label">O que o Mirepoix guarda, e onde</h2>
-        <p>As receitas que você adiciona ficam guardadas neste navegador, neste aparelho. Elas só saem daqui se você exportar para um arquivo.</p>
-        <p>Quando a sincronização chegar, as receitas também vão ficar num repositório privado do GitHub que você controla. Cada uma é criptografada no seu aparelho antes, com uma senha que só você sabe, então o GitHub só vê arquivos embaralhados.</p>
+        <p>As receitas que você adiciona ficam guardadas neste navegador, neste aparelho. Elas só saem daqui se você exportar para um arquivo, ou conectar o aparelho para sincronizar.</p>
+        <p>Se você sincronizar, as receitas também ficam num repositório privado do GitHub que você controla. Cada uma é criptografada no seu aparelho antes, com uma chave feita a partir de uma frase secreta que só você sabe, então o GitHub só vê arquivos embaralhados, com nomes aleatórios. Até os títulos ficam em segredo.</p>
+        <p>Para isso, um aparelho sincronizado guarda três coisas: o endereço do repositório, o token do GitHub e a chave. A chave não pode ser lida de volta de dentro do navegador, e a frase secreta em si nunca fica guardada em lugar nenhum. Desconectar o aparelho esquece as três e mantém todas as receitas.</p>
       </section>
 
       <section class="recipe-section" aria-labelledby="sends">
         <h2 id="sends" class="section-label">O que o Mirepoix envia</h2>
-        <p>Nada sobre as suas receitas, para ninguém. Não há contas nem anúncios.</p>
+        <p>Nada legível sobre as suas receitas, para ninguém. Não há contas nem anúncios.</p>
+        <p>Quando você sincroniza, o aparelho fala direto com o GitHub, por HTTPS, com o seu token. O GitHub recebe os arquivos criptografados e os guarda na sua conta, com uma anotação em cada mudança (“Save recipes/…”). A declaração de privacidade do GitHub vale para isso: <a href="https://docs.github.com/pt/site-policy/privacy-policies/github-general-privacy-statement">Declaração de Privacidade Geral do GitHub</a>.</p>
         <p>Como todo site, o servidor que entrega o aplicativo (pauloq.com) registra os dados comuns de cada visita: o endereço de onde você se conecta, o seu navegador e quando.</p>
       </section>
 
@@ -60,7 +62,12 @@
         <p>O Mirepoix não cria cookies próprios. O Google Analytics cria os dele, e só se você permitir.</p>
       </section>
 
-      <p class="updated">Atualizado em 21 de outubro de 2026. <a href="privacy.html" hreflang="en" lang="en">In English</a></p>
+      <section class="recipe-section" aria-labelledby="links">
+        <h2 id="links" class="section-label">Links para outros sites</h2>
+        <p>O link “Apoie o Mirepoix no Ko-fi”, e os links para o GitHub que ajudam a configurar a sincronização, são links comuns. Nada do Ko-fi ou do github.com carrega até você seguir um deles.</p>
+      </section>
+
+      <p class="updated">Atualizado em 23 de outubro de 2026. <a href="privacy.html" hreflang="en" lang="en">In English</a></p>
     </main>
   </div>
 </body>

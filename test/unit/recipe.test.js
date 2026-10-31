@@ -4,6 +4,7 @@ import {
   assertValidRecipe,
   byTitle,
   isCanonicalQuantity,
+  newId,
   newRecipe,
   recipeProblems,
 } from '../../app/domain/recipe.js';
@@ -52,6 +53,13 @@ test('a new recipe has only its title, language and timestamps', () => {
 
 test('every new recipe gets its own random id, so devices never collide', () => {
   const ids = new Set(Array.from({ length: 100 }, () => newRecipe({ title: 'x' }).id));
+  assert.equal(ids.size, 100);
+  for (const id of ids) assert.match(id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+});
+
+test('ids are made on plain http:// pages too, where browsers offer no randomUUID', () => {
+  const insecure = { getRandomValues: (/** @type {Uint8Array} */ bytes) => crypto.getRandomValues(bytes) };
+  const ids = new Set(Array.from({ length: 100 }, () => newId(insecure)));
   assert.equal(ids.size, 100);
   for (const id of ids) assert.match(id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
 });
