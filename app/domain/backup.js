@@ -52,7 +52,7 @@ export function readExport(text) {
 /**
  * What importing does: recipes not here yet are added, and a recipe already
  * here takes the text of whichever copy was edited last. Cook's notes from
- * both copies are kept (R3.3, D16). Nothing is ever removed.
+ * both copies are kept (R3.3, D18). Nothing is ever removed.
  * @param {Recipe[]} existing
  * @param {Recipe[]} incoming
  * @returns {Plan}

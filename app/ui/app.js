@@ -1,8 +1,10 @@
 import { analyticsActive, askForAnalytics, screenShown, startAnalytics } from '../analytics.js';
-import { addCooksNote } from '../domain/cooks-notes.js';
-import { byTitle } from '../domain/recipe.js';
+import { addCooksNote, mergeCooksNotes, textFingerprint } from '../domain/cooks-notes.js';
+import { fingerprint } from '../domain/fingerprint.js';
+import { byTitle, newId } from '../domain/recipe.js';
 import { allTags } from '../domain/tags.js';
 import { openLocalStore, requestPersistentStorage } from '../store/local-store.js';
+import { createSyncer, deviceName } from '../store/sync.js';
 import { t, uiLang } from './i18n.js';
 import { matchRoute } from './router.js';
 import { backupView } from './views/backup.js';
@@ -11,15 +13,10 @@ import { editorView } from './views/editor.js';
 import { listView } from './views/list.js';
 import { messageView } from './views/message.js';
 import { recipeView } from './views/recipe.js';
+import { syncChip, syncView } from './views/sync.js';
 
+/** @typedef {import('../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('./views/list.js').Filters} Filters */
-/**
- * What the app asks of the screen on show as it leaves: whether it holds
- * unsaved changes, which the editor and cook mode keep current so every way
- * out asks first (D10), and to let go of anything it holds, like cook mode's
- * hold on the screen.
- * @typedef {{ unsaved: () => boolean, stop: () => void }} Leaving
- */
 
 /** @type {import('./router.js').RouteDef[]} */
 const ROUTES = [
@@ -29,12 +26,14 @@ const ROUTES = [
   { name: 'edit', path: '/recipes/:id/edit' },
   { name: 'cook', path: '/recipes/:id/cook' },
   { name: 'backup', path: '/backup' },
+  { name: 'sync', path: '/sync' },
 ];
 
 const NOT_FOUND = { title: t.recipeNotFound, text: t.recipeNotFoundText, back: true };
-
-/** @returns {Leaving} */
-const nothingToLeave = () => ({ unsaved: () => false, stop: () => {} });
+// After a save, a short pause lets a burst of edits go up together.
+const SAVE_PAUSE = 1500;
+// While the app is open, it checks for others' changes now and then (R2.3).
+const CHECK_EVERY = 5 * 60_000;
 
 /**
  * Opens the device's recipes, then renders the screen for the current hash,
@@ -43,7 +42,7 @@ const nothingToLeave = () => ({ unsaved: () => false, stop: () => {} });
  */
 export async function startApp(root) {
   document.documentElement.lang = uiLang;
-  /** @type {import('../store/local-store.js').RecipeStore} */
+  /** @type {import('../store/local-store.js').LocalStore} */
   let store;
   try {
     store = await openLocalStore();
@@ -57,7 +56,23 @@ export async function startApp(root) {
   }
   void requestPersistentStorage();
 
-  let leaving = nothingToLeave();
+  // Syncing (R2) runs beside the screens and never holds them up (D4).
+  const syncer = createSyncer({ store, conflictTitle: t.conflictTitle });
+  await syncer.refresh();
+  let pause = 0;
+  const syncSoon = async () => {
+    await syncer.refresh();
+    clearTimeout(pause);
+    pause = setTimeout(() => void syncer.run(), SAVE_PAUSE);
+  };
+
+  // Whether the screen on show holds unsaved changes. The editor and cook
+  // mode keep this current, so every way out asks first: links, the back
+  // button, closing (D10).
+  let leaving = { unsaved: () => false };
+  // What the screen on show needs done when it goes away.
+  /** @type {(() => void)[]} */
+  let cleanups = [];
   let shown = location.hash;
   // What the list shows when the next screen is the list, e.g. one tag from a recipe.
   /** @type {Filters | null} */
@@ -71,19 +86,38 @@ export async function startApp(root) {
     location.hash = hash;
   };
 
+  /** @param {Recipe} recipe */
+  const save = async (recipe) => {
+    await store.put(recipe);
+    await syncSoon();
+  };
+  /** @param {string} id */
+  const remove = async (id) => {
+    await store.remove(id);
+    await syncSoon();
+  };
+
   let latest = 0;
-  const render = async () => {
+  /** @param {{ keepScroll?: boolean }} [options] */
+  const render = async ({ keepScroll = false } = {}) => {
     const ticket = ++latest;
-    shown = location.hash;
     const filters = arriving;
     arriving = null;
     // The screen on show is going, whatever comes next.
-    leaving.stop();
-    leaving = nothingToLeave();
-    const next = nothingToLeave();
+    for (const cleanup of cleanups) cleanup();
+    cleanups = [];
+    leaving = { unsaved: () => false };
+    shown = location.hash;
+    // The new screen's own, until it's shown: a render overtaken by a newer
+    // one lets go of whatever its screen took, such as cook mode's screen lock.
+    const next = { unsaved: () => false };
+    /** @type {(() => void)[]} */
+    const own = [];
+    const onLeave = (/** @type {() => void} */ cleanup) => {
+      own.push(cleanup);
+    };
     const route = matchRoute(ROUTES, location.hash);
     const id = route?.params.id ?? '';
-    const save = (/** @type {import('../domain/recipe.js').Recipe} */ recipe) => store.put(recipe);
     let nodes;
     let title = 'Mirepoix';
     let screen = 'not found'; // the only thing analytics ever hears about a screen (D14)
@@ -97,7 +131,8 @@ export async function startApp(root) {
       nodes = listView((await store.list()).sort(byTitle), {
         query: typeof state?.query === 'string' ? state.query : '',
         tags: Array.isArray(state?.tags) ? state.tags.filter((tag) => typeof tag === 'string') : [],
-        remember: (filters) => history.replaceState(filters, ''),
+        remember: (chosen) => history.replaceState(chosen, ''),
+        status: syncer.status,
       });
       screen = 'recipes';
     } else if (route?.name === 'new') {
@@ -113,14 +148,32 @@ export async function startApp(root) {
       }
     } else if (route?.name === 'edit') {
       const recipe = await store.get(id);
+      let landed = id;
       nodes = recipe
         ? editorView({
           lang: recipe.lang,
           recipe,
           tags: allTags(await store.list()),
-          save,
-          remove: (recipeId) => store.remove(recipeId),
-          leave: (outcome) => go(outcome === 'deleted' ? '#/' : `#/recipes/${encodeURIComponent(id)}`),
+          // If the recipe changed on another device while this one was being
+          // edited, theirs stays and this edit is kept beside it (D6), without
+          // the cook's notes, which all stay on theirs. Notes that came in
+          // meanwhile, and nothing else, just join this edit (D18).
+          save: async (edited) => {
+            const now = await store.get(id);
+            if (now && fingerprint(now) !== fingerprint(recipe)) {
+              if (textFingerprint(now) === textFingerprint(recipe)) {
+                edited = { ...edited, cooksNotes: mergeCooksNotes(edited.cooksNotes, now.cooksNotes) };
+              } else {
+                const at = new Date();
+                const device = deviceName(navigator.userAgent, navigator.maxTouchPoints);
+                edited = { ...edited, id: newId(), title: t.conflictTitle(edited.title, device, at), createdAt: at.toISOString(), cooksNotes: [] };
+              }
+            }
+            await save(edited);
+            landed = edited.id;
+          },
+          remove,
+          leave: (outcome) => go(outcome === 'deleted' ? '#/' : `#/recipes/${encodeURIComponent(landed)}`),
           leaving: next,
         })
         : messageView(NOT_FOUND);
@@ -130,13 +183,14 @@ export async function startApp(root) {
       }
     } else if (route?.name === 'cook') {
       const recipe = await store.get(id);
-      // The note goes on the recipe as it is now, not as cook mode opened it.
+      // The note goes on the recipe as it is now, not as cook mode opened it,
+      // and syncs like any other change.
       const addNote = async (/** @type {string} */ text) => {
         const current = await store.get(id);
         if (!current) throw new Error(t.recipeNotFoundText);
-        await store.put(addCooksNote(current, text));
+        await save(addCooksNote(current, text));
       };
-      nodes = recipe ? cookView(recipe, { addNote, leaving: next }) : messageView(NOT_FOUND);
+      nodes = recipe ? cookView(recipe, { addNote, leaving: next, onLeave }) : messageView(NOT_FOUND);
       if (recipe) {
         title = named(`${t.cookingNamed(recipe.title)} · Mirepoix`, `${t.cookMode} · Mirepoix`);
         screen = 'cook mode';
@@ -145,20 +199,44 @@ export async function startApp(root) {
       nodes = backupView({ count: (await store.list()).length, list: () => store.list(), put: save });
       title = `${t.keepACopy} · Mirepoix`;
       screen = 'keep a copy';
+    } else if (route?.name === 'sync') {
+      const connection = await store.setting('connection');
+      nodes = syncView(connection, {
+        store,
+        syncer,
+        onLeave,
+        done: () => go('#/'),
+        again: () => void render(),
+      });
+      title = `${connection ? t.sync : t.connectThisDevice} · Mirepoix`;
+      screen = 'sync';
     } else {
       nodes = messageView({ title: t.pageNotFound, text: t.pageNotFoundText, back: true });
     }
     if (ticket !== latest) {
-      next.stop();
+      for (const cleanup of own) cleanup();
       return;
     }
     leaving = next;
+    cleanups = own;
     document.title = title;
     root.replaceChildren(...nodes);
+    if (keepScroll) return;
     /** @type {HTMLElement | null} */ (root.querySelector('[autofocus]'))?.focus();
     scrollTo(0, 0);
     screenShown(screen);
   };
+
+  // The chip follows every change of status; screens that show recipes follow
+  // what syncing brings in, unless someone is typing in them. Cook mode stays
+  // as it is: showing it again would clear the ticks (R3.2).
+  syncer.listen((status, changed) => {
+    for (const chip of document.querySelectorAll('a.sync-chip')) chip.replaceWith(syncChip(status));
+    if (!changed) return;
+    const route = matchRoute(ROUTES, location.hash)?.name;
+    const typing = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement;
+    if ((route === 'list' || route === 'recipe') && !typing) void render({ keepScroll: true });
+  });
 
   addEventListener('hashchange', () => {
     if (leaving.unsaved() && !confirm(t.leaveUnsaved)) {
@@ -171,7 +249,15 @@ export async function startApp(root) {
   addEventListener('beforeunload', (event) => {
     if (leaving.unsaved()) event.preventDefault();
   });
+  addEventListener('online', () => void syncer.run());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void syncer.run();
+  });
+  setInterval(() => {
+    if (document.visibilityState === 'visible') void syncer.run();
+  }, CHECK_EVERY);
   startAnalytics();
   await render();
   askForAnalytics();
+  void syncer.run();
 }

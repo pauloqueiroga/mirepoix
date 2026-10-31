@@ -1,4 +1,4 @@
-// Tags (R3.4, R3.5, D17): short words that group recipes ("sobremesa",
+// Tags (R3.4, R3.5, D19): short words that group recipes ("sobremesa",
 // "weeknight"), typed into one box with commas between them. They're kept as
 // typed and compared the way search compares words, ignoring case and accents,
 // so "Natal" and "natal" are one tag.

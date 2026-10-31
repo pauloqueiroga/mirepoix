@@ -37,13 +37,15 @@
 
       <section class="recipe-section" aria-labelledby="keeps">
         <h2 id="keeps" class="section-label">What Mirepoix keeps, and where</h2>
-        <p>The recipes you add are kept in this browser’s storage, on this device. They don’t leave it unless you export them to a file yourself.</p>
-        <p>When syncing arrives, recipes will also be kept in a private GitHub repository that you control. Each one is encrypted on your device first, with a passphrase only you know, so GitHub only ever sees scrambled files.</p>
+        <p>The recipes you add are kept in this browser’s storage, on this device. They don’t leave it unless you export them to a file yourself, or connect the device to sync.</p>
+        <p>If you sync, recipes are also kept in a private GitHub repository that you control. Each one is encrypted on your device first, with a key made from a passphrase only you know, so GitHub only ever sees scrambled files named by random ids. Even the titles stay private.</p>
+        <p>A synced device keeps three things to do that: the address of the repository, its GitHub token, and the key. The key can’t be read back out of the browser, and the passphrase itself is never kept anywhere. Disconnecting the device forgets all three, and keeps every recipe.</p>
       </section>
 
       <section class="recipe-section" aria-labelledby="sends">
         <h2 id="sends" class="section-label">What Mirepoix sends</h2>
-        <p>Nothing about your recipes, to anyone. There are no accounts and no ads.</p>
+        <p>Nothing readable about your recipes, to anyone. There are no accounts and no ads.</p>
+        <p>When you sync, the device talks to GitHub directly, over HTTPS, with your token. GitHub receives the encrypted files and stores them, with a note on each change (“Save recipes/…”), under your GitHub account. GitHub’s privacy statement covers that: <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub General Privacy Statement</a>.</p>
         <p>Like every website, the server that delivers the app (pauloq.com) records ordinary visit details in its logs: the address you connect from, your browser, and when.</p>
       </section>
 
@@ -57,6 +59,11 @@
       <section class="recipe-section" aria-labelledby="cookies">
         <h2 id="cookies" class="section-label">Cookies</h2>
         <p>Mirepoix sets no cookies of its own. Google Analytics sets its own, and only if you allow it.</p>
+      </section>
+
+      <section class="recipe-section" aria-labelledby="links">
+        <h2 id="links" class="section-label">Links to other sites</h2>
+        <p>The “Support Mirepoix on Ko-fi” link, and the links to GitHub that help you set up syncing, are ordinary links. Nothing from Ko-fi or github.com loads until you follow one.</p>
       </section>
 
       <p class="updated">Last updated 31 October 2026. <a href="privacy.pt.html" hreflang="pt" lang="pt">Em português</a></p>

@@ -109,7 +109,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Sections:** the four sections the user asked for (Ingredients, Preparation, Variations, Notes), plus `cooksNotes`, the dated notes added while cooking. Ingredients and steps can be grouped under headings ("For the sauce").
 - **Text-first:** every ingredient renders to one line and parses back to the same structure. Tests enforce this round trip.
 - **Evolution:** fields can be added without bumping `schema`. Any other change ships with a migration and tests.
-- **Extended by D16 and D17:** adding a cook's note leaves `updatedAt` alone (D16), and recipes gain an optional `tags` list (D17).
+- **Extended by D18 and D19:** adding a cook's note leaves `updatedAt` alone (D18), and recipes gain an optional `tags` list (D19).
 
 ## D9. Text-first capture with live parsing, in English and Portuguese
 
@@ -163,13 +163,13 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 
 - **Context:** The maintainer wants to know how Mirepoix is used. D7 allowed no third-party code, and the app promises to be private by default.
 - **Decision:** Use Google Analytics, but only after a visitor says yes. A banner asks once per device, and the answer can be changed on the privacy page. Until then, nothing loads and nothing is sent. The Measurement ID lives in `app/config.js` (set to `G-H72PWB3YHW` on 2026-10-21); an empty string switches analytics off entirely.
-- **What's sent:** the name of each screen ("recipes", "recipe", "new recipe", "edit recipe", "keep a copy", "privacy", "not found"). Each hit's address is rewritten to carry only that name. Recipe titles, ingredients, notes and searches are never sent:
+- **What's sent:** the name of each screen ("recipes", "recipe", "new recipe", "edit recipe", "keep a copy", "privacy", "not found"). Each hit's address is rewritten to carry only that name. **Extended by D17:** "sync" joins the list. Recipe titles, ingredients, notes and searches are never sent:
   - The search lives in browser history state, not in the address.
   - While analytics is on, tab titles are generic ("Recipe · Mirepoix").
   - Google signals and ad personalization are switched off.
 - **In Google Analytics' settings:** turn off Enhanced measurement's "page changes based on browser history events" and "site search", so Google doesn't collect page views on its own.
 - **Consequences:** the CSP gains `https://*.googletagmanager.com` for scripts, plus Google's analytics domains for images and connections (D7 superseded in part). The privacy page (R1.13) explains all of this. Saying no, or later stopping, deletes Google's `_ga` cookies.
-- **Extended by D16 and D17:** cook mode is one more screen name, "cook mode". Tags and cook's notes are never sent, and the tags picked on the list stay out of the address, like the search.
+- **Extended by D18 and D19:** cook mode is one more screen name, "cook mode". Tags and cook's notes are never sent, and the tags picked on the list stay out of the address, like the search.
 
 ## D15. Screens in English or Portuguese
 
@@ -183,23 +183,55 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Not translated:** the screen names sent to analytics (D14) stay in English, so the numbers don't split by language. The search-engine description in `index.html` and the install manifest stay in English for now.
 - **Consequences:** every new piece of text needs both languages in the same change. A third language would be one more object in `i18n.js` and one more privacy page.
 
-## D16. Cook mode, and cook's notes that merge
+## D16. Ko-fi: a plain link, not Ko-fi's widget
+
+**Accepted** · 2026-10-23
+
+- **Context:** The maintainer wants a way for people to support Mirepoix on Ko-fi (R2.0.1). Ko-fi offers a button widget and badge images, but both load from Ko-fi's servers, which D7 rules out.
+- **Decision:** One ordinary link to https://ko-fi.com/pqstudio at the bottom of the list, Keep a copy and Sync screens, "Support Mirepoix on Ko-fi" / "Apoie o Mirepoix no Ko-fi", with a cup drawn in our own CSS. It opens in a new tab. The address lives in `app/config.js` (`KOFI_URL`); an empty string hides the link.
+- **Consequences:** Nothing from Ko-fi loads until someone follows the link, so the CSP stays as it is and the privacy promise holds. A unit test keeps the setting a `https://ko-fi.com/…` address or empty.
+
+## D17. Syncing, as built (R2)
+
+**Accepted** · 2026-10-23
+
+How D4–D7 came out in code (`app/store/`), and the choices made on the way.
+
+- **Files in the data repository:** `vault.json`, and one `recipes/<id>.json` per recipe (the id URL-encoded). Any other file (a README, say) is left alone.
+- **The vault:** `{ format: "mirepoix-vault", version: 1, kdf: { name: "PBKDF2", hash: "SHA-256", iterations, salt }, check }`. `check` is a known text sealed with the key, so a wrong passphrase is caught before anything downloads. Passphrases are NFC-normalized first, so accents typed on any keyboard give the same key. A new vault needs at least 8 characters.
+- **Sealed files:** `{ format: "mirepoix-sealed", version: 1, iv, data }`, AES-256-GCM with a fresh 12-byte IV per write. What the file holds (`recipe:<id>`, or `vault-check`) goes in as authenticated data, so a file that was edited, or renamed to pass for another recipe, fails to open. It's reported as damaged and left alone; the rest keeps syncing. A wrong passphrase and a damaged file are told apart.
+- **No queue: a base per recipe.** For each recipe the device keeps its *base*: the remote file's version (GitHub's blob SHA) and the recipe's fingerprint when the two last matched. Changed here = fingerprint moved off the base; changed there = version moved off the base. Changes waiting to go up are worked out from what's stored, so they survive going offline and reloading without a queue that could get out of step. IndexedDB went to version 2 to hold the bases and the settings; R1 recipes carry over untouched.
+- **Rules per recipe:** changed on one side, that side wins. Changed on both, the remote version keeps the id and this device's version is saved beside it as "Title (conflict, device, date)" (D6); the same change on both sides is no conflict. A change beats a deletion, whichever side made which. A recipe the remote has never seen goes up as a new file, so connecting merges devices as a union (R2.6). Saving in the editor after the recipe changed underneath (synced from elsewhere) also keeps both.
+- **Never lose data to a race:** every local write is checked, in the same IndexedDB transaction, against the recipe as it was when the decision was made; if someone saved meanwhile, nothing is written and the next pass sees to it. Uploads go one at a time, since GitHub refuses racing commits on a branch, and a refusal for that reason is retried rather than taken for a conflict. A listing without `vault.json` is never read as "every recipe was deleted".
+- **Cheap when nothing changed:** the device remembers the commit its bases reflect and follows its own writes, so a returning device makes one request (the branch head, asked with `cache: no-cache`, so an unchanged answer can come back as a small 304) and its own saves don't cost a listing. Downloads run six at a time.
+- **When it syncs:** at start, a moment after each save, when the network comes back, when the app comes into view, every five minutes while it's open, and on "Sync now". Never while the screens wait: they read only IndexedDB (D4).
+- **Connecting:** "Join my recipes" or "Start fresh", with the repository (`owner/name` or its address), a token and the passphrase. A public repository is refused. Start fresh refuses a repository that already has a vault; Join refuses one without. Connecting never touches the device's recipes; the first sync does the merging. The device keeps the repository, branch, token, a non-extractable key and a device name ("iPhone", "Mac"… for conflict copies), never the passphrase. Disconnecting forgets all of that and the bases, and keeps every recipe.
+- **Secure pages only:** browsers offer Web Crypto only on `https://` pages (and `localhost`). On a plain `http://` page the Sync screen says so instead of offering to connect. Recipe ids fall back from `crypto.randomUUID` to `crypto.getRandomValues`, so adding recipes still works there.
+- **First contact:** a recipe that exists on both sides with no base (e.g. after disconnecting and joining again, or after an import) is compared by content: the same, it's just recorded; different, D6 applies.
+- **When it's stuck:** the chip and the Sync screen name the problem. An expired, revoked or under-powered token, or a repository the token can't see, gets a field for a new token. A vault made anew with another passphrase gets a field for it. Everything else (offline, GitHub unwell) retries on its own.
+- **Tests:** `test/support/fake-github.js` stands in for the part of GitHub's REST API Mirepoix uses, answering the way GitHub does (versions are git blob SHAs, 409/422 on stale writes, 401/403/404 for token trouble). Unit tests reach it through `fetch`; browser tests route `api.github.com` to it, so several browser contexts can be devices sharing one repository (D12).
+- **Consequences:** the sync engine, GitHub remote and crypto are about 1,100 lines of our own code, with no dependency. Each device needs its own fine-grained token. Analytics hears one more screen name, "sync" (D14).
+
+## D18. Cook mode, and cook's notes that merge
 
 **Proposed** · 2026-10-31
 
-- **Context:** R3 makes D10 real: cook from a recipe without being able to change it, and leave notes for next time. R3 ships before R2, so for now recipes move between devices by export and import (R1.11), and cook's notes have to survive that too.
+- **Context:** R3 makes D10 real: cook from a recipe without being able to change it, and leave notes for next time. Recipes now travel between devices by syncing (D17) and by export and import (R1.11), and cook's notes have to survive both without conflicts (D6).
 - **The screen:** cook mode has its own address (`#/recipes/:id/cook`) and opens from **Start cooking**, a bar at the bottom of every recipe. It shows the newest note as "Last time", the ingredients and steps to tick off, and Variations and Notes as they are, in bigger type. Everything needed while cooking is there, so there's no reason to leave halfway. There's no Edit link. **Done** goes back to the recipe.
 - **Ticks** live on the screen only (R3.2). Done, Back or a reload clears them, and nothing about them is ever stored. The first step not ticked is the one to do now; it's highlighted, and ticking a step brings the next one into view. Steps can be ticked out of order, and unticked.
 - **The screen stays on** through the Screen Wake Lock API. The lock is asked for on the way in, again each time the page comes back into view (browsers let go when it's hidden), and released on the way out. A "Screen on" chip shows while it's held. Devices without the API get no chip and no warning.
 - **Notes are written only in cook mode,** in a sheet over the recipe. They're dated with the moment they're saved, and line breaks are kept. Cancel or Escape asks before throwing away typed text, and so does leaving cook mode with a note half-written. After saving, the ticks are still there.
 - **Append-only:** a note can't be changed or removed, not even in the editor, which keeps notes exactly as they are.
 - **A note doesn't change the recipe's `updatedAt`.** That time says whose copy of the recipe's text is newest when two copies merge. If a note moved it, a note added to an old copy would make that old text win over a newer edit.
-- **Copies merge:** importing takes the text of whichever copy was edited last, and the notes of both, once each by id. R2's sync engine (R2.3) does the same: a recipe whose only local change is new notes merges into the remote copy rather than becoming a conflict copy (D6). The rule lives in `domain/cooks-notes.js`.
+- **Copies merge, notes always:** two copies of a recipe keep the notes of both, once each by id, oldest first. The rules live in `domain/cooks-notes.js`.
+  - **Syncing (D17):** when a recipe changed on both devices, the text of the side that changed it stays, and the merged recipe goes back up. A note on one device and an edit on the other never make a conflict copy. Only when both changed the text, differently, does D6 keep both: the copy that keeps the id gets every note, and the conflict copy gets none, so no note shows twice. To tell which side changed the text, each base also keeps the fingerprint of the recipe without its notes. Bases kept by 0.4.0 lack it, and get it on the next pass for every recipe not changed since.
+  - **Saving in the editor** after notes alone came in meanwhile keeps the edit and adds the notes. A change to the text meanwhile still means a conflict copy (D17), without notes, for the same reason.
+  - **Importing** takes the text of whichever copy was edited last, by `updatedAt`.
 - **Reading:** the recipe shows the newest note as "Last time" near the top. Once there's more than one, a "Cook's notes" section at the bottom lists them all, newest first, with their dates.
 - **Analytics** hears "cook mode", and while it's on, the tab title is "Cook mode" (D14).
 - **Consequences:** a note saved by mistake stays. If that turns out to matter, a note could be hidden later with a marker that merges just like a note does. An accidental Back loses the ticks, as R3.2 asks.
 
-## D17. Tags, and filtering the list by tag
+## D19. Tags, and filtering the list by tag
 
 **Proposed** · 2026-10-31
 

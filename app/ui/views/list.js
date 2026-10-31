@@ -2,33 +2,36 @@ import { searchRecipes } from '../../domain/search.js';
 import { allTags, sameTag, withTags } from '../../domain/tags.js';
 import { brand, footer, h, logo } from '../dom.js';
 import { t } from '../i18n.js';
+import { syncChip } from './sync.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('../../domain/search.js').Found} Found */
+/** @typedef {import('../../store/sync.js').SyncStatus} SyncStatus */
 /** @typedef {{ query: string, tags: string[] }} Filters  what narrows the list: words to search for, tags to have */
+
+/** @type {SyncStatus} */
+const OFF = { state: 'off', problem: null, pending: 0, unreadable: 0, progress: null, lastSynced: null };
 
 /**
  * The home screen: every recipe on this device, in the order given, with a
- * search box that filters as you type (R1.10), and the tags in use, to show
- * only the recipes that have them (R3.5).
+ * search box that filters as you type (R1.10), the tags in use, to show only
+ * the recipes that have them (R3.5), and how syncing goes (R2.5).
  * @param {Recipe[]} recipes
- * @param {{ query?: string, tags?: string[], remember?: (filters: Filters) => void }} [options]
+ * @param {{ query?: string, tags?: string[], remember?: (filters: Filters) => void, status?: SyncStatus }} [options]
  *   query and tags: the filters to start with; remember: told every change,
- *   so the filters can survive opening a recipe and coming back
+ *   so the filters can survive opening a recipe and coming back; status: syncing's
  */
-export function listView(recipes, { query = '', tags = [], remember = () => {} } = {}) {
+export function listView(recipes, { query = '', tags = [], remember = () => {}, status = OFF } = {}) {
   return [
     h('header', { class: 'bar' },
       h('h1', { class: 'wordmark' }, brand()),
-      h('a', { class: 'chip warn', href: '#/backup', title: t.thisDeviceOnlyTip },
-        h('span', { class: 'dot', 'aria-hidden': 'true' }),
-        t.thisDeviceOnly)),
+      syncChip(status)),
     h('main', { class: 'page' },
       ...(recipes.length === 0
         ? [h('div', { class: 'empty' },
           logo(),
           h('h2', null, t.noRecipes),
-          h('p', null, t.noRecipesText),
+          h('p', null, status.state === 'off' ? t.noRecipesText : t.noRecipesSyncedText),
           h('p', { class: 'aside' }, t.haveExport, h('a', { href: '#/backup' }, t.importIt)))]
         : searchable(recipes, { query, tags }, remember)),
       footer()),

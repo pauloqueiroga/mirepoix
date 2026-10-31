@@ -1,7 +1,9 @@
-// Cook's notes (R3.3, D10, D16): dated notes for next time, and the only thing
+// Cook's notes (R3.3, D10, D18): dated notes for next time, and the only thing
 // cook mode ever writes. They're append-only, so two copies of a recipe, from
 // two devices or an export, merge by putting their notes together: nothing
 // conflicts and nothing is lost.
+import { fingerprint } from './fingerprint.js';
+import { newId } from './recipe.js';
 
 /** @typedef {import('./recipe.js').Recipe} Recipe */
 /** @typedef {import('./recipe.js').CooksNote} CooksNote */
@@ -9,13 +11,13 @@
 /**
  * The recipe with one more cook's note. The rest of the recipe stays as it
  * is, update time included: that time says whose copy of the recipe's own text
- * is newest when copies merge, and a note must never make older text win (D16).
+ * is newest when copies merge, and a note must never make older text win (D18).
  * @param {Recipe} recipe
  * @param {string} text
  * @param {{ id?: string, now?: Date }} [options] fixed values, for tests
  * @returns {Recipe}
  */
-export function addCooksNote(recipe, text, { id = crypto.randomUUID(), now = new Date() } = {}) {
+export function addCooksNote(recipe, text, { id = newId(), now = new Date() } = {}) {
   const written = text.replace(/\r\n?/gu, '\n').trim();
   if (!written) throw new TypeError('A cook’s note needs some text.');
   return { ...recipe, cooksNotes: [...recipe.cooksNotes, { id, at: now.toISOString(), text: written }] };
@@ -51,6 +53,33 @@ export function mergeCooksNotes(ours, theirs) {
     if (!notes.has(note.id)) notes.set(note.id, note);
   }
   return byTime([...notes.values()]);
+}
+
+/**
+ * A fingerprint of the recipe without its cook's notes: it changes when the
+ * recipe itself does, and never because a note was added.
+ * @param {Recipe} recipe
+ */
+export function textFingerprint(recipe) {
+  const { cooksNotes, ...text } = recipe;
+  return fingerprint(text);
+}
+
+/**
+ * Two copies of one recipe, both changed since they last matched (D6), put
+ * together wherever nobody needs to choose (D18): the cook's notes of both,
+ * and the text of the side that changed it. Null when both sides changed the
+ * text, differently: then both copies are kept.
+ * @param {Recipe} ours
+ * @param {Recipe} theirs
+ * @param {string} [baseText] the text's fingerprint when the copies last matched, if known
+ * @returns {Recipe | null}
+ */
+export function mergeCopies(ours, theirs, baseText) {
+  const mine = textFingerprint(ours);
+  const yours = textFingerprint(theirs);
+  const text = mine === yours || mine === baseText ? theirs : yours === baseText ? ours : null;
+  return text && { ...text, cooksNotes: mergeCooksNotes(ours.cooksNotes, theirs.cooksNotes) };
 }
 
 /**

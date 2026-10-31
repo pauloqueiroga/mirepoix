@@ -18,19 +18,20 @@ import { extras, lastTime, section } from './recipe.js';
  * @param {Recipe} recipe
  * @param {{
  *   addNote: (text: string) => Promise<void>,
- *   leaving: { unsaved: () => boolean, stop: () => void },
+ *   leaving: { unsaved: () => boolean },
+ *   onLeave: (cleanup: () => void) => void,
  * }} options
- *   addNote: saves a cook's note to the recipe. leaving: cook mode keeps it
- *   up to date, so a half-written note isn't lost on the way out, and lets
- *   go of the screen when the app moves on.
+ *   addNote: saves a cook's note to the recipe. leaving: cook mode keeps
+ *   leaving.unsaved up to date, so a half-written note isn't lost on the way
+ *   out. onLeave: given what to do when the app moves on: let the screen sleep.
  */
-export function cookView(recipe, { addNote, leaving }) {
+export function cookView(recipe, { addNote, leaving, onLeave }) {
   const { lang } = recipe;
   const meta = [recipe.source, recipe.yield && t.makes(recipe.yield)].filter(Boolean).join(' · ');
   const screenOn = h('span', { class: 'chip ok sun', role: 'status', title: t.screenOnTip, hidden: true }, t.screenOn);
-  leaving.stop = keepScreenOn((on) => {
+  onLeave(keepScreenOn((on) => {
     screenOn.hidden = !on;
-  });
+  }));
 
   // Ingredients: tick them off as they're measured out.
   const groups = recipe.ingredients.filter((group) => group.items.length > 0);

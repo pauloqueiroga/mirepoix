@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { addCooksNote, lastCooksNote, mergeCooksNotes, newestFirst } from '../../app/domain/cooks-notes.js';
+import { addCooksNote, lastCooksNote, mergeCooksNotes, mergeCopies, newestFirst, textFingerprint } from '../../app/domain/cooks-notes.js';
 import { newRecipe, recipeProblems } from '../../app/domain/recipe.js';
 
-// Cook's notes (R3.3, D16): dated, append-only, and they merge.
+// Cook's notes (R3.3, D18): dated, append-only, and they merge.
 
 const created = new Date('2026-10-01T10:00:00Z');
 
@@ -63,4 +63,30 @@ test('notes written at the same moment come out in the same order on every devic
   const at = '2026-10-01T10:00:00Z';
   assert.deepEqual(mergeCooksNotes([note('y', at)], [note('x', at)]).map((n) => n.id), ['x', 'y']);
   assert.deepEqual(mergeCooksNotes([note('x', at)], [note('y', at)]).map((n) => n.id), ['x', 'y']);
+});
+
+test('a recipe\'s text fingerprint ignores its cook\'s notes, and nothing else', () => {
+  const recipe = newRecipe({ title: 'Bolo', now: created });
+  const noted = addCooksNote(recipe, 'Menos açúcar.', { id: 'n1' });
+  assert.equal(textFingerprint(noted), textFingerprint(recipe));
+  assert.notEqual(textFingerprint({ ...recipe, title: 'Bolo de fubá' }), textFingerprint(recipe));
+});
+
+test('two changed copies come together unless both changed the text, differently (D18)', () => {
+  const base = newRecipe({ title: 'Bolo', id: 'r1', now: created });
+  const baseText = textFingerprint(base);
+  const ours = addCooksNote(base, 'Menos açúcar.', { id: 'n1', now: new Date('2026-10-20T19:00:00Z') });
+  const theirs = addCooksNote({ ...base, title: 'Bolo de fubá' }, 'Forno a 170 °C.', { id: 'n2', now: new Date('2026-10-21T19:00:00Z') });
+  const both = ['n1', 'n2'];
+
+  const merged = mergeCopies(ours, theirs, baseText);
+  assert.equal(merged?.title, 'Bolo de fubá', 'their text: only they changed it');
+  assert.deepEqual(merged?.cooksNotes.map((n) => n.id), both);
+  assert.equal(mergeCopies(theirs, ours, baseText)?.title, 'Bolo de fubá', 'either way round');
+
+  assert.deepEqual(mergeCopies(ours, ours, baseText), ours, 'the same copy merges to itself');
+  const sameEdit = { ...theirs, cooksNotes: ours.cooksNotes };
+  assert.deepEqual(mergeCopies(sameEdit, theirs, baseText)?.cooksNotes.map((n) => n.id), both, 'the same edit on both sides');
+  assert.equal(mergeCopies(ours, { ...theirs, title: 'Bolo de fubá' }, undefined), null, 'without a base, different texts can\'t be told apart');
+  assert.equal(mergeCopies({ ...ours, title: 'Bolo de milho' }, theirs, baseText), null, 'both changed the text');
 });

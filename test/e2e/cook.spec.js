@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures.js';
 
-// Cook mode (R3, D10, D16): big type and the screen kept on (R3.1), ticks that
+// Cook mode (R3, D10, D18): big type and the screen kept on (R3.1), ticks that
 // are never saved (R3.2), and dated notes for next time (R3.3).
 
 test.use({ timezoneId: 'America/Sao_Paulo' });

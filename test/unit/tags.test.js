@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { newRecipe, recipeProblems } from '../../app/domain/recipe.js';
 import { allTags, parseTags, renderTags, sameTag, tagsOf, withTags } from '../../app/domain/tags.js';
 
-// Tags (R3.4, R3.5, D17).
+// Tags (R3.4, R3.5, D19).
 
 /**
  * @param {string} title

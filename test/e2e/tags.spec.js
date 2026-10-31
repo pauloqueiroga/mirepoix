@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures.js';
 
-// Tags (R3.4) and filtering the list by tag (R3.5), D17.
+// Tags (R3.4) and filtering the list by tag (R3.5), D19.
 
 /** @type {string[]} */
 let errors = [];

@@ -18,8 +18,9 @@ test.describe('IndexedDB store keeps the recipe-store contract', () => {
         const { scenarios, tools } = await import('/__contract__/recipe-store.js');
         const { openLocalStore } = await import('/store/local-store.js');
         const { newRecipe } = await import('/domain/recipe.js');
+        const { fingerprint } = await import('/domain/fingerprint.js');
         const store = await openLocalStore({ name: `contract-${crypto.randomUUID()}` });
-        await scenarios[scenario](store, tools(newRecipe));
+        await scenarios[scenario](store, tools(newRecipe, fingerprint));
       }, name);
     });
   }
@@ -48,4 +49,34 @@ test('says so plainly when the browser refuses storage', async ({ page }) => {
   });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'This browser can’t keep recipes' })).toBeVisible();
+});
+
+test('an R1 device\'s recipes survive the upgrade to the store that syncing needs (R2.3)', async ({ page }) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const { newRecipe } = await import('/domain/recipe.js');
+    const name = `upgrade-${crypto.randomUUID()}`;
+    const recipe = newRecipe({ title: 'Bolo de fubá', lang: 'pt' });
+    // The R1 store, exactly as R1 made it: version 1, one object store.
+    await new Promise((resolve, reject) => {
+      const opening = indexedDB.open(name, 1);
+      opening.onupgradeneeded = () => opening.result.createObjectStore('recipes', { keyPath: 'id' });
+      opening.onerror = () => reject(opening.error);
+      opening.onsuccess = () => {
+        const db = opening.result;
+        const tx = db.transaction('recipes', 'readwrite');
+        tx.objectStore('recipes').put(recipe);
+        tx.oncomplete = () => {
+          db.close();
+          resolve(undefined);
+        };
+      };
+    });
+    const { openLocalStore } = await import('/store/local-store.js');
+    const store = await openLocalStore({ name });
+    return { kept: await store.list(), bases: await store.bases(), connection: await store.setting('connection'), recipe };
+  });
+  expect(result.kept).toEqual([result.recipe]);
+  expect(result.bases).toEqual([]);
+  expect(result.connection).toBeUndefined();
 });
