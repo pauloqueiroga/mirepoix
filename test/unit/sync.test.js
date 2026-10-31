@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { addCooksNote } from '../../app/domain/cooks-notes.js';
 import { fingerprint } from '../../app/domain/fingerprint.js';
 import { newRecipe } from '../../app/domain/recipe.js';
 import { CryptoError, createVault, seal } from '../../app/store/crypto.js';
@@ -302,6 +303,104 @@ test('the same change made on two devices is no conflict', async () => {
   assert.equal(report.conflicts, 0);
   assert.deepEqual(await b.titles(), ['Bolo de fubá']);
   assert.equal(await pendingChanges(b.store), 0);
+});
+
+/**
+ * Two devices sharing one recipe, both up to date.
+ * @param {Recipe} shared
+ */
+async function twoDevices(shared) {
+  const github = world();
+  const a = await device(github, { name: 'Mac', recipes: [shared] });
+  await a.connect('fresh');
+  await a.sync();
+  const b = await device(github, { name: 'iPhone' });
+  await b.connect('join');
+  await b.sync();
+  return { a, b };
+}
+
+/**
+ * Writes a cook's note on a device, as cook mode does.
+ * @param {Awaited<ReturnType<typeof device>>} on
+ * @param {string} id
+ * @param {string} text
+ * @param {string} at
+ */
+async function writeNote(on, id, text, at) {
+  const current = await on.store.get(id);
+  assert.ok(current);
+  await on.store.put(addCooksNote(current, text, { id: text, now: new Date(at) }));
+}
+
+test('cook\'s notes written on two devices both arrive, and nothing conflicts (D18)', async () => {
+  const bolo = recipe('Bolo');
+  const { a, b } = await twoDevices(bolo);
+  await writeNote(a, bolo.id, 'Menos açúcar.', '2026-10-20T19:00:00Z');
+  await writeNote(b, bolo.id, 'Forno a 170 °C.', '2026-10-21T19:00:00Z');
+  await a.sync();
+  const report = await b.sync();
+  assert.equal(report.conflicts, 0);
+  assert.equal(await pendingChanges(b.store), 0, 'the notes put together went back up');
+  await a.sync();
+  for (const each of [a, b]) {
+    assert.deepEqual(await each.titles(), ['Bolo']);
+    assert.deepEqual((await each.store.get(bolo.id))?.cooksNotes.map((n) => n.text), ['Menos açúcar.', 'Forno a 170 °C.']);
+  }
+});
+
+test('a note on one device and an edit on the other come together, whichever syncs first (D18)', async () => {
+  for (const noteFirst of [true, false]) {
+    const bolo = recipe('Bolo');
+    const { a, b } = await twoDevices(bolo);
+    await writeNote(a, bolo.id, 'Menos açúcar.', '2026-10-20T19:00:00Z');
+    await b.store.put(edited(bolo, 'Bolo de fubá'));
+    const [first, second] = noteFirst ? [a, b] : [b, a];
+    await first.sync();
+    assert.equal((await second.sync()).conflicts, 0);
+    await first.sync();
+    for (const each of [a, b]) {
+      const kept = await each.store.get(bolo.id);
+      assert.deepEqual([kept?.title, kept?.cooksNotes.map((n) => n.text)], ['Bolo de fubá', ['Menos açúcar.']], `note first: ${noteFirst}`);
+      assert.equal((await each.store.list()).length, 1);
+      assert.equal(await pendingChanges(each.store), 0);
+    }
+  }
+});
+
+test('text changed on both devices keeps both, with every note on the one that keeps the id (D6, D18)', async () => {
+  const bolo = recipe('Bolo');
+  const { a, b } = await twoDevices(bolo);
+  await a.store.put(edited(bolo, 'Bolo de fubá'));
+  await writeNote(a, bolo.id, 'Menos açúcar.', '2026-10-20T19:00:00Z');
+  await b.store.put(edited(bolo, 'Bolo de milho'));
+  await writeNote(b, bolo.id, 'Forno a 170 °C.', '2026-10-21T19:00:00Z');
+  await a.sync();
+  assert.equal((await b.sync()).conflicts, 1);
+  await a.sync();
+  for (const each of [a, b]) {
+    assert.deepEqual(await each.titles(), ['Bolo de fubá', 'Bolo de milho (conflict, iPhone, 2026-10-23)']);
+    assert.deepEqual((await each.store.get(bolo.id))?.cooksNotes.map((n) => n.text), ['Menos açúcar.', 'Forno a 170 °C.']);
+    assert.deepEqual((await each.find('Bolo de milho (conflict, iPhone, 2026-10-23)'))?.cooksNotes, [], 'the copy carries no notes twice');
+    assert.equal(await pendingChanges(each.store), 0);
+  }
+});
+
+test('bases kept before R3 learn the text\'s fingerprint, so a note still comes together with an edit', async () => {
+  const bolo = recipe('Bolo');
+  const { a, b } = await twoDevices(bolo);
+  const old = (await b.store.bases()).map(({ text, ...base }) => base);
+  await b.store.settle({ bases: old });
+  assert.ok((await b.store.bases()).every((base) => base.text === undefined));
+  await b.sync();
+  assert.ok((await b.store.bases()).every((base) => typeof base.text === 'string'), 'told on the next pass');
+
+  await a.store.put(edited(bolo, 'Bolo de fubá'));
+  await writeNote(b, bolo.id, 'Menos açúcar.', '2026-10-20T19:00:00Z');
+  await a.sync();
+  assert.equal((await b.sync()).conflicts, 0);
+  assert.deepEqual((await b.store.get(bolo.id))?.cooksNotes.map((n) => n.text), ['Menos açúcar.']);
+  assert.equal((await b.store.get(bolo.id))?.title, 'Bolo de fubá');
 });
 
 test('a change beats a deletion, whichever side made which', async () => {

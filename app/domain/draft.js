@@ -4,6 +4,7 @@
 import { parseIngredientList, renderIngredientList } from './ingredients.js';
 import { newRecipe } from './recipe.js';
 import { parseItems, parseSteps, renderItems, renderSteps } from './sections.js';
+import { parseTags, renderTags, tagsOf } from './tags.js';
 
 /** @typedef {import('./recipe.js').Lang} Lang */
 /** @typedef {import('./recipe.js').Recipe} Recipe */
@@ -11,7 +12,7 @@ import { parseItems, parseSteps, renderItems, renderSteps } from './sections.js'
 /**
  * Every box of the editor, as typed. Only title, language and ingredients are required here.
  * @typedef {{ title: string, lang: Lang, ingredients: string,
- *   source?: string, yield?: string, preparation?: string, variations?: string, notes?: string }} Draft
+ *   source?: string, yield?: string, tags?: string, preparation?: string, variations?: string, notes?: string }} Draft
  */
 /** @typedef {{ code: 'no-title' } | { code: 'no-name', line: number }} Problem */
 
@@ -26,6 +27,7 @@ export function draftOf(recipe) {
     lang: recipe.lang,
     source: recipe.source,
     yield: recipe.yield,
+    tags: renderTags(tagsOf(recipe)),
     ingredients: renderIngredientList(recipe.ingredients, recipe.lang),
     preparation: renderSteps(recipe.preparation),
     variations: renderItems(recipe.variations),
@@ -41,7 +43,7 @@ export function draftOf(recipe) {
  * @returns {{ recipe: Recipe | null, problems: Problem[], lines: ListLine[] }}
  */
 export function readDraft(draft, { id, now = new Date(), base } = {}) {
-  const { title, lang, ingredients, source = '', yield: makes = '', preparation = '', variations = '', notes = '' } = draft;
+  const { title, lang, ingredients, source = '', yield: makes = '', tags = '', preparation = '', variations = '', notes = '' } = draft;
   const { lines, groups } = parseIngredientList(ingredients, lang);
   /** @type {Problem[]} */
   const problems = [];
@@ -58,6 +60,7 @@ export function readDraft(draft, { id, now = new Date(), base } = {}) {
       lang,
       source: source.trim(),
       yield: makes.trim(),
+      tags: parseTags(tags),
       ingredients: groups,
       preparation: parseSteps(preparation),
       variations: parseItems(variations),

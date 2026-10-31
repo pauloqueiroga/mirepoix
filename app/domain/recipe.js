@@ -21,9 +21,11 @@ export const SCHEMA = 1;
  *   variations: string[],
  *   notes: string[],
  *   cooksNotes: CooksNote[],
+ *   tags?: string[],
  *   createdAt: string,
  *   updatedAt: string,
  * }} Recipe
+ *   tags: added in R3 (D19); recipes saved before then have none
  */
 
 /** @type {readonly Lang[]} */
@@ -77,6 +79,7 @@ export function newRecipe({ title, lang = 'en', id = newId(), now = new Date() }
     variations: [],
     notes: [],
     cooksNotes: [],
+    tags: [],
     createdAt: at,
     updatedAt: at,
   };
@@ -145,6 +148,14 @@ export function recipeProblems(value) {
     if (!isTimestamp(note.at)) fail(`${path}.at`, 'an ISO timestamp');
     if (!isText(note.text) || note.text.trim() === '') fail(`${path}.text`, 'a non-blank string');
   });
+  if (value.tags !== undefined) {
+    texts(value.tags, 'tags', fail);
+    if (Array.isArray(value.tags)) {
+      value.tags.forEach((tag, i) => {
+        if (isText(tag) && !isTag(tag)) fail(`tags[${i}]`, 'a tag: not blank, no commas, no spaces around it');
+      });
+    }
+  }
   return problems;
 }
 
@@ -215,6 +226,14 @@ function isObject(value) {
  */
 function isText(value) {
   return typeof value === 'string';
+}
+
+/**
+ * A tag reads back from the editor's comma-separated box as itself.
+ * @param {string} tag
+ */
+function isTag(tag) {
+  return tag !== '' && tag === tag.trim() && !tag.includes(',');
 }
 
 /** @param {unknown} value */

@@ -100,6 +100,54 @@ test('an export from one device imports into another, merging by id', async ({ p
   await otherDevice.close();
 });
 
+test('cook\'s notes made on two devices both survive an import, whichever copy was edited last (R3.3)', async ({ page, browser }) => {
+  await seed(page, ['Pão de queijo']);
+  const [{ id }] = await stored(page);
+  /**
+   * Writes a note in cook mode, the way a person would.
+   * @param {import('@playwright/test').Page} device
+   * @param {string} text
+   */
+  const writeNote = async (device, text) => {
+    await device.goto(`/#/recipes/${id}/cook`);
+    await device.getByRole('button', { name: 'Note for next time' }).click();
+    await device.getByRole('textbox', { name: 'Your note' }).fill(text);
+    await device.getByRole('button', { name: 'Save note' }).click();
+    await expect(device.getByRole('status').filter({ hasText: 'Note saved.' })).toBeVisible();
+  };
+  await page.goto('/#/backup');
+  const first = await exportAll(page);
+
+  // A second device gets the recipe, edits it and cooks it.
+  const otherDevice = await browser.newContext({ baseURL: test.info().project.use.baseURL });
+  await withoutAnalytics(otherDevice);
+  const other = await otherDevice.newPage();
+  watch(other);
+  await other.goto('/#/backup');
+  await other.getByLabel('Import from a file').setInputFiles({ name: first.name, mimeType: 'application/json', buffer: Buffer.from(first.text) });
+  await expect(other.getByRole('status')).toHaveText('Added 1 recipe. See your recipes');
+  await other.goto(`/#/recipes/${id}/edit`);
+  await other.getByLabel('Title').fill('Pão de queijo mineiro');
+  await other.getByRole('button', { name: 'Save' }).click();
+  await expect(other.getByRole('heading', { level: 1, name: 'Pão de queijo mineiro' })).toBeVisible();
+  await writeNote(other, 'Ficou ótimo com canastra.');
+
+  // Meanwhile, this device cooks the older text and writes its own note.
+  await writeNote(page, 'Usei 50 g a mais de polvilho.');
+
+  await other.goto('/#/backup');
+  const second = await exportAll(other);
+  await page.goto('/#/backup');
+  await page.getByLabel('Import from a file').setInputFiles({ name: second.name, mimeType: 'application/json', buffer: Buffer.from(second.text) });
+  await expect(page.getByRole('status')).toHaveText('Updated 1. See your recipes');
+
+  await page.goto(`/#/recipes/${id}`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Pão de queijo mineiro' }), 'the newer text').toBeVisible();
+  await expect(page.getByRole('region', { name: 'Cook’s notes' }).getByRole('listitem').locator('p'))
+    .toHaveText(['Usei 50 g a mais de polvilho.', 'Ficou ótimo com canastra.']);
+  await otherDevice.close();
+});
+
 test('a file that is not an export is refused, and nothing changes', async ({ page }) => {
   await seed(page, ['Feijoada']);
   await page.goto('/#/backup');

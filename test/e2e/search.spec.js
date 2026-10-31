@@ -76,7 +76,7 @@ test('every word must match, and title matches come first', async ({ page }) => 
 test('no match says so', async ({ page }) => {
   await page.getByRole('searchbox', { name: 'Search recipes' }).fill('lasanha');
   await expect(page.getByRole('heading', { name: 'No matches' })).toBeVisible();
-  await expect(page.getByText('No title or ingredient matches “lasanha”.')).toBeVisible();
+  await expect(page.getByText('No title, ingredient or tag matches “lasanha”.')).toBeVisible();
   await expect(page.getByText('0 of 5 recipes')).toBeVisible();
 });
 

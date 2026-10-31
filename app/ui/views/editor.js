@@ -2,6 +2,7 @@ import { draftOf, readDraft } from '../../domain/draft.js';
 import { displayAmount, parseIngredientList } from '../../domain/ingredients.js';
 import { displayQuantity } from '../../domain/quantity.js';
 import { parseSteps } from '../../domain/sections.js';
+import { parseTags, renderTags, sameTag } from '../../domain/tags.js';
 import { unitText } from '../../domain/units.js';
 import { h } from '../dom.js';
 import { t } from '../i18n.js';
@@ -20,19 +21,21 @@ import { stepGroups } from './recipe.js';
  * @param {{
  *   lang: Lang,
  *   recipe?: Recipe,
+ *   tags?: string[],
  *   save: (recipe: Recipe) => Promise<void>,
  *   remove?: (id: string) => Promise<void>,
  *   leave: (outcome: Outcome) => void,
  *   leaving: { unsaved: () => boolean },
  * }} options
- *   recipe: the one being edited, if any. leaving: the editor keeps
- *   leaving.unsaved up to date, so the app can ask before any way out (D10).
+ *   recipe: the one being edited, if any. tags: every tag in use, offered
+ *   with a tap (R3.4). leaving: the editor keeps leaving.unsaved up to date,
+ *   so the app can ask before any way out (D10).
  */
-export function editorView({ lang, recipe, save, remove, leave, leaving }) {
+export function editorView({ lang, recipe, tags: known = [], save, remove, leave, leaving }) {
   /** @type {Draft} */
   const initial = recipe
     ? draftOf(recipe)
-    : { title: '', lang, source: '', yield: '', ingredients: '', preparation: '', variations: '', notes: '' };
+    : { title: '', lang, source: '', yield: '', tags: '', ingredients: '', preparation: '', variations: '', notes: '' };
 
   const title = h('input', { id: 'title', type: 'text', class: 'title-input', autocomplete: 'off', autofocus: !recipe });
   // Two radio buttons rather than a <select>: one tap on a phone, and WebKit's
@@ -46,6 +49,9 @@ export function editorView({ lang, recipe, save, remove, leave, leaving }) {
   const chosenLang = () => /** @type {HTMLInputElement | null} */ (language.querySelector('input:checked'))?.value === 'pt' ? 'pt' : 'en';
   const source = h('input', { id: 'source', type: 'text', autocomplete: 'off', placeholder: t.sourcePlaceholder });
   const makes = h('input', { id: 'makes', type: 'text', autocomplete: 'off', placeholder: initial.lang === 'pt' ? '30 unidades' : '24 cookies' });
+  const tags = h('input', { id: 'tags', type: 'text', autocomplete: 'off', autocapitalize: 'none', placeholder: t.tagsPlaceholder });
+  // The tags already in use, a tap away, so one tag isn't typed three ways.
+  const picks = known.map((tag) => h('button', { type: 'button', class: 'tag', 'aria-pressed': 'false', onclick: () => pick(tag) }, h('span', null, tag)));
   const ingredients = h('textarea', {
     id: 'ingredients',
     rows: '12',
@@ -62,6 +68,7 @@ export function editorView({ lang, recipe, save, remove, leave, leaving }) {
   title.value = initial.title;
   source.value = initial.source;
   makes.value = initial.yield;
+  tags.value = initial.tags;
   ingredients.value = initial.ingredients;
   preparation.value = initial.preparation;
   variations.value = initial.variations;
@@ -73,6 +80,7 @@ export function editorView({ lang, recipe, save, remove, leave, leaving }) {
     lang: chosenLang(),
     source: source.value,
     yield: makes.value,
+    tags: tags.value,
     ingredients: ingredients.value,
     preparation: preparation.value,
     variations: variations.value,
@@ -92,6 +100,17 @@ export function editorView({ lang, recipe, save, remove, leave, leaving }) {
   const refreshIngredients = () => {
     const current = chosenLang();
     preview.replaceChildren(...previewContent(parseIngredientList(ingredients.value, current).lines, current));
+  };
+  const refreshTags = () => {
+    const typed = parseTags(tags.value);
+    known.forEach((tag, i) => picks[i]?.setAttribute('aria-pressed', String(typed.some((other) => sameTag(other, tag)))));
+  };
+  /** Adds a tag in use to the box, or takes it out again. @param {string} tag */
+  const pick = (tag) => {
+    const typed = parseTags(tags.value);
+    const has = typed.some((other) => sameTag(other, tag));
+    tags.value = renderTags(has ? typed.filter((other) => !sameTag(other, tag)) : [...typed, tag]);
+    refreshTags();
   };
   const refreshSteps = () => {
     stepsPreview.replaceChildren(...stepsPreviewContent(parseSteps(preparation.value), chosenLang()));
@@ -124,8 +143,10 @@ export function editorView({ lang, recipe, save, remove, leave, leaving }) {
   language.addEventListener('change', refreshIngredients);
   language.addEventListener('change', refreshSteps);
   preparation.addEventListener('input', refreshSteps);
+  tags.addEventListener('input', refreshTags);
   refreshIngredients();
   refreshSteps();
+  refreshTags();
 
   return [
     h('form', { class: 'screen', novalidate: true, onsubmit: submit },
@@ -141,6 +162,11 @@ export function editorView({ lang, recipe, save, remove, leave, leaving }) {
         h('div', { class: 'fields' },
           h('div', { class: 'field' }, h('label', { for: 'source' }, t.source), source),
           h('div', { class: 'field makes' }, h('label', { for: 'makes' }, t.makesLabel), makes)),
+        h('div', { class: 'field' },
+          h('label', { for: 'tags' }, t.tags),
+          tags,
+          picks.length > 0 && h('div', { class: 'tag-picker', role: 'group', 'aria-label': t.yourTags }, ...picks),
+          h('p', { class: 'hint' }, picks.length > 0 ? t.tagsHintKnown : t.tagsHint)),
         h('div', { class: 'columns' },
           h('div', { class: 'field ingredients-box' },
             h('label', { for: 'ingredients' }, t.ingredientsLabel),

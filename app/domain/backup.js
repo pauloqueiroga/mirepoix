@@ -1,6 +1,7 @@
 // Export and import (R1.11): every recipe in one versioned JSON file, and
 // back. Importing merges by id, so it also combines two devices' recipes, and
 // it's how recipes move to a new web address (each address has its own storage).
+import { mergeCooksNotes } from './cooks-notes.js';
 import { recipeProblems } from './recipe.js';
 
 /** @typedef {import('./recipe.js').Recipe} Recipe */
@@ -50,7 +51,8 @@ export function readExport(text) {
 
 /**
  * What importing does: recipes not here yet are added, and a recipe already
- * here is replaced only by a newer version of itself. Nothing is ever removed.
+ * here takes the text of whichever copy was edited last. Cook's notes from
+ * both copies are kept (R3.3, D18). Nothing is ever removed.
  * @param {Recipe[]} existing
  * @param {Recipe[]} incoming
  * @returns {Plan}
@@ -61,14 +63,20 @@ export function mergePlan(existing, incoming) {
   const plan = { put: [], added: 0, updated: 0, unchanged: 0 };
   for (const recipe of incoming) {
     const current = here.get(recipe.id);
+    let merged = recipe;
     if (!current) plan.added += 1;
-    else if (Date.parse(recipe.updatedAt) > Date.parse(current.updatedAt)) plan.updated += 1;
     else {
-      plan.unchanged += 1;
-      continue;
+      const newer = Date.parse(recipe.updatedAt) > Date.parse(current.updatedAt);
+      const cooksNotes = mergeCooksNotes(current.cooksNotes, recipe.cooksNotes);
+      if (!newer && cooksNotes.length === current.cooksNotes.length) {
+        plan.unchanged += 1;
+        continue;
+      }
+      merged = { ...(newer ? recipe : current), cooksNotes };
+      plan.updated += 1;
     }
-    here.set(recipe.id, recipe);
-    plan.put.push(recipe);
+    here.set(merged.id, merged);
+    plan.put.push(merged);
   }
   return plan;
 }

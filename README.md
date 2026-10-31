@@ -19,7 +19,7 @@ Every release is usable on its own; each one adds to the last.
 | --- | --- |
 | **R1 · Recipe box** | Paste or type recipes into sections (Ingredients, Preparation, Variations, Notes). Ingredients are parsed in English and Portuguese, including equivalents like "2 cups (437 g)". A read-only recipe view, search, export/import, and offline use. Screens in English or Portuguese. Recipes stay on the device they were captured on. |
 | **R2 · Every device** | The same recipes everywhere, synced end-to-end encrypted through a private GitHub repository. Everyone's R1 recipes merge into one shared recipe box. |
-| **R3 · Cook mode** | Big type, the screen stays on, tick off ingredients and steps, and add dated notes without touching the recipe. |
+| **R3 · Cook mode** | Big type, the screen stays on, tick off ingredients and steps, and add dated notes without touching the recipe. Notes from different devices merge. Tags, to find recipes by what they are ("sobremesa", "weeknight"). |
 | **R4 · Smart paste** | Paste a whole recipe (or any chunk) in one go, and Mirepoix finds the sections. |
 | **R5 · Your measures** | More ways to write equivalents ("2 cups / 437 g", "2 xícaras ou 437 g") and your own units. |
 

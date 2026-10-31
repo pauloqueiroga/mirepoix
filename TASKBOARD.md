@@ -10,12 +10,6 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 
 ### Planned releases, in order
 
-**R3 · Cook mode.** (D10)
-
-- **R3.1 Cook view.** Large type, no editing controls, and the screen kept awake.
-- **R3.2 Ticks.** Tap to tick ingredients and steps, with the current step highlighted. Ticks are temporary and never saved.
-- **R3.3 Note for next time.** Dated, append-only cook's notes. The newest shows as "Last time" on the recipe. They merge across devices without conflicts.
-
 **R4 · Smart paste.**
 
 - **R4.1 Whole-recipe paste.** One box. Sections are found by their headings in English or Portuguese (Ingredients/Ingredientes, Preparation/Method/Modo de preparo, Variations/Variações, Notes/Notas/Dicas).
@@ -29,7 +23,6 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 
 ### Someday, maybe
 
-- Tags, and filtering by tag
 - Scale a recipe (×½, ×2, custom servings)
 - Print-friendly view
 - Export as Markdown (a human-readable backup)

@@ -13,6 +13,7 @@
   --on-carrot: #FFFFFF;
   --celery: #4E6B26;
   --celery-soft: #E8F0DA;
+  --on-celery: #FFFFFF;
   --warn: #8A5A0B;
   --warn-soft: #FCF1D6;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -34,6 +35,7 @@
     --on-carrot: #1C1A17;
     --celery: #A3C46B;
     --celery-soft: #28311C;
+    --on-celery: #1C1A17;
     --warn: #E7B85C;
     --warn-soft: #3A2F1C;
   }
@@ -59,6 +61,9 @@ body {
 }
 
 a { color: var(--carrot); }
+
+/* Views style elements by class, and display rules would beat the attribute. */
+[hidden] { display: none !important; }
 
 :focus-visible {
   outline: 2px solid var(--carrot);
@@ -99,6 +104,7 @@ a { color: var(--carrot); }
   cursor: pointer;
 }
 
+a.button { text-decoration: none; }
 .button.primary { background: var(--carrot); color: var(--on-carrot); }
 .button.quiet { background: transparent; color: var(--ink-2); padding-inline: 4px; font-weight: 500; }
 .button.danger { background: transparent; color: var(--carrot); box-shadow: inset 0 0 0 1.5px currentColor; }
@@ -1052,3 +1058,434 @@ input.mono {
 
 .sync .aside { margin-top: 24px; }
 
+/* Icons (R3): line drawings from docs/mockups, used as masks so they take
+   the color of the text around them, in light and dark. */
+
+.pot, .pen, .sun, .done-link, .stamp {
+  --icon-size: 1.15em;
+}
+
+.pot { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z'/%3E%3Cpath d='M2 10h2M20 10h2M9 6.5c0-1 1-1.5 1-2.5M13.5 6.5c0-1 1-1.5 1-2.5'/%3E%3C/svg%3E"); }
+.pen, .last-time { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z'/%3E%3Cpath d='M13.5 6.5l4 4'/%3E%3C/svg%3E"); }
+.sun { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4'/%3E%3C/svg%3E"); }
+.done-link { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E"); }
+.stamp { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7.5V12l3 2'/%3E%3C/svg%3E"); }
+:root { --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
+
+.pot::before, .pen::before, .sun::before, .done-link::before, .stamp::before, .last-time::before {
+  content: "";
+  flex: none;
+  width: var(--icon-size, 18px);
+  height: var(--icon-size, 18px);
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+/* An action bar that stays at the bottom: Start cooking, Note for next time */
+
+.foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  justify-items: center;
+  padding: 10px max(var(--gutter), env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.button.wide {
+  width: 100%;
+  max-width: 30rem;
+  min-height: 48px;
+  border-radius: 14px;
+}
+
+.foot-status {
+  margin: 0;
+  font-size: .85rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--celery);
+}
+
+/* Always there, even empty, so screen readers hear it when it speaks. */
+.foot-status:not(:empty) { margin-bottom: 6px; }
+
+/* Tags (R3.4, R3.5): pills inside 44 px targets (D13). Pressed means picked. */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tag > span {
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: .85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag:hover > span { border-color: var(--ink-2); }
+.tag:focus-visible { outline: none; }
+.tag:focus-visible > span { outline: 2px solid var(--carrot); outline-offset: 2px; }
+
+.tag[aria-pressed="true"] > span {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.tag-list,
+.tag-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-list { margin-top: 4px; }
+.tag-list .tag > span { border-color: transparent; background: var(--sunken); }
+.tag-list .tag:hover > span { color: var(--carrot); }
+.tag-picker { clear: both; margin-top: 2px; }
+
+/* On a phone the list's tags scroll sideways in one row; wider, they wrap. */
+.tag-filter {
+  display: flex;
+  gap: 0 6px;
+  margin: 2px calc(-1 * var(--gutter)) -6px;
+  padding: 0 var(--gutter);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tag-filter::-webkit-scrollbar { display: none; }
+
+@media (min-width: 760px) {
+  .tag-filter {
+    flex-wrap: wrap;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+}
+
+/* Cook's notes (R3.3): "Last time" up top, and the whole log further down */
+
+.last-time {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  margin: 16px 0 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--celery-soft);
+}
+
+.last-time::before {
+  grid-row: 1 / span 2;
+  margin-top: 1px;
+  color: var(--celery);
+}
+
+.last-time-label {
+  margin: 0;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--celery);
+}
+
+.last-time-text {
+  margin: 2px 0 0;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.cooks-notes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cooks-notes li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cooks-notes time {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--celery);
+}
+
+.cooks-notes p {
+  margin: 2px 0 0;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+/* Cook mode (R3.1, R3.2): big type, read at arm's length (D13) */
+
+.cook-bar {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
+}
+
+.cook-bar > :first-child { justify-self: start; }
+.cook-bar > :last-child { justify-self: end; }
+
+.cook-bar .bar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.done-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chip.sun { --icon-size: 14px; }
+
+.cook {
+  max-width: 46rem;
+  padding: 4px max(var(--gutter), env(safe-area-inset-right)) 32px max(var(--gutter), env(safe-area-inset-left));
+  font-size: 1.15rem;
+}
+
+@media (min-width: 760px) {
+  .cook { font-size: 1.3rem; }
+}
+
+.cook .meta { margin-top: 12px; }
+
+.cook .recipe-section {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: 12px;
+}
+
+.cook .recipe-section > :not(.section-label, .progress) { grid-column: 1 / -1; }
+.cook .group-heading { margin: 14px 0 4px; font-size: 1em; }
+
+.progress {
+  font-size: .8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+/* Rows run edge to edge, their text inset. */
+.cook-list {
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 0;
+  list-style: none;
+}
+
+.cook-list li {
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--line);
+  /* clear of the bars above and below when brought into view */
+  scroll-margin: 72px 0 96px;
+}
+
+.tick {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  line-height: 1.4;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tick input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.cook-list li:has(input:focus-visible) {
+  outline: 2px solid var(--carrot);
+  outline-offset: -2px;
+}
+
+.tick .box {
+  position: relative;
+  flex: none;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px var(--ink-2);
+}
+
+.tick input:checked + .box {
+  background: var(--celery);
+  box-shadow: none;
+}
+
+.tick input:checked + .box::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  background: var(--on-celery);
+  -webkit-mask: var(--check) center / contain no-repeat;
+  mask: var(--check) center / contain no-repeat;
+}
+
+.cook-list .amount { font-variant-numeric: tabular-nums; }
+.cook-list .alt { font-size: .85em; color: var(--ink-2); }
+.cook-list .name { font-family: var(--serif); }
+.cook-list .note { color: var(--ink-2); }
+
+.cook-list input:checked ~ .line {
+  color: var(--ink-2);
+  text-decoration: line-through;
+}
+
+.cook-steps .line {
+  font-family: var(--serif);
+  font-size: 1.1em;
+  line-height: 1.45;
+}
+
+.cook-steps input:checked ~ .line { text-decoration: none; }
+
+.cook-steps .number {
+  flex: none;
+  width: 1.4em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--carrot);
+}
+
+/* A step done: its number becomes a celery tick. */
+.cook-steps input:checked + .number {
+  color: transparent;
+  background: var(--celery);
+  -webkit-mask: var(--check) center / 80% no-repeat;
+  mask: var(--check) center / 80% no-repeat;
+}
+
+.cook-steps li[aria-current="step"] {
+  background: var(--carrot-soft);
+  box-shadow: inset 4px 0 0 var(--carrot);
+}
+
+/* The note sheet: up from the bottom on a phone, in the middle when wider */
+
+.sheet {
+  width: 100%;
+  max-width: 40rem;
+  max-height: calc(100dvh - 24px);
+  margin: auto auto 0;
+  padding: 10px max(18px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  border: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 -8px 30px rgb(0 0 0 / .18);
+}
+
+/* Literal colors: older WebKit doesn't pass custom properties to ::backdrop. */
+.sheet::backdrop { background: rgb(28 24 20 / .45); }
+
+.sheet form::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 5px;
+  margin: 0 auto 14px;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+@media (min-width: 640px) {
+  .sheet {
+    margin: auto;
+    padding-top: 22px;
+    border-radius: 20px;
+  }
+
+  .sheet form::before { display: none; }
+}
+
+.sheet h2 {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.sheet .sub {
+  margin: 0 0 12px;
+  font-size: .9rem;
+  color: var(--ink-2);
+}
+
+.sheet .alert { margin-bottom: 12px; }
+
+.sheet textarea {
+  min-height: 8rem;
+  background: var(--paper);
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+
+.stamp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 2px 14px;
+  font-size: .8rem;
+  color: var(--ink-2);
+}
+
+.sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+}
+
+.sheet-actions .button {
+  min-height: 48px;
+  border-radius: 14px;
+}
+
+.sheet-actions .button.quiet { box-shadow: inset 0 0 0 1px var(--line); }
+
+/* Disabled until there's a note to save: nothing is busy. */
+.sheet-actions .button:disabled { cursor: default; }

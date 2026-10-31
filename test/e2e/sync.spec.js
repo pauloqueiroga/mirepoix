@@ -238,6 +238,64 @@ test('saving an edit to a recipe that another device changed meanwhile keeps bot
   expect(Object.keys(github.files(REPO)).filter((path) => path.startsWith('recipes/'))).toHaveLength(2);
 });
 
+test('a cook\'s note on one device and an edit on another come together, with no conflict copy (D18)', async ({ page, browser }) => {
+  await seed(page, ['Feijoada']);
+  await connectDevice(page, { mode: 'fresh' });
+  await expect(chip(page)).toHaveText('Synced');
+  const other = await otherDevice(browser);
+  await connectDevice(other, { token: 'token-b' });
+  await expect(other.getByRole('list', { name: 'Recipes' }).getByRole('listitem')).toHaveText(['Feijoada']);
+
+  // This device cooks and leaves a note, which goes up…
+  await page.getByRole('link', { name: 'Feijoada' }).click();
+  await page.getByRole('link', { name: 'Start cooking' }).click();
+  await page.getByRole('button', { name: 'Note for next time' }).click();
+  await page.getByRole('textbox', { name: 'Your note' }).fill('Deixe o feijão de molho na véspera.');
+  await page.getByRole('button', { name: 'Save note' }).click();
+  await page.getByRole('link', { name: 'Done' }).click();
+  await page.getByRole('link', { name: 'Recipes' }).click();
+  await expect(chip(page)).toHaveText('Synced');
+
+  // …while the other, not yet aware of it, renames the recipe.
+  await other.getByRole('link', { name: 'Feijoada' }).click();
+  await other.getByRole('link', { name: 'Edit' }).click();
+  await other.getByLabel('Title').fill('Feijoada completa');
+  await other.getByRole('button', { name: 'Save' }).click();
+  await other.getByRole('link', { name: 'Recipes' }).click();
+  await expect(chip(other)).toHaveText('Synced');
+
+  for (const device of [other, page]) {
+    await device.goto('/');
+    await expect(chip(device)).toHaveText('Synced');
+    await device.getByRole('link', { name: 'Feijoada completa' }).click();
+    await expect(device.getByRole('complementary', { name: /^Last time/ })).toContainText('Deixe o feijão de molho na véspera.');
+    expect(await titles(device)).toEqual(['Feijoada completa']);
+  }
+  expect(Object.keys(github.files(REPO)).filter((path) => path.startsWith('recipes/'))).toHaveLength(1);
+  await other.context().close();
+});
+
+test('a cook\'s note that comes in while a recipe is being edited joins the edit (D18)', async ({ page }) => {
+  await seed(page, ['Feijoada']);
+  await connectDevice(page, { mode: 'fresh' });
+  await expect(chip(page)).toHaveText('Synced');
+  await page.getByRole('link', { name: 'Feijoada' }).click();
+  await page.getByRole('link', { name: 'Edit' }).click();
+  await page.getByLabel('Title').fill('Feijoada da Ana');
+  // Meanwhile, syncing brings in a note another device wrote while cooking.
+  await page.evaluate(async () => {
+    const { openLocalStore } = await import('/store/local-store.js');
+    const { addCooksNote } = await import('/domain/cooks-notes.js');
+    const store = await openLocalStore();
+    const [recipe] = await store.list();
+    if (recipe) await store.put(addCooksNote(recipe, 'Mais louro.'));
+  });
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Feijoada da Ana');
+  await expect(page.getByRole('complementary', { name: /^Last time/ })).toContainText('Mais louro.');
+  expect(await titles(page)).toEqual(['Feijoada da Ana']);
+});
+
 test('offline: the chip says so, changes wait (even through a reload), and go up once back', async ({ page }) => {
   await seed(page, ['Feijoada']);
   await connectDevice(page, { mode: 'fresh' });

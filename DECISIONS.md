@@ -109,6 +109,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Sections:** the four sections the user asked for (Ingredients, Preparation, Variations, Notes), plus `cooksNotes`, the dated notes added while cooking. Ingredients and steps can be grouped under headings ("For the sauce").
 - **Text-first:** every ingredient renders to one line and parses back to the same structure. Tests enforce this round trip.
 - **Evolution:** fields can be added without bumping `schema`. Any other change ships with a migration and tests.
+- **Extended by D18 and D19:**.
 
 ## D9. Text-first capture with live parsing, in English and Portuguese
 
@@ -168,6 +169,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
   - Google signals and ad personalization are switched off.
 - **In Google Analytics' settings:** turn off Enhanced measurement's "page changes based on browser history events" and "site search", so Google doesn't collect page views on its own.
 - **Consequences:** the CSP gains `https://*.googletagmanager.com` for scripts, plus Google's analytics domains for images and connections (D7 superseded in part). The privacy page (R1.13) explains all of this. Saying no, or later stopping, deletes Google's `_ga` cookies.
+- **Extended by D18 and D19:**.
 
 ## D15. Screens in English or Portuguese
 
@@ -209,3 +211,36 @@ How D4–D7 came out in code (`app/store/`), and the choices made on the way.
 - **When it's stuck:** the chip and the Sync screen name the problem. An expired, revoked or under-powered token, or a repository the token can't see, gets a field for a new token. A vault made anew with another passphrase gets a field for it. Everything else (offline, GitHub unwell) retries on its own.
 - **Tests:** `test/support/fake-github.js` stands in for the part of GitHub's REST API Mirepoix uses, answering the way GitHub does (versions are git blob SHAs, 409/422 on stale writes, 401/403/404 for token trouble). Unit tests reach it through `fetch`; browser tests route `api.github.com` to it, so several browser contexts can be devices sharing one repository (D12).
 - **Consequences:** the sync engine, GitHub remote and crypto are about 1,100 lines of our own code, with no dependency. Each device needs its own fine-grained token. Analytics hears one more screen name, "sync" (D14).
+
+## D18. Cook mode, and cook's notes that merge
+
+**Accepted** · 2026-10-31
+
+- **Context:** from D10: cook from a recipe without being able to change it, and leave notes for next time. Recipes travel between devices by syncing (D17) and by export and import, and cook's notes have to survive both without conflicts (D6).
+- **The screen:** cook mode has its own address (`#/recipes/:id/cook`) and opens from **Start cooking**, a bar at the bottom of every recipe. It shows the newest note as "Last time", the ingredients and steps to tick off, and Variations and Notes as they are, in bigger type. Everything needed while cooking is there, so there's no reason to leave halfway. There's no Edit link. **Done** goes back to the recipe.
+- **Ticks** live on the screen only. Done, Back or a reload clears them, and nothing about them is ever stored. The first step not ticked is the one to do now; it's highlighted, and ticking a step brings the next one into view. Steps can be ticked out of order, and unticked.
+- **The screen stays on** through the Screen Wake Lock API. The lock is asked for on the way in, again each time the page comes back into view (browsers let go when it's hidden), and released on the way out. A "Screen on" chip shows while it's held. Devices without the API get no chip and no warning.
+- **Notes are written only in cook mode,** in a sheet over the recipe. They're dated with the moment they're saved, and line breaks are kept. Cancel or Escape asks before throwing away typed text, and so does leaving cook mode with a note half-written. After saving, the ticks are still there.
+- **Append-only:** a note can't be changed or removed, not even in the editor, which keeps notes exactly as they are. For now.
+- **A note doesn't change the recipe's `updatedAt`.** That time says whose copy of the recipe's text is newest when two copies merge. If a note moved it, a note added to an old copy would make that old text win over a newer edit.
+- **Copies merge, notes always survive:** two copies of a recipe keep the notes of both, once each by id, oldest first. The rules live in `domain/cooks-notes.js`.
+  - **Syncing (D17):** when a recipe changed on both devices, the text of the side that changed it stays, and the merged recipe goes back up. A note on one device and an edit on the other never make a conflict copy. Only when both changed the text, differently, does D6 keep both: the copy that keeps the id gets every note, and the conflict copy gets none, so no note shows twice. To tell which side changed the text, each base also keeps the fingerprint of the recipe without its notes. Bases kept by 0.4.0 lack it, and get it on the next pass for every recipe not changed since.
+  - **Saving in the editor** after notes alone came in meanwhile keeps the edit and adds the notes. A change to the text meanwhile still means a conflict copy (D17), without notes, for the same reason.
+  - **Importing** takes the text of whichever copy was edited last, by `updatedAt`.
+- **Reading:** the recipe shows the newest note as "Last time" near the top. Once there's more than one, a "Cook's notes" section at the bottom lists them all, newest first, with their dates.
+- **Analytics** hears "cook mode", and while it's on, the tab title is "Cook mode" (D14).
+- **Consequences:** a note saved by mistake stays. If that turns out to matter, a note could be hidden later with a marker that merges just like a note does. An accidental Back loses the ticks.
+
+## D19. Tags, and filtering the list by tag
+
+**Accepted** · 2026-10-31
+
+- **Context:** "Tags, and filtering by tag" was in Someday; it ships with R3.
+- **Data:** an optional `tags` list on the recipe, so no schema change (D8). New recipes start with an empty list, and recipes saved before tags existed read as having none. A tag isn't blank, has no commas and no spaces around it, so it always reads back from the editor as itself.
+- **Typing them:** one Tags box in the editor, commas between tags, text-first like everything else (D9). A leading "#" is dropped, spaces are squashed, and a tag given twice is kept once. The tags already in use sit under the box, and a tap adds or removes one, so one tag doesn't get typed three ways.
+- **Same tag, any spelling:** tags are kept as typed and compared the way search compares words, ignoring case and accents, so "Natal" and "natal" are one tag. The list shows each tag the way most recipes write it.
+- **Filtering:** the list shows every tag in use, alphabetically, under the search box: one row that scrolls sideways on a phone, wrapping on wider screens. Picking several shows the recipes that have **all** of them, and the search words narrow the list further. The search box matches tags too, and says which tag matched ("tagged sobremesa").
+- **From a recipe:** its tags show under the title, and tapping one opens the list showing just the recipes with that tag.
+- **Privacy:** like the search, the picked tags live in the browser's history entry, not the address, so Back returns to them and analytics never sees them (D14).
+- **Words:** "Tags" in English, "Etiquetas" in Portuguese (D15).
+- **Consequences:** renaming a tag means editing each recipe that has it; there's no tag manager. Older Mirepoix versions keep a recipe's tags when they edit it, because unknown fields survive (D8).

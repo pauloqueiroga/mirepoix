@@ -6,8 +6,10 @@
 // two last matched. A recipe changed here if its fingerprint moved off the
 // base; it changed there if the file's version did.
 // - Changed on one side only: that side's version wins.
-// - Changed on both: the remote version stays, and this device's version is
-//   kept beside it as "Title (conflict, device, date)" (D6). Nothing is lost.
+// - Changed on both: cook's notes always come together, and so does the
+//   text when only one side changed it (D18). When both changed the text, the
+//   remote version stays, with every note, and this device's version is kept
+//   beside it as "Title (conflict, device, date)" (D6). Nothing is lost.
 // - Deleted on one side and changed on the other: the change wins.
 // - A recipe the remote has never seen goes up as a new file. Ids are random
 //   (D8), so recipes made on separate devices never collide: connecting
@@ -17,6 +19,7 @@
 // survive going offline and reloading with no queue to keep. A returning
 // device asks for the branch head first: one small request. Only a head that
 // moved means listing the files and downloading the changed ones.
+import { mergeCooksNotes, mergeCopies, textFingerprint } from '../domain/cooks-notes.js';
 import { fingerprint } from '../domain/fingerprint.js';
 import { newId, recipeProblems } from '../domain/recipe.js';
 import { CryptoError, canEncrypt, createVault, keyOpens, openVault, readVault, seal, unseal } from './crypto.js';
@@ -273,6 +276,12 @@ export async function syncOnce({ store, remote, connection, conflictTitle, now =
   let at = head;
   // Whether every recipe was brought level; if not, the next pass lists again.
   let complete = true;
+  // Bases kept before R3 lack the text's fingerprint; a recipe unchanged since its base can still tell it.
+  const untold = [...bases.values()].flatMap((base) => {
+    const local = locals.get(base.id);
+    return base.text === undefined && local && fingerprint(local) === base.fingerprint ? [{ ...base, text: textFingerprint(local) }] : [];
+  });
+  if (untold.length > 0) await settle({ bases: untold });
   /** @type {string[]} */
   const downloads = [];
   // Uploads go one at a time, after the downloads: GitHub refuses a commit
@@ -337,18 +346,32 @@ export async function syncOnce({ store, remote, connection, conflictTitle, now =
       complete = false;
       return;
     }
-    const newBase = { id, version: file.version, fingerprint: fingerprint(theirs) };
+    const newBase = { id, version: file.version, fingerprint: fingerprint(theirs), text: textFingerprint(theirs) };
     if (!local || !here || mine === newBase.fingerprint) {
       const same = mine === newBase.fingerprint;
       if (await settle({ expect: { [id]: mine }, put: same ? [] : [theirs], bases: [newBase] }, !same) && !same) report.downloaded += 1;
       return;
     }
-    // Changed on both sides: theirs stays, and ours is kept beside it (D6).
+    // Changed on both sides. Cook's notes come together, and so does the text
+    // when only one side changed it; what's merged then goes back up (D18).
+    const merged = mergeCopies(local, theirs, base?.text);
+    if (merged) {
+      const print = fingerprint(merged);
+      if (await settle({ expect: { [id]: mine }, put: print === mine ? [] : [merged], bases: [newBase] }, print !== mine)) {
+        if (print !== mine) report.downloaded += 1;
+        if (print !== newBase.fingerprint) uploads.push({ id, over: newBase.version, tries });
+      }
+      return;
+    }
+    // Both changed the text: theirs stays, with every cook's note, and ours is
+    // kept beside it (D6), its notes left with theirs.
+    const kept = { ...theirs, cooksNotes: mergeCooksNotes(theirs.cooksNotes, local.cooksNotes) };
     const when = now();
-    const copy = { ...local, id: newId(), title: conflictTitle(local.title, connection.device, when), createdAt: when.toISOString(), updatedAt: when.toISOString() };
-    if (await settle({ expect: { [id]: mine }, put: [theirs, copy], bases: [newBase] }, true)) {
+    const copy = { ...local, id: newId(), title: conflictTitle(local.title, connection.device, when), createdAt: when.toISOString(), updatedAt: when.toISOString(), cooksNotes: [] };
+    if (await settle({ expect: { [id]: mine }, put: [kept, copy], bases: [newBase] }, true)) {
       report.conflicts += 1;
       uploads.push({ id: copy.id, over: null, tries: 0 });
+      if (fingerprint(kept) !== newBase.fingerprint) uploads.push({ id, over: newBase.version, tries });
     }
   }
 
@@ -369,7 +392,7 @@ export async function syncOnce({ store, remote, connection, conflictTitle, now =
       if (local) {
         const written = await remote.put(path, await seal(key, `recipe:${id}`, local), over);
         follow(written);
-        await settle({ bases: [{ id, version: written.version, fingerprint: fingerprint(local) }] });
+        await settle({ bases: [{ id, version: written.version, fingerprint: fingerprint(local), text: textFingerprint(local) }] });
         report.uploaded += 1;
       } else if (over !== null) {
         const written = await remote.remove(path, over);

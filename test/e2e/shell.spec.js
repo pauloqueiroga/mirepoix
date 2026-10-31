@@ -50,7 +50,7 @@ test('no screen lets its content touch the edge of the window', async ({ page })
     await (await openLocalStore()).put(recipe);
     return recipe.id;
   });
-  for (const address of ['/', '/#/new', `/#/recipes/${id}`, `/#/recipes/${id}/edit`, '/#/backup', '/#/sync', '/#/nope']) {
+  for (const address of ['/', '/#/new', `/#/recipes/${id}`, `/#/recipes/${id}/edit`, `/#/recipes/${id}/cook`, '/#/backup', '/#/sync', '/#/nope']) {
     await page.goto(address);
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
     // Text, not rows: list rows run edge to edge on purpose, with their text inset.

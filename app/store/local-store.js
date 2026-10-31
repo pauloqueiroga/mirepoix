@@ -21,8 +21,10 @@ import { assertValidRecipe } from '../domain/recipe.js';
  * the fingerprint of the recipe it held. A recipe whose fingerprint differs
  * from its base changed here since; a recipe that's gone while its base
  * stays was deleted here. So changes waiting to go up survive going offline
- * and reloading, without a queue to keep.
- * @typedef {{ id: string, version: string, fingerprint: string }} Base
+ * and reloading, without a queue to keep. The fingerprint of the recipe's
+ * text alone, without its cook's notes, tells which side changed the text
+ * when both changed (D18); bases kept before R3 may lack it.
+ * @typedef {{ id: string, version: string, fingerprint: string, text?: string }} Base
  */
 /**
  * A change the sync engine makes in one go: all of it, or none of it when a

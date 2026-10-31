@@ -138,6 +138,37 @@ test('"Allow" loads Google Analytics, which only ever hears screen names', async
   await expect.poll(() => google.length).toBeGreaterThan(0);
 });
 
+test('cook mode, tags and cook\'s notes stay private too: Google only hears "cook mode"', async ({ page }) => {
+  await withAnalytics(page);
+  await page.goto('/');
+  const id = await page.evaluate(async () => {
+    const { openLocalStore } = await import('/store/local-store.js');
+    const { newRecipe } = await import('/domain/recipe.js');
+    const recipe = {
+      ...newRecipe({ title: 'Pão de queijo', lang: 'pt' }),
+      tags: ['receita da vovó'],
+      cooksNotes: [{ id: 'n1', at: '2026-10-12T22:40:00Z', text: 'Usei polvilho doce.' }],
+    };
+    await (await openLocalStore()).put(recipe);
+    return recipe.id;
+  });
+  await page.reload();
+  await banner(page).getByRole('button', { name: 'Allow' }).click();
+  await page.getByRole('group', { name: 'Filter by tag' }).getByRole('button', { name: 'receita da vovó' }).click();
+  await page.getByRole('link', { name: 'Pão de queijo' }).click();
+  await page.getByRole('link', { name: 'Start cooking' }).click();
+  await expect(page, 'no recipe title in the tab while analytics is on').toHaveTitle('Cook mode · Mirepoix');
+  await page.getByRole('button', { name: 'Note for next time' }).click();
+  await page.getByRole('textbox', { name: 'Your note' }).fill('Menos sal.');
+  await page.getByRole('button', { name: 'Save note' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Note saved.' })).toBeVisible();
+
+  const calls = await queued(page);
+  expect(pageViews(calls)).toEqual(['recipes', 'recipe', 'cook mode']);
+  const everything = JSON.stringify(calls);
+  for (const secret of ['Pão', 'queijo', 'vovó', 'polvilho', 'Menos sal', id]) expect(everything).not.toContain(secret);
+});
+
 test('the privacy page shows your choice and lets you change it', async ({ page, context }) => {
   await withAnalytics(page);
   await page.goto('/');
