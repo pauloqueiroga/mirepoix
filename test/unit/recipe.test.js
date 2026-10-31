@@ -29,6 +29,7 @@ function example() {
     variations: ['Swap 1/2 cup of the flour for rye.'],
     notes: ['Dough keeps 3 days in the fridge.'],
     cooksNotes: [{ id: 'n1', at: '2026-10-12T19:40:00Z', text: 'Rested the dough overnight.' }],
+    tags: ['cookies', 'browned butter'],
     createdAt: '2026-10-01T10:00:00Z',
     updatedAt: '2026-10-12T19:40:00Z',
   };
@@ -46,7 +47,7 @@ test('a new recipe has only its title, language and timestamps', () => {
   assert.equal(recipe.lang, 'pt');
   assert.equal(recipe.createdAt, '2026-10-20T12:00:00.000Z');
   assert.equal(recipe.updatedAt, recipe.createdAt);
-  assert.deepEqual([recipe.ingredients, recipe.preparation, recipe.variations, recipe.notes, recipe.cooksNotes], [[], [], [], [], []]);
+  assert.deepEqual([recipe.ingredients, recipe.preparation, recipe.variations, recipe.notes, recipe.cooksNotes, recipe.tags], [[], [], [], [], [], []]);
   assert.equal(newRecipe({ title: 'x' }).lang, 'en');
 });
 
@@ -76,6 +77,11 @@ test('problems name the field and what was expected', () => {
     [(r) => { r.notes = 'keeps well'; }, 'notes: expected a list'],
     [(r) => { r.cooksNotes[0].at = ''; }, 'cooksNotes[0].at: expected an ISO timestamp'],
     [(r) => { r.cooksNotes[0].text = ' '; }, 'cooksNotes[0].text: expected a non-blank string'],
+    [(r) => { r.tags = 'cookies'; }, 'tags: expected a list'],
+    [(r) => { r.tags = [3]; }, 'tags[0]: expected a string'],
+    [(r) => { r.tags = ['cookies', '']; }, 'tags[1]: expected a tag'],
+    [(r) => { r.tags = [' cookies']; }, 'tags[0]: expected a tag'],
+    [(r) => { r.tags = ['cookies, brownies']; }, 'tags[0]: expected a tag'],
   ];
   for (const [mutate, expected] of cases) {
     const recipe = example();
@@ -89,6 +95,12 @@ test('anything that is not an object is rejected outright', () => {
   for (const value of [null, undefined, 'Feijoada', 3, []]) {
     assert.deepEqual(recipeProblems(value), ['recipe: expected an object']);
   }
+});
+
+test('a recipe saved before tags existed is still valid', () => {
+  const recipe = example();
+  delete (/** @type {Partial<typeof recipe>} */ (recipe)).tags;
+  assert.deepEqual(recipeProblems(recipe), []);
 });
 
 test('unknown fields are allowed, so data from newer versions survives', () => {

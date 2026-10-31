@@ -61,6 +61,28 @@ test('the same moment written two ways is not newer', () => {
   assert.deepEqual([plan.put.length, plan.unchanged], [0, 1]);
 });
 
+/** @param {string} id @param {string} at */
+const note = (id, at) => ({ id, at, text: `note ${id}` });
+
+test('cook\'s notes from both copies are kept, whichever copy\'s text wins (R3.3)', () => {
+  const ours = { ...recipe('Pão de queijo', 'a', '2026-10-10T10:00:00Z'), cooksNotes: [note('n1', '2026-10-11T10:00:00Z')] };
+  const older = { ...recipe('Pão de queijo (older text)', 'a', '2026-10-05T10:00:00Z'), cooksNotes: [note('n2', '2026-10-12T10:00:00Z')] };
+  const newer = { ...recipe('Pão de queijo mineiro', 'a', '2026-10-15T10:00:00Z'), cooksNotes: [note('n3', '2026-10-16T10:00:00Z')] };
+
+  const fromOlder = mergePlan([ours], [older]);
+  assert.deepEqual([fromOlder.added, fromOlder.updated, fromOlder.unchanged], [0, 1, 0]);
+  assert.deepEqual(fromOlder.put, [{ ...ours, cooksNotes: [ours.cooksNotes[0], older.cooksNotes[0]] }], 'our text, both notes');
+
+  const fromNewer = mergePlan([ours], [newer]);
+  assert.deepEqual(fromNewer.put, [{ ...newer, cooksNotes: [ours.cooksNotes[0], newer.cooksNotes[0]] }], 'their text, both notes');
+});
+
+test('a copy with no notes we lack, and no newer text, changes nothing', () => {
+  const ours = { ...recipe('Bolo', 'a', '2026-10-10T10:00:00Z'), cooksNotes: [note('n1', '2026-10-11T10:00:00Z'), note('n2', '2026-10-12T10:00:00Z')] };
+  const theirs = { ...ours, cooksNotes: [note('n1', '2026-10-11T10:00:00Z')] };
+  assert.deepEqual(mergePlan([ours], [theirs]), { put: [], added: 0, updated: 0, unchanged: 1 });
+});
+
 test('importing into an empty recipe box adds everything', () => {
   const incoming = [recipe('Feijoada', 'a'), recipe('Pão de queijo', 'b')];
   assert.deepEqual(mergePlan([], incoming), { put: incoming, added: 2, updated: 0, unchanged: 0 });

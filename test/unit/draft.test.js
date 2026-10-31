@@ -38,6 +38,7 @@ test('source, makes, preparation, variations and notes come along', () => {
     preparation: 'Ferva o leite.\n\nEscalde o polvilho\ncom a mistura quente.',
     variations: '- Use queijo canastra.',
     notes: 'Congela bem.',
+    tags: ' lanche,  #café da tarde, Lanche ',
   }, { id: 'r2', now });
   assert.ok(recipe);
   assert.deepEqual(recipeProblems(recipe), []);
@@ -46,6 +47,7 @@ test('source, makes, preparation, variations and notes come along', () => {
   assert.deepEqual(recipe.preparation, [{ heading: '', steps: ['Ferva o leite.', 'Escalde o polvilho com a mistura quente.'] }]);
   assert.deepEqual(recipe.variations, ['Use queijo canastra.']);
   assert.deepEqual(recipe.notes, ['Congela bem.']);
+  assert.deepEqual(recipe.tags, ['lanche', 'café da tarde']);
 });
 
 /** A recipe with everything in it, including things the editor doesn't show. */
@@ -69,6 +71,7 @@ function savedRecipe() {
     variations: ['Use queijo canastra.'],
     notes: ['Congela bem.', 'Asse direto do congelador.'],
     cooksNotes: [{ id: 'n1', at: '2026-10-12T19:40:00Z', text: 'Ficou ótimo.' }],
+    tags: ['lanche', 'Minas Gerais'],
     createdAt: '2026-10-01T10:00:00.000Z',
     updatedAt: '2026-10-12T19:40:00.000Z',
     servings: 30,
@@ -93,6 +96,22 @@ test('editing keeps the id, creation time, cook\'s notes and fields from newer v
   assert.equal(saved.createdAt, recipe.createdAt);
   assert.deepEqual(saved.cooksNotes, recipe.cooksNotes);
   assert.equal(/** @type {Record<string, unknown>} */ (saved).servings, 30);
+});
+
+test('the Tags box shows a recipe\'s tags with commas between them', () => {
+  assert.equal(draftOf(savedRecipe()).tags, 'lanche, Minas Gerais');
+});
+
+test('a recipe saved before tags existed gets an empty list when saved again', () => {
+  const recipe = savedRecipe();
+  delete (/** @type {Partial<typeof recipe>} */ (recipe)).tags;
+  const draft = draftOf(recipe);
+  assert.equal(draft.tags, '');
+  assert.deepEqual(readDraft(draft, { base: recipe, now }).recipe, { ...recipe, tags: [], updatedAt: '2026-10-20T18:00:00.000Z' });
+});
+
+test('a new recipe can be saved without tags', () => {
+  assert.deepEqual(readDraft({ title: 'Bread', lang: 'en', ingredients: '' }).recipe?.tags, []);
 });
 
 test('a recipe needs a title', () => {

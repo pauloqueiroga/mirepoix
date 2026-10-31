@@ -42,8 +42,13 @@ const en = {
   searchLabel: 'Search recipes',
   foundOf: (/** @type {number} */ found, /** @type {string} */ total) => `${found} of ${total}`,
   noMatches: 'No matches',
-  noMatchesText: (/** @type {string} */ words) => `No title or ingredient matches “${words}”.`,
+  noMatchesText: (/** @type {string} */ words) => `No title, ingredient or tag matches “${words}”.`,
+  /** Nothing has every tag picked, and every word typed, if any. */
+  noMatchesTagged: (/** @type {string} */ words) =>
+    (words ? `Nothing with the tags you picked matches “${words}”.` : 'No recipe has all the tags you picked.'),
   withIngredients: (/** @type {string[]} */ names) => `with ${names.join(', ')}`,
+  tagged: (/** @type {string[]} */ tags) => `tagged ${tags.join(', ')}`,
+  filterByTag: 'Filter by tag',
 
   // A recipe
   makes: (/** @type {string} */ amount) => `Makes ${amount}`,
@@ -54,6 +59,29 @@ const en = {
   steps: 'Steps',
   noIngredients: 'No ingredients yet.',
   or: (/** @type {string} */ amount) => `or ${amount}`,
+  tags: 'Tags',
+  seeTagged: (/** @type {string} */ tag) => `Every recipe tagged “${tag}”`,
+  lastTime: 'Last time',
+  cooksNotes: 'Cook’s notes',
+  startCooking: 'Start cooking',
+
+  // Cook mode
+  cookMode: 'Cook mode',
+  cookingNamed: (/** @type {string} */ title) => `Cooking ${title}`,
+  done: 'Done',
+  screenOn: 'Screen on',
+  screenOnTip: 'The screen stays on while you cook.',
+  ready: (/** @type {number} */ n, /** @type {number} */ total) => (n === total ? 'All ready' : `${n} of ${total} ready`),
+  stepOf: (/** @type {number} */ n, /** @type {number} */ total) => `Step ${n} of ${total}`,
+  allStepsDone: 'All steps done',
+  noteForNextTime: 'Note for next time',
+  noteAbout: (/** @type {Node} */ title) => ['This is added to ', title, ' with today’s date. The recipe itself stays as it is.'],
+  yourNote: 'Your note',
+  notePlaceholder: 'What worked, what you’d change…',
+  saveNote: 'Save note',
+  discardNote: 'Discard this note?',
+  noteSaved: 'Note saved. It shows as “Last time” when you open this recipe.',
+  couldntSaveNote: (/** @type {string} */ reason) => `Couldn’t save the note: ${reason}`,
 
   // The editor
   newRecipe: 'New recipe',
@@ -67,6 +95,10 @@ const en = {
   source: 'Source',
   sourcePlaceholder: 'Book and page, website, family notebook…',
   makesLabel: 'Makes',
+  tagsPlaceholder: 'dessert, weeknight, Christmas',
+  tagsHint: 'Separate tags with commas.',
+  tagsHintKnown: 'Separate tags with commas, or tap the ones you already use.',
+  yourTags: 'Your tags',
   ingredientsLabel: 'Ingredients · paste or type, one per line',
   ingredientsHint: (/** @type {Node} */ example) =>
     ['A line ending in “:” starts a group. To set the parts yourself, write ', example, ' for quantity | unit | name.'],
@@ -109,7 +141,7 @@ const en = {
   exportAll: 'Export all recipes',
   saved: (/** @type {string} */ file) => `Saved ${file}. Keep it somewhere safe, like your cloud drive or your email.`,
   import: 'Import',
-  importText: 'Adds the recipes from an export file, made on this device or another one. Nothing here is removed, and a recipe already here is only replaced by a newer version of itself. Moving Mirepoix to a new address? Export there, import here.',
+  importText: 'Adds the recipes from an export file, made on this device or another one. Nothing here is removed, and a recipe already here is only replaced by a newer version of itself, keeping the cook’s notes from both. Moving Mirepoix to a new address? Export there, import here.',
   importFromFile: 'Import from a file',
   seeRecipes: 'See your recipes',
   /** @type {Record<ExportError, string>} */
@@ -169,8 +201,12 @@ const pt = {
   searchLabel: 'Buscar receitas',
   foundOf: (found, total) => `${found} de ${total}`,
   noMatches: 'Nada encontrado',
-  noMatchesText: (words) => `Nenhum título ou ingrediente combina com “${words}”.`,
+  noMatchesText: (words) => `Nenhum título, ingrediente ou etiqueta combina com “${words}”.`,
+  noMatchesTagged: (words) =>
+    (words ? `Nada com as etiquetas escolhidas combina com “${words}”.` : 'Nenhuma receita tem todas as etiquetas escolhidas.'),
   withIngredients: (names) => `com ${names.join(', ')}`,
+  tagged: (tags) => `${tags.length === 1 ? 'etiqueta' : 'etiquetas'} ${tags.join(', ')}`,
+  filterByTag: 'Filtrar por etiqueta',
 
   makes: (amount) => `Rende ${amount}`,
   ingredients: 'Ingredientes',
@@ -180,6 +216,28 @@ const pt = {
   steps: 'Passos',
   noIngredients: 'Nenhum ingrediente ainda.',
   or: (amount) => `ou ${amount}`,
+  tags: 'Etiquetas',
+  seeTagged: (tag) => `Todas as receitas com a etiqueta “${tag}”`,
+  lastTime: 'Da última vez',
+  cooksNotes: 'Notas de cozinha',
+  startCooking: 'Começar a cozinhar',
+
+  cookMode: 'Modo cozinha',
+  cookingNamed: (title) => `Cozinhando ${title}`,
+  done: 'Fechar',
+  screenOn: 'Tela ligada',
+  screenOnTip: 'A tela fica ligada enquanto você cozinha.',
+  ready: (n, total) => (n === total ? 'Tudo separado' : `${n} de ${total} separados`),
+  stepOf: (n, total) => `Passo ${n} de ${total}`,
+  allStepsDone: 'Todos os passos feitos',
+  noteForNextTime: 'Nota para a próxima vez',
+  noteAbout: (title) => ['Ela entra em ', title, ' com a data de hoje. A receita em si fica como está.'],
+  yourNote: 'Sua nota',
+  notePlaceholder: 'O que deu certo, o que você mudaria…',
+  saveNote: 'Salvar nota',
+  discardNote: 'Descartar esta nota?',
+  noteSaved: 'Nota salva. Ela aparece como “Da última vez” quando você abrir esta receita.',
+  couldntSaveNote: (reason) => `Não foi possível salvar a nota: ${reason}`,
 
   newRecipe: 'Nova receita',
   editRecipe: 'Editar receita',
@@ -191,6 +249,10 @@ const pt = {
   source: 'Fonte',
   sourcePlaceholder: 'Livro e página, site, caderno da família…',
   makesLabel: 'Rende',
+  tagsPlaceholder: 'sobremesa, dia a dia, Natal',
+  tagsHint: 'Separe as etiquetas com vírgulas.',
+  tagsHintKnown: 'Separe as etiquetas com vírgulas, ou toque nas que você já usa.',
+  yourTags: 'Suas etiquetas',
   ingredientsLabel: 'Ingredientes · cole ou digite, um por linha',
   ingredientsHint: (example) =>
     ['Uma linha terminada em “:” começa um grupo. Para separar as partes do seu jeito, escreva ', example, ' para quantidade | unidade | nome.'],
@@ -230,7 +292,7 @@ const pt = {
   exportAll: 'Exportar todas as receitas',
   saved: (file) => `${file} foi salvo. Guarde num lugar seguro, como na nuvem ou no seu e-mail.`,
   import: 'Importar',
-  importText: 'Adiciona as receitas de um arquivo exportado, feito neste aparelho ou em outro. Nada daqui é apagado, e uma receita que já está aqui só é trocada por uma versão mais nova dela mesma. Mudando o Mirepoix de endereço? Exporte lá, importe aqui.',
+  importText: 'Adiciona as receitas de um arquivo exportado, feito neste aparelho ou em outro. Nada daqui é apagado, e uma receita que já está aqui só é trocada por uma versão mais nova dela mesma, com as notas de cozinha das duas. Mudando o Mirepoix de endereço? Exporte lá, importe aqui.',
   importFromFile: 'Importar de um arquivo',
   seeRecipes: 'Ver suas receitas',
   exportErrors: {
@@ -282,6 +344,27 @@ export const uiLang = chooseLang(pickedLang(), navigator.language);
 
 /** The words of the screens, in uiLang. */
 export const t = messages[uiLang];
+
+/**
+ * How dates are written: the browser's own way when it speaks the screens'
+ * language (so en-GB reads "12 Oct 2026"), or else the screens' language,
+ * Brazilian for Portuguese.
+ * @param {Lang} lang the screens' language
+ * @param {string} browser e.g. navigator.language, "en-GB"
+ */
+export function dateLocale(lang, browser) {
+  return browser.toLowerCase().split('-')[0] === lang ? browser : { en: 'en', pt: 'pt-BR' }[lang];
+}
+
+const locale = dateLocale(uiLang, navigator.language);
+const day = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+const moment = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
+
+/** "Oct 12, 2026", for a cook's note. @param {Date} date */
+export const formatDay = (date) => day.format(date);
+
+/** "Oct 12, 2026, 7:40 PM", for a note about to be written. @param {Date} date */
+export const formatMoment = (date) => moment.format(date);
 
 /**
  * Remembers a language on this device and reloads, so every screen shows it.

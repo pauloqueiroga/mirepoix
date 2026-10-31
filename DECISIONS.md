@@ -109,6 +109,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Sections:** the four sections the user asked for (Ingredients, Preparation, Variations, Notes), plus `cooksNotes`, the dated notes added while cooking. Ingredients and steps can be grouped under headings ("For the sauce").
 - **Text-first:** every ingredient renders to one line and parses back to the same structure. Tests enforce this round trip.
 - **Evolution:** fields can be added without bumping `schema`. Any other change ships with a migration and tests.
+- **Extended by D16 and D17:** adding a cook's note leaves `updatedAt` alone (D16), and recipes gain an optional `tags` list (D17).
 
 ## D9. Text-first capture with live parsing, in English and Portuguese
 
@@ -168,6 +169,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
   - Google signals and ad personalization are switched off.
 - **In Google Analytics' settings:** turn off Enhanced measurement's "page changes based on browser history events" and "site search", so Google doesn't collect page views on its own.
 - **Consequences:** the CSP gains `https://*.googletagmanager.com` for scripts, plus Google's analytics domains for images and connections (D7 superseded in part). The privacy page (R1.13) explains all of this. Saying no, or later stopping, deletes Google's `_ga` cookies.
+- **Extended by D16 and D17:** cook mode is one more screen name, "cook mode". Tags and cook's notes are never sent, and the tags picked on the list stay out of the address, like the search.
 
 ## D15. Screens in English or Portuguese
 
@@ -180,3 +182,33 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Privacy page:** one static page per language, `privacy.html` and `privacy.pt.html`, linked to each other. The app links to the one in its language.
 - **Not translated:** the screen names sent to analytics (D14) stay in English, so the numbers don't split by language. The search-engine description in `index.html` and the install manifest stay in English for now.
 - **Consequences:** every new piece of text needs both languages in the same change. A third language would be one more object in `i18n.js` and one more privacy page.
+
+## D16. Cook mode, and cook's notes that merge
+
+**Proposed** · 2026-10-31
+
+- **Context:** R3 makes D10 real: cook from a recipe without being able to change it, and leave notes for next time. R3 ships before R2, so for now recipes move between devices by export and import (R1.11), and cook's notes have to survive that too.
+- **The screen:** cook mode has its own address (`#/recipes/:id/cook`) and opens from **Start cooking**, a bar at the bottom of every recipe. It shows the newest note as "Last time", the ingredients and steps to tick off, and Variations and Notes as they are, in bigger type. Everything needed while cooking is there, so there's no reason to leave halfway. There's no Edit link. **Done** goes back to the recipe.
+- **Ticks** live on the screen only (R3.2). Done, Back or a reload clears them, and nothing about them is ever stored. The first step not ticked is the one to do now; it's highlighted, and ticking a step brings the next one into view. Steps can be ticked out of order, and unticked.
+- **The screen stays on** through the Screen Wake Lock API. The lock is asked for on the way in, again each time the page comes back into view (browsers let go when it's hidden), and released on the way out. A "Screen on" chip shows while it's held. Devices without the API get no chip and no warning.
+- **Notes are written only in cook mode,** in a sheet over the recipe. They're dated with the moment they're saved, and line breaks are kept. Cancel or Escape asks before throwing away typed text, and so does leaving cook mode with a note half-written. After saving, the ticks are still there.
+- **Append-only:** a note can't be changed or removed, not even in the editor, which keeps notes exactly as they are.
+- **A note doesn't change the recipe's `updatedAt`.** That time says whose copy of the recipe's text is newest when two copies merge. If a note moved it, a note added to an old copy would make that old text win over a newer edit.
+- **Copies merge:** importing takes the text of whichever copy was edited last, and the notes of both, once each by id. R2's sync engine (R2.3) does the same: a recipe whose only local change is new notes merges into the remote copy rather than becoming a conflict copy (D6). The rule lives in `domain/cooks-notes.js`.
+- **Reading:** the recipe shows the newest note as "Last time" near the top. Once there's more than one, a "Cook's notes" section at the bottom lists them all, newest first, with their dates.
+- **Analytics** hears "cook mode", and while it's on, the tab title is "Cook mode" (D14).
+- **Consequences:** a note saved by mistake stays. If that turns out to matter, a note could be hidden later with a marker that merges just like a note does. An accidental Back loses the ticks, as R3.2 asks.
+
+## D17. Tags, and filtering the list by tag
+
+**Proposed** · 2026-10-31
+
+- **Context:** "Tags, and filtering by tag" was in Someday; it ships with R3.
+- **Data:** an optional `tags` list on the recipe, so no schema change (D8). New recipes start with an empty list, and recipes saved before tags existed read as having none. A tag isn't blank, has no commas and no spaces around it, so it always reads back from the editor as itself.
+- **Typing them:** one Tags box in the editor, commas between tags, text-first like everything else (D9). A leading "#" is dropped, spaces are squashed, and a tag given twice is kept once. The tags already in use sit under the box, and a tap adds or removes one, so one tag doesn't get typed three ways.
+- **Same tag, any spelling:** tags are kept as typed and compared the way search compares words, ignoring case and accents, so "Natal" and "natal" are one tag. The list shows each tag the way most recipes write it.
+- **Filtering:** the list shows every tag in use, alphabetically, under the search box: one row that scrolls sideways on a phone, wrapping on wider screens. Picking several shows the recipes that have **all** of them, and the search words narrow the list further. The search box matches tags too, and says which tag matched ("tagged sobremesa").
+- **From a recipe:** its tags show under the title, and tapping one opens the list showing just the recipes with that tag.
+- **Privacy:** like the search, the picked tags live in the browser's history entry, not the address, so Back returns to them and analytics never sees them (D14).
+- **Words:** "Tags" in English, "Etiquetas" in Portuguese (D15).
+- **Consequences:** renaming a tag means editing each recipe that has it; there's no tag manager. Older Mirepoix versions keep a recipe's tags when they edit it, because unknown fields survive (D8).

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chooseLang, messages } from '../../app/ui/i18n.js';
+import { chooseLang, dateLocale, messages } from '../../app/ui/i18n.js';
 
 // Mirepoix's own words in English and Portuguese (R1.17, D15).
 
@@ -75,4 +75,32 @@ test('every doubt explains itself, and a new unit is named', () => {
     }
     assert.match(words.doubts['unknown-unit']('tablete'), /“tablete”/, lang);
   }
+});
+
+test('cook mode says how far along you are (R3.2)', () => {
+  assert.equal(en.ready(0, 7), '0 of 7 ready');
+  assert.equal(en.ready(7, 7), 'All ready');
+  assert.equal(en.stepOf(2, 4), 'Step 2 of 4');
+  assert.equal(pt.ready(2, 7), '2 de 7 separados');
+  assert.equal(pt.ready(7, 7), 'Tudo separado');
+  assert.equal(pt.stepOf(2, 4), 'Passo 2 de 4');
+});
+
+test('a tag match says which tag, and an empty filter says why (R3.5)', () => {
+  assert.equal(en.tagged(['sobremesa']), 'tagged sobremesa');
+  assert.equal(en.tagged(['festa', 'doce']), 'tagged festa, doce');
+  assert.equal(pt.tagged(['sobremesa']), 'etiqueta sobremesa');
+  assert.equal(pt.tagged(['festa', 'doce']), 'etiquetas festa, doce');
+  assert.equal(en.noMatchesTagged(''), 'No recipe has all the tags you picked.');
+  assert.equal(en.noMatchesTagged('pudim'), 'Nothing with the tags you picked matches “pudim”.');
+  assert.equal(pt.noMatchesTagged('pudim'), 'Nada com as etiquetas escolhidas combina com “pudim”.');
+});
+
+test('dates are written the browser\'s way when it speaks the screens\' language', () => {
+  assert.equal(dateLocale('en', 'en-GB'), 'en-GB');
+  assert.equal(dateLocale('en', 'EN-us'), 'EN-us');
+  assert.equal(dateLocale('pt', 'pt-PT'), 'pt-PT');
+  assert.equal(dateLocale('pt', 'en-US'), 'pt-BR', 'Portuguese picked on an English browser is Brazilian');
+  assert.equal(dateLocale('en', 'pt-BR'), 'en');
+  assert.equal(dateLocale('en', 'fr-FR'), 'en');
 });

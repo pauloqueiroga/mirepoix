@@ -6,19 +6,21 @@ import { fold, searchRecipes } from '../../app/domain/search.js';
 /**
  * @param {string} title
  * @param {string[]} names
+ * @param {string[]} [tags]
  */
-function recipe(title, names) {
+function recipe(title, names, tags = []) {
   return {
     ...newRecipe({ title, id: title }),
     ingredients: [{ heading: '', items: names.map((name) => ({ quantity: '1', unit: 'count', name, note: '', alternatives: [] })) }],
+    tags,
   };
 }
 
 const RECIPES = [
-  recipe('Angu', ['fubá', 'água', 'sal']),
-  recipe('Bolo de fubá', ['fubá', 'açúcar', 'ovos']),
-  recipe('Brown butter cookies', ['butter', 'brown sugar', 'eggs']),
-  recipe('Pão de queijo', ['polvilho azedo', 'queijo meia-cura', 'ovos']),
+  recipe('Angu', ['fubá', 'água', 'sal'], ['mineiro']),
+  recipe('Bolo de fubá', ['fubá', 'açúcar', 'ovos'], ['sobremesa', 'café da tarde']),
+  recipe('Brown butter cookies', ['butter', 'brown sugar', 'eggs'], ['Sobremesa']),
+  recipe('Pão de queijo', ['polvilho azedo', 'queijo meia-cura', 'ovos'], ['mineiro', 'café da tarde']),
   recipe('Torta de frango', ['frango', 'polvilho azedo', 'requeijão']),
 ];
 
@@ -49,6 +51,24 @@ test('ingredient names match too, and say which ingredient', () => {
   ]);
 });
 
+test('tags match too, ignoring case and accents, and say which tag', () => {
+  assert.deepEqual(searchRecipes(RECIPES, 'sobremesa').map((f) => [f.recipe.title, f.ingredients, f.tags]), [
+    ['Bolo de fubá', [], ['sobremesa']],
+    ['Brown butter cookies', [], ['Sobremesa']],
+  ]);
+  assert.deepEqual(searchRecipes(RECIPES, 'cafe ovos').map((f) => [f.recipe.title, f.ingredients, f.tags]), [
+    ['Bolo de fubá', ['ovos'], ['café da tarde']],
+    ['Pão de queijo', ['ovos'], ['café da tarde']],
+  ]);
+  assert.deepEqual(titles('queijo mineiro'), ['Pão de queijo'], 'a word in the title, another in a tag');
+});
+
+test('a recipe saved before tags existed is still found', () => {
+  const old = recipe('Feijoada', ['feijão preto']);
+  delete (/** @type {Partial<typeof old>} */ (old)).tags;
+  assert.deepEqual(searchRecipes([old], 'feijao').map((f) => f.ingredients), [['feijão preto']]);
+});
+
 test('every word must match, in the title or an ingredient', () => {
   assert.deepEqual(titles('queijo ovos'), ['Pão de queijo']);
   assert.deepEqual(titles('polvilho frango'), ['Torta de frango']);
@@ -57,7 +77,7 @@ test('every word must match, in the title or an ingredient', () => {
 
 test('recipes whose titles match come before ingredient matches', () => {
   const found = searchRecipes(RECIPES, 'fuba');
-  assert.deepEqual(found.map((f) => [f.recipe.title, f.ingredients]), [['Bolo de fubá', []], ['Angu', ['fubá']]]);
+  assert.deepEqual(found.map((f) => [f.recipe.title, f.ingredients, f.tags]), [['Bolo de fubá', [], []], ['Angu', ['fubá'], []]]);
   assert.deepEqual(titles('butter'), ['Brown butter cookies']);
   assert.deepEqual(titles('ovos'), ['Bolo de fubá', 'Pão de queijo']);
   assert.deepEqual(titles('de'), ['Bolo de fubá', 'Pão de queijo', 'Torta de frango']);
