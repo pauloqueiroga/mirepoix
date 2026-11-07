@@ -41,10 +41,4 @@ Every item ends with something you can do in the running app (`npm run dev`), no
 
 ## In Progress
 
-**W1 · Website (D20).** A page that says what Mirepoix is and does, a highlight at a time, for anyone who keeps recipes. On `feature/features-highlight`, waiting for review.
-
-- **W1.1 The pages.** `about/` in English and `about/index.pt.html` in Portuguese: capture, find and read, cook, every device, your copy, the releases, questions. Open http://localhost:5173/about/ with `npm run dev`.
-- **W1.2 Try a line.** Type an ingredient line on the website and see the app's own reading of it.
-- **W1.3 Real screens.** `npm run screenshots` takes them from the app, with sample recipes, in both languages and themes.
-- **W1.4 The app leaves the website alone.** With the app installed, `about/` still opens the website, and isn't kept offline.
-- **W1.5 From the app.** "New to Mirepoix? See what it can do" on the empty recipe list, and "About" in the footer. Open http://localhost:5173/ with an empty recipe box.
+(nothing right now)
