@@ -46,8 +46,10 @@ test('every picture on the website loads, in light and in dark', async ({ page }
       await image.scrollIntoViewIfNeeded();
       await expect.poll(() => image.evaluate((img) => /** @type {HTMLImageElement} */ (img).naturalWidth), { message: colorScheme }).toBeGreaterThan(0);
     }
-    const dark = await images.evaluateAll((all) => all.filter((img) => /** @type {HTMLImageElement} */ (img).currentSrc.includes('-dark-')).length);
-    expect(dark).toBe(colorScheme === 'dark' ? await images.count() : 0);
+    // The app's screens come in both themes; the icon on the drawn home screen is the same in both.
+    const screens = page.locator('main img[src^="shots/"]');
+    const dark = await screens.evaluateAll((all) => all.filter((img) => /** @type {HTMLImageElement} */ (img).currentSrc.includes('-dark-')).length);
+    expect(dark).toBe(colorScheme === 'dark' ? await screens.count() : 0);
   }
 });
 
