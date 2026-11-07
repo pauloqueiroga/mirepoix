@@ -951,16 +951,7 @@ h3 { text-wrap: balance; }
 .scene-celery { --stage: var(--stage-celery); --stage-disc: var(--stage-celery-disc); }
 .scene-carrot { --stage: var(--stage-carrot); --stage-disc: var(--stage-carrot-disc); }
 
-.scene figcaption {
-  display: flex;
-  gap: 14px;
-  padding: 22px 4px 0;
-}
-
-.scene-num {
-  font: italic 400 1.15rem/1.4 var(--serif);
-  color: var(--carrot);
-}
+.scene figcaption { padding: 22px 4px 0; }
 
 .scene h3 {
   margin: 0 0 6px;
