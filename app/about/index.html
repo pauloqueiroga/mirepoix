@@ -46,7 +46,7 @@
       </nav>
       <div class="header-actions">
         <a class="lang-link" href="index.pt.html" hreflang="pt" lang="pt">Português</a>
-        <a class="button small" href="../">Open Mirepoix <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="button small" href="../">Open Mirepoix</a>
       </div>
     </div>
   </header>
@@ -59,9 +59,13 @@
         <p class="lede">Recipes from books, sites and notebooks, kept in one quiet place on every device you cook with.</p>
         <p class="intro">Paste or type a recipe and Mirepoix reads every ingredient as quantity, unit and name. Read it without changing a thing by accident, cook with the screen on, and leave notes for next time.</p>
         <div class="hero-actions">
-          <a class="button" href="../">Open Mirepoix <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="button" href="../">Open Mirepoix</a>
           <a class="text-link" href="#capture">See how it works <span aria-hidden="true">↓</span></a>
         </div>
+        <ul class="assurances">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg> Private by default</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="10" rx="1.5"/><path d="M1.5 18h16"/><rect x="17" y="8" width="5.5" height="11" rx="1.5"/></svg> On every device even offline</li>
+        </ul>
         <p class="availability">Free <span aria-hidden="true">·</span> In any modern browser <span aria-hidden="true">·</span> English and <span lang="pt">Português</span></p>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -86,21 +90,6 @@
         <div class="seal"><span>No sign-up</span><strong>Just cook.</strong><span>Works offline</span></div>
       </div>
     </section>
-
-    <ul class="wrap principles" aria-label="Mirepoix at a glance">
-      <li>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3M10 7h10M4 12h3M10 12h10M4 17h3M10 17h10"/></svg>
-        Every ingredient, read.
-      </li>
-      <li>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>
-        Private by default.
-      </li>
-      <li>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="10" rx="1.5"/><path d="M1.5 18h16"/><rect x="17" y="8" width="5.5" height="11" rx="1.5"/></svg>
-        On every device, even offline.
-      </li>
-    </ul>
 
     <section class="wrap section" id="capture" aria-labelledby="capture-title">
       <div class="section-heading" data-reveal>
@@ -162,7 +151,7 @@
         </form>
       </div>
 
-      <ul class="points three" data-reveal>
+      <ul class="points" data-reveal>
         <li>
           <h3>Two languages, one box.</h3>
           <p>Each recipe is read in English or Portuguese, so “2 cups flour” and “2 xícaras de farinha” sit side by side.</p>
@@ -403,40 +392,43 @@
     </section>
 
     <section class="wrap section questions" id="questions" aria-labelledby="questions-title">
-      <div data-reveal>
-        <p class="eyebrow">A few things to know</p>
-        <h2 id="questions-title">Before you<br> <em>start cooking.</em></h2>
+      <div class="section-heading" data-reveal>
+        <div>
+          <p class="eyebrow">Around the table</p>
+          <h2 id="questions-title">Fair questions.<br> <em>Straight answers.</em></h2>
+        </div>
+        <p class="section-intro">What people ask before they paste their first recipe.</p>
       </div>
-      <div class="question-list" data-reveal>
-        <details>
-          <summary>Is Mirepoix free?<span class="plus" aria-hidden="true"></span></summary>
+      <ul class="cards" data-reveal>
+        <li>
+          <h3>Is Mirepoix free?</h3>
           <p>Yes. There’s no account, no ads and no subscription. If you’d like to help it grow, you can <a href="https://ko-fi.com/pqstudio" target="_blank" rel="noopener">support Mirepoix on Ko-fi</a>.</p>
-        </details>
-        <details>
-          <summary>Do I need to install anything?<span class="plus" aria-hidden="true"></span></summary>
+        </li>
+        <li>
+          <h3>Do I need to install anything?</h3>
           <p>No. Mirepoix runs in any modern browser, on phones, tablets and computers. To keep it one tap away, add it to your home screen: on iPhone and iPad, tap Share, then Add to Home Screen; in Chrome or Edge, use the install button in the address bar. It then opens like an app, and works offline.</p>
-        </details>
-        <details>
-          <summary>Where are my recipes kept?<span class="plus" aria-hidden="true"></span></summary>
+        </li>
+        <li>
+          <h3>Where are my recipes kept?</h3>
           <p>On your device, in your browser’s storage. If you turn on syncing, an encrypted copy also goes to a private GitHub repository of yours. The web server Mirepoix comes from never sees them.</p>
-        </details>
-        <details>
-          <summary>Do I need a GitHub account?<span class="plus" aria-hidden="true"></span></summary>
+        </li>
+        <li>
+          <h3>Do I need a GitHub account?</h3>
           <p>Only to sync between devices. On a single device, Mirepoix needs nothing else at all. Setting up sync takes a few minutes, once: a private repository, and a token for each device. The app explains every step.</p>
-        </details>
-        <details>
-          <summary>Can my family share one recipe box?<span class="plus" aria-hidden="true"></span></summary>
+        </li>
+        <li>
+          <h3>Can my family share one recipe box?</h3>
           <p>Yes. Everyone who connects to the same repository, with the same passphrase, shares the same recipes, and the recipes each person already had are merged in. Each device gets its own token, so a lost phone can be cut off on its own.</p>
-        </details>
-        <details>
-          <summary>What if I forget my passphrase?<span class="plus" aria-hidden="true"></span></summary>
+        </li>
+        <li>
+          <h3>What if I forget my passphrase?</h3>
           <p>Nobody can recover it, and that’s the point: nobody else has it. Devices that are already connected keep working, and an export makes a readable copy of every recipe at any time.</p>
-        </details>
-        <details>
-          <summary>Which languages does it speak?<span class="plus" aria-hidden="true"></span></summary>
+        </li>
+        <li>
+          <h3>Which languages does it speak?</h3>
           <p>Its screens are in English and Brazilian Portuguese. Each recipe has its own language for reading ingredients, so “2 cups flour” and “2 xícaras de farinha” both work, in the same box.</p>
-        </details>
-      </div>
+        </li>
+      </ul>
     </section>
 
     <section class="wrap invite" aria-labelledby="invite-title">
@@ -448,7 +440,7 @@
         <h2 id="invite-title">Your first recipe<br> <em>is one paste away.</em></h2>
         <p>Nothing to install, nothing to sign up for. Open Mirepoix and paste.</p>
       </div>
-      <a class="button dark" href="../">Open Mirepoix <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="button dark" href="../">Open Mirepoix</a>
     </section>
   </main>
 
