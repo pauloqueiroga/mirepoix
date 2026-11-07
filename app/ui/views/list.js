@@ -32,7 +32,9 @@ export function listView(recipes, { query = '', tags = [], remember = () => {}, 
           logo(),
           h('h2', null, t.noRecipes),
           h('p', null, status.state === 'off' ? t.noRecipesText : t.noRecipesSyncedText),
-          h('p', { class: 'aside' }, t.haveExport, h('a', { href: '#/backup' }, t.importIt)))]
+          h('p', { class: 'aside' }, t.haveExport, h('a', { href: '#/backup' }, t.importIt)),
+          // Only while the box is empty: newcomers find out what Mirepoix does (D20).
+          h('p', { class: 'aside' }, t.newHere, h('a', { href: t.aboutPage }, t.seeWhatItDoes)))]
         : searchable(recipes, { query, tags }, remember)),
       footer()),
     h('a', { class: 'fab', href: '#/new', 'aria-label': t.newRecipe, title: t.newRecipe }),

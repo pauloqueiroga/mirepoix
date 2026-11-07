@@ -103,3 +103,53 @@ test('the app, once installed, leaves the website alone', async ({ page }) => {
   expect(kept.length).toBeGreaterThan(0);
   expect(kept.filter((url) => url.includes('/about/'))).toEqual([]);
 });
+
+/**
+ * Puts a recipe straight into the device's store, so the box isn't empty.
+ * @param {import('@playwright/test').Page} page
+ */
+async function oneRecipe(page) {
+  await page.evaluate(async () => {
+    const { openLocalStore } = await import('/store/local-store.js');
+    const { newRecipe } = await import('/domain/recipe.js');
+    await (await openLocalStore()).put(newRecipe({ title: 'Pão de queijo', lang: 'pt' }));
+  });
+  await page.reload();
+}
+
+/** The app's small print, at the bottom of a screen. @param {import('@playwright/test').Page} page */
+const footer = (page) => page.locator('.app-footer');
+
+test('the app leads to the website: from the empty recipe box, and always from the footer', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'No recipes yet' })).toBeVisible();
+  await expect(page.locator('.empty').getByText('New to Mirepoix?')).toBeVisible();
+  await expect(footer(page).getByRole('link', { name: 'About', exact: true })).toHaveAttribute('href', 'about/');
+
+  await page.getByRole('link', { name: 'See what it can do' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('From the page to the pan.');
+  await page.getByRole('main').getByRole('link', { name: 'Open Mirepoix' }).first().click();
+  await expect(page.getByRole('heading', { name: 'No recipes yet' })).toBeVisible();
+
+  // With a recipe in the box, the newcomer's line is gone; the footer's link stays.
+  await oneRecipe(page);
+  await expect(page.getByRole('link', { name: /Pão de queijo/ })).toBeVisible();
+  await expect(page.getByText('New to Mirepoix?')).toHaveCount(0);
+  await expect(footer(page).getByRole('link', { name: 'About', exact: true })).toBeVisible();
+  for (const screen of ['/#/backup', '/#/sync']) {
+    await page.goto(screen);
+    await expect(footer(page).getByRole('link', { name: 'About', exact: true }), screen).toHaveAttribute('href', 'about/');
+  }
+});
+
+test.describe('in Portuguese', () => {
+  test.use({ locale: 'pt-BR' });
+
+  test('the app leads to the website in Portuguese', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.empty').getByText('Novo no Mirepoix?')).toBeVisible();
+    await expect(footer(page).getByRole('link', { name: 'Sobre', exact: true })).toHaveAttribute('href', 'about/index.pt.html');
+    await page.getByRole('link', { name: 'Veja o que ele sabe fazer' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Do caderno para a panela.');
+  });
+});

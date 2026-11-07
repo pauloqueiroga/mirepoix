@@ -47,4 +47,4 @@ Every item ends with something you can do in the running app (`npm run dev`), no
 - **W1.2 Try a line.** Type an ingredient line on the website and see the app's own reading of it.
 - **W1.3 Real screens.** `npm run screenshots` takes them from the app, with sample recipes, in both languages and themes.
 - **W1.4 The app leaves the website alone.** With the app installed, `about/` still opens the website, and isn't kept offline.
-- Next, proposed: a way from the app to the website (the empty recipe list, or the footer).
+- **W1.5 From the app.** "New to Mirepoix? See what it can do" on the empty recipe list, and "About" in the footer. Open http://localhost:5173/ with an empty recipe box.
