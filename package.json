@@ -16,6 +16,7 @@
     "browsers": "playwright install chromium webkit",
     "icons": "node tools/make-icons.js",
     "logos": "node tools/make-logos.js",
+    "screenshots": "node tools/make-screenshots.js",
     "release": "node tools/release.js",
     "check:deploy": "node tools/check-deploy.js"
   },

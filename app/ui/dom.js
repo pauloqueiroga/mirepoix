@@ -28,12 +28,14 @@ export function h(tag, attributes, ...children) {
 }
 
 /**
- * The small print at the bottom of a screen: the privacy page, the other
- * language, named in itself (R1.17), and a way to support Mirepoix (R2.0.1).
+ * The small print at the bottom of a screen: the website (D20), the privacy
+ * page, the other language, named in itself (R1.17), and a way to support
+ * Mirepoix (R2.0.1).
  */
 export function footer() {
   const other = uiLang === 'pt' ? 'en' : 'pt';
   return h('footer', { class: 'app-footer' },
+    h('a', { href: t.aboutPage }, t.about),
     h('a', { href: t.privacyPage }, t.privacy),
     h('button', { type: 'button', class: 'link', lang: other, onclick: () => pickLang(other) }, messages[other].langName),
     KOFI_URL && h('a', { class: 'kofi', href: KOFI_URL, target: '_blank', rel: 'noopener' }, t.supportOnKofi));

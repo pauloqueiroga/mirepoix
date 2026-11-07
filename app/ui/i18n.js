@@ -20,6 +20,9 @@ const en = {
   edit: 'Edit',
   privacy: 'Privacy',
   privacyPage: 'privacy.html',
+  // The website (D20): what Mirepoix is and does, in this language.
+  about: 'About',
+  aboutPage: 'about/',
   supportOnKofi: 'Support Mirepoix on Ko-fi',
   recipeCount: (/** @type {number} */ n) => `${n} ${n === 1 ? 'recipe' : 'recipes'}`,
 
@@ -41,6 +44,8 @@ const en = {
   noRecipesSyncedText: 'Tap + to add your first one. It syncs to your other devices.',
   haveExport: 'Have an export from another device? ',
   importIt: 'Import it',
+  newHere: 'New to Mirepoix? ',
+  seeWhatItDoes: 'See what it can do',
   searchPlaceholder: 'Search recipes or ingredients',
   searchLabel: 'Search recipes',
   foundOf: (/** @type {number} */ found, /** @type {string} */ total) => `${found} of ${total}`,
@@ -275,6 +280,8 @@ const pt = {
   edit: 'Editar',
   privacy: 'Privacidade',
   privacyPage: 'privacy.pt.html',
+  about: 'Sobre',
+  aboutPage: 'about/index.pt.html',
   supportOnKofi: 'Apoie o Mirepoix no Ko-fi',
   recipeCount: (n) => `${n} ${n === 1 ? 'receita' : 'receitas'}`,
 
@@ -294,6 +301,8 @@ const pt = {
   noRecipesSyncedText: 'Toque em + para adicionar a primeira. Ela vai para os seus outros aparelhos.',
   haveExport: 'Tem um arquivo exportado de outro aparelho? ',
   importIt: 'Importe aqui',
+  newHere: 'Novo no Mirepoix? ',
+  seeWhatItDoes: 'Veja o que ele sabe fazer',
   searchPlaceholder: 'Buscar receitas ou ingredientes',
   searchLabel: 'Buscar receitas',
   foundOf: (found, total) => `${found} de ${total}`,

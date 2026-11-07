@@ -78,11 +78,16 @@ sw.addEventListener('activate', (event) => {
   );
 });
 
-// Cache first for the app's own files; anything else (e.g. GitHub's API) goes
-// straight to the network.
+// The website (about/, D20) is pages to read, not the app: it isn't kept for
+// offline use, and the app never answers in its place.
+const SITE = new URL('about/', sw.location.href).href;
+
+// Cache first for the app's own files; anything else (e.g. GitHub's API, or
+// the website) goes straight to the network.
 sw.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET' || new URL(request.url).origin !== sw.location.origin) return;
+  if (request.url.startsWith(SITE)) return;
   event.respondWith(caches.open(CACHE).then(async (cache) =>
     (await cache.match(request, { ignoreSearch: true }))
     ?? (request.mode === 'navigate' ? await cache.match('./') : undefined)

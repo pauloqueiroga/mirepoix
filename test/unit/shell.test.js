@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { access, readdir, readFile } from 'node:fs/promises';
-import { join, relative, sep } from 'node:path';
+import { join, posix, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { wantsServiceWorker } from '../../app/offline.js';
@@ -24,7 +24,7 @@ async function appFiles() {
 /** Reads VERSION and SHELL from the service worker without a browser. */
 async function serviceWorker() {
   const source = await readFile(inApp('sw.js'), 'utf8');
-  const sandbox = { self: { addEventListener() {} } };
+  const sandbox = { self: { addEventListener() {}, location: new URL('https://example.com/mirepoix/sw.js') }, URL };
   const { VERSION, SHELL } = runInNewContext(`${source}\n;({ VERSION, SHELL })`, sandbox);
   return { version: String(VERSION), shell: [...SHELL].map(String) };
 }
@@ -43,12 +43,13 @@ test('local development skips the service worker unless ?sw asks for it', () => 
   assert.equal(wantsServiceWorker(new URL('http://localhost:5173/?sw')), true);
 });
 
-test('the service worker keeps exactly the files in app/ for offline use', async () => {
+test('the service worker keeps exactly the files in app/ for offline use, the website aside (D20)', async () => {
   const { shell } = await serviceWorker();
   assert.ok(shell.includes('./'), 'the start page itself');
   const cached = shell.filter((path) => path !== './').sort();
-  const files = (await appFiles()).filter((path) => path !== 'sw.js').sort();
-  assert.deepEqual(cached, files, 'SHELL in app/sw.js must list every file in app/');
+  const files = (await appFiles()).filter((path) => path !== 'sw.js' && !path.startsWith('about/')).sort();
+  assert.deepEqual(cached, files, 'SHELL in app/sw.js must list every file in app/ outside about/');
+  assert.ok((await appFiles()).some((path) => path.startsWith('about/')), 'the website is in app/about/');
 });
 
 test('the service worker version moves with the package version', async () => {
@@ -98,7 +99,13 @@ test('the Apache config sends exactly the dev server\'s security headers', async
   assert.match(config, /Header set Cache-Control "no-cache"/, 'browsers check for new versions');
 });
 
-const PAGES = ['index.html', 'privacy.html', 'privacy.pt.html'];
+const PAGES = ['index.html', 'privacy.html', 'privacy.pt.html', 'about/index.html', 'about/index.pt.html'];
+
+/**
+ * A page's own address under the homepage: a folder for its index.html.
+ * @param {string} page relative to app/
+ */
+const addressOf = (page) => page.replace(/(^|\/)index\.html$/, '$1');
 
 /** @param {string} page */
 async function references(page) {
@@ -108,9 +115,14 @@ async function references(page) {
 
 test('every local file a page refers to exists', async () => {
   for (const page of PAGES) {
-    const local = (await references(page)).filter((ref) => /^[\w./-]+\.\w+$/.test(ref) || ref === './');
+    const local = (await references(page)).filter((ref) => /^[\w./-]+\.\w+$/.test(ref) || ref === './' || ref === '../');
     assert.ok(local.length >= 5, page);
-    for (const path of local) await assert.doesNotReject(access(inApp(path === './' ? 'index.html' : path)), `${page}: ${path}`);
+    for (const ref of local) {
+      // Relative to the page's own folder; a folder means its index.html.
+      const path = posix.normalize(posix.join(posix.dirname(page), ref.endsWith('/') ? `${ref}index.html` : ref));
+      assert.ok(!path.startsWith('..'), `${page}: ${ref} stays inside app/`);
+      await assert.doesNotReject(access(inApp(path)), `${page}: ${ref}`);
+    }
   }
 });
 
@@ -118,7 +130,7 @@ test('every address the site gives for itself agrees with package.json\'s homepa
   const pkg = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
   const home = String(pkg.homepage);
   assert.match(home, /^https:\/\/.+\/$/);
-  const own = (/** @type {string} */ url) => !/^https?:\/\/(policies\.google\.com|docs\.github\.com|schema\.org|www\.sitemaps\.org)/.test(url);
+  const own = (/** @type {string} */ url) => !/^https?:\/\/(policies\.google\.com|docs\.github\.com|schema\.org|www\.sitemaps\.org|ko-fi\.com)/.test(url);
   const files = [...PAGES, 'robots.txt', 'sitemap.xml'];
   for (const file of files) {
     const text = await readFile(inApp(file), 'utf8');
@@ -130,7 +142,7 @@ test('every address the site gives for itself agrees with package.json\'s homepa
     const refs = await references(page);
     const image = refs.find((ref) => ref.endsWith('/social.png'));
     assert.equal(image, `${home}icons/social.png`, `${page} has a share image`);
-    assert.ok(refs.includes(page === 'index.html' ? home : `${home}${page}`), `${page} names its canonical address`);
+    assert.ok(refs.includes(`${home}${addressOf(page)}`), `${page} names its canonical address`);
   }
 });
 
