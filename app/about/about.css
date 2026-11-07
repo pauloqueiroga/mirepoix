@@ -45,6 +45,7 @@
   --band-line: rgb(246 235 211 / .14);
 
   --bezel: #1F1C19;
+  --laptop-base: #4A4540;
   --paper-card: #FFFDF8;
   --shadow-soft: 0 1px 2px rgb(42 38 34 / .05), 0 24px 60px -28px rgb(42 38 34 / .25);
   --shadow-phone: 0 2px 4px rgb(42 38 34 / .08), 0 30px 60px -18px rgb(42 38 34 / .35);
@@ -86,6 +87,7 @@
 
     --band: #12110F;
     --bezel: #0D0C0B;
+    --laptop-base: #2E2B28;
     --paper-card: #2A2622;
     --shadow-soft: 0 1px 2px rgb(0 0 0 / .3), 0 24px 60px -28px rgb(0 0 0 / .7);
     --shadow-phone: 0 0 0 1px rgb(246 235 211 / .1), 0 2px 4px rgb(0 0 0 / .3), 0 30px 60px -18px rgb(0 0 0 / .8);
@@ -482,46 +484,89 @@ h3 { text-wrap: balance; }
   rotate: -4deg;
 }
 
-/* A phone: the screenshot inside a plain bezel, no particular brand. */
+/* Devices: the screenshot inside a plain bezel, no particular brand.
+   Mostly phones, with a tablet and a laptop where they fit the story. */
 
-.phone {
-  margin: 0;
-  padding: 2.4%;
-  border-radius: 13% / 6%;
+.phone,
+.tablet,
+.laptop { margin: 0; }
+
+.phone,
+.tablet,
+.laptop picture {
   background: var(--bezel);
   box-shadow: var(--shadow-phone);
 }
 
-.phone img {
+.phone img,
+.tablet img,
+.laptop img {
   width: 100%;
-  border-radius: 11% / 5.1%;
   background: var(--sunken);
+}
+
+.phone {
+  padding: 2.4%;
+  border-radius: 13% / 6%;
+}
+
+.phone img { border-radius: 11% / 5.1%; }
+
+/* A tablet in portrait: 820 × 1180 screens, rounder corners than a laptop. */
+.tablet {
+  padding: 3%;
+  border-radius: 6% / 4.25%;
+}
+
+.tablet img { border-radius: 3.2% / 2.2%; }
+
+/* A laptop: 1280 × 800 screens in a thin lid, on a base a little wider than it. */
+.laptop picture {
+  display: block;
+  padding: 1.8% 1.8% 2.4%;
+  border-radius: 14px 14px 4px 4px;
+}
+
+.laptop img { border-radius: 4px; }
+
+.laptop::after {
+  content: "";
+  display: block;
+  width: 112%;
+  aspect-ratio: 100 / 3.2;
+  margin-inline: -6%;
+  border-radius: 2px 2px 40% 40% / 2px 2px 100% 100%;
+  background:
+    linear-gradient(to right, transparent 43%, rgb(0 0 0 / .22) 43% 57%, transparent 57%) top / 100% 38% no-repeat,
+    var(--laptop-base);
+  box-shadow: var(--shadow-phone);
 }
 
 .tilt-left { rotate: -3deg; }
 .tilt-right { rotate: 3deg; }
 
-.hero-art .phone { position: absolute; }
+.hero-art .phone,
+.hero-art .tablet { position: absolute; }
 
 .hero-front {
   z-index: 2;
-  top: 3%;
-  left: 7%;
-  width: 49%;
+  top: 13%;
+  left: 3%;
+  width: 41%;
   rotate: -4deg;
 }
 
 .hero-back {
   z-index: 1;
-  top: 13%;
-  right: 4%;
-  width: 43%;
-  rotate: 5deg;
+  top: 3%;
+  right: 3%;
+  width: 62%;
+  rotate: 4deg;
 }
 
 @media (min-width: 600px) {
-  .hero-front { width: 44%; left: 10%; }
-  .hero-back { width: 38%; right: 6%; }
+  .hero-front { width: 37%; left: 5%; }
+  .hero-back { width: 57%; right: 5%; }
 }
 
 .seal {
@@ -584,6 +629,7 @@ h3 { text-wrap: balance; }
 }
 
 .hero-art .phone,
+.hero-art .tablet,
 .hero-art .seal {
   animation: rise 1.1s cubic-bezier(.2, .7, .2, 1) both;
 }
@@ -1154,21 +1200,22 @@ h3 { text-wrap: balance; }
 
 .cook-art .board::before { background: var(--band); }
 
-.cook-art .phone { position: absolute; }
-
-.cook-front {
-  z-index: 2;
-  top: 2%;
-  left: 10%;
-  width: 46%;
-  rotate: -3deg;
-}
+.cook-art .phone,
+.cook-art .tablet { position: absolute; }
 
 .cook-back {
   z-index: 1;
-  top: 12%;
-  right: 6%;
-  width: 42%;
+  top: 3%;
+  left: 3%;
+  width: 66%;
+  rotate: -3deg;
+}
+
+.cook-front {
+  z-index: 2;
+  top: 21%;
+  right: 3%;
+  width: 35%;
   rotate: 5deg;
 }
 
@@ -1229,10 +1276,23 @@ h3 { text-wrap: balance; }
   gap: 32px;
 }
 
-
-.devices-art .phone {
+.devices-pair {
   position: relative;
-  width: min(60%, 280px);
+  width: min(100%, 520px);
+  padding: 8% 0 14%;
+}
+
+.devices-pair .laptop {
+  width: 84%;
+  margin-left: 3%;
+}
+
+.devices-pair .phone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 27%;
+  rotate: 3deg;
 }
 
 .flow {
