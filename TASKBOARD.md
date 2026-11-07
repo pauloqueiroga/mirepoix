@@ -41,4 +41,4 @@ Every item ends with something you can do in the running app (`npm run dev`), no
 
 ## In Progress
 
-(nothing right now)
+**W1.7 Not only phones (D20).** The website says "every device", so the hero shows a tablet behind the phone, cook mode is on a tablet, and "Every device" shows a laptop beside a phone. `npm run screenshots` takes the tablet and laptop screens too. Open http://localhost:5173/about/ with `npm run dev`. On `feature/visual-diversity`, waiting for review.

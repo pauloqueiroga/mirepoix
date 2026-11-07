@@ -59,10 +59,22 @@ test('every screenshot shown exists in light and dark, and every one taken is sh
   }
   const taken = (await readdir(new URL('shots/', about))).filter((name) => !name.startsWith('.'));
   assert.deepEqual([...shown].sort(), taken.sort(), 'app/about/shots/ holds exactly the screens the pages show');
+  // Mostly phones at 2x; a tablet and a laptop at 1x, since they're shown smaller.
+  const sizes = { phone: '780x1688', tablet: '820x1180', laptop: '1280x800' };
   for (const name of taken) {
     const bytes = await readFile(new URL(`shots/${name}`, about));
     assert.equal(bytes.subarray(1, 4).toString('latin1'), 'PNG', name);
-    assert.equal(`${bytes.readUInt32BE(16)}x${bytes.readUInt32BE(20)}`, '780x1688', `${name} is a phone screen at 2x`);
+    const device = name.match(/-(tablet|laptop)-/)?.[1] ?? 'phone';
+    assert.equal(`${bytes.readUInt32BE(16)}x${bytes.readUInt32BE(20)}`, sizes[/** @type {keyof typeof sizes} */ (device)], `${name} is a ${device} screen`);
+  }
+  // Each screen sits in the frame of the device it was taken on, at its own size.
+  for (const page of Object.values(PAGES)) {
+    const framed = [...(await read(page)).matchAll(/<(?:figure|div) class="(phone|tablet|laptop)\b[^"]*">\s*<picture>\s*<source [^>]+>\s*<img src="shots\/([^"]+)" width="(\d+)" height="(\d+)"/g)];
+    assert.equal(framed.length, all(await read(page), /src="shots\/([^"]+)"/g).length, `${page}: every screen is in a device`);
+    for (const [, frame, name, width, height] of framed) {
+      assert.equal(name.match(/-(tablet|laptop)-/)?.[1] ?? 'phone', frame, `${page}: ${name} is shown on a ${frame}`);
+      assert.equal(`${width}x${height}`, sizes[/** @type {keyof typeof sizes} */ (frame)], `${page}: ${name}'s width and height`);
+    }
   }
 });
 
