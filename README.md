@@ -9,7 +9,7 @@ The Queiroga way of capturing and using recipes.
 
 Mirepoix is a private recipe box that works on every device. You paste or type recipes from books, sites and notebooks, a chunk at a time if that's how they come, and Mirepoix turns every ingredient line into **quantity, unit and name**. You can read and cook from a recipe without ever changing it by accident, and leave notes for your future self while you cook.
 
-> See the [mockups](docs/mockups/index.html) (open the file in a browser), the [decisions](DECISIONS.md) and the [next work](TASKBOARD.md).
+> See the [website](https://pauloq.com/mirepoix/about/) (its source is [app/about/](app/about/index.html)), the [mockups](docs/mockups/index.html) (open the file in a browser), the [decisions](DECISIONS.md) and the [next work](TASKBOARD.md).
 
 ## What you get, release by release
 
@@ -97,13 +97,14 @@ app/              the shipped app; deploy this folder as-is
   store/          IndexedDB, GitHub remote, sync, crypto
   ui/             views and DOM helpers
   sw.js           service worker (offline + instant start)
+  about/          the website: what Mirepoix is and does, in English and Portuguese (D20); not kept offline
 test/
   unit/           node --test
   e2e/            Playwright journeys
   contract/       behavior shared by a real implementation and its test twin
   support/        test twins: the in-memory recipe store, a stand-in for GitHub's API
   fixtures/       real ingredient lines (en, pt) with their expected parses
-tools/            dev server, icon renderer
+tools/            dev server, icon renderer, the website's screenshots and their sample recipes
 .github/          CI: check, unit and e2e on every push
 docs/mockups/     static design mockups
 DECISIONS.md      decision log
@@ -124,6 +125,7 @@ npm test             # unit tests
 npm run test:e2e     # browser journeys: desktop Chromium, iPhone-sized WebKit
 npm run logos        # after editing app/icons/icon.svg: redraw the logos with the lettered name
 npm run icons        # then re-render the PNGs: home-screen icons and the share preview
+npm run screenshots  # after the app's looks change: retake the website's screenshots
 npm run release -- 0.1.1                              # set the version for a deploy
 npm run check:deploy -- https://pauloq.com/mirepoix/  # check a deployed site
 ```
@@ -132,6 +134,7 @@ npm run check:deploy -- https://pauloq.com/mirepoix/  # check a deployed site
 - On `localhost` the service worker stays off, so edits show up on reload. Add `?sw` to the address to try offline behavior.
 - Syncing needs a secure page: browsers only offer encryption on `https://` addresses, or on `localhost` on the same computer. A phone reaching a laptop's plain `http://` address can add and read recipes but can't connect; try syncing on a second device through the deployed `https://` site.
 - The service worker's file list (`SHELL` in `app/sw.js`) must match the files in `app/`; a unit test fails when they drift. Its `VERSION` moves with `package.json`'s version, and bumping both is what makes installed devices pick up a release.
+- The website is `app/about/` (D20): `npm run dev`, then http://localhost:5173/about/. Its "Try a line" box imports the app's own parser and words, so it needs no upkeep of its own. Its screenshots are real: `npm run screenshots` takes them from the running app with the sample recipes in `tools/sample-recipes.js`, in both languages and themes. Run it on a Mac for Apple's fonts; set `CHROMIUM_PATH` to use a Chrome binary other than Playwright's. When a feature changes what it does, check the website's words too, in both pages.
 - The ingredient parser's expectations live in `test/fixtures/ingredients.en.txt` and `ingredients.pt.txt`, one case per line: `line => quantity | unit | name | note | equivalents | doubts`. When a real recipe line reads wrong, add it there first (the test fails), then fix the parser.
 - Every word on screen lives in `app/ui/i18n.js`, in English and Portuguese; new text goes in both. Type-checking and `npm test` fail when Portuguese is missing something English has. Browser tests run with an English browser (`playwright.config.js`); the Portuguese ones set their own.
 - Tests never touch real GitHub (D12). `test/support/fake-github.js` answers like the parts of GitHub's API that Mirepoix uses; browser tests route `api.github.com` to it, so separate browser contexts act as devices sharing one repository.
@@ -143,7 +146,7 @@ The app is the `app/` folder as it is: no build step. It runs from any folder, o
 
 1. **Test:** `npm run check`, `npm test` and `npm run test:e2e` all pass.
 2. **Version:** `npm run release -- 0.1.1` (the next number). Installed apps only pick up new files when the version changes.
-3. **Upload** the *contents* of `app/` into the site's `mirepoix/` folder, replacing what's there. Turn on "show hidden files" in the FTP client so `.htaccess` goes too: it carries the security headers, the HTTPS redirect and the caching rules.
+3. **Upload** the *contents* of `app/` into the site's `mirepoix/` folder, replacing what's there. The website goes with it, in `about/`. Turn on "show hidden files" in the FTP client so `.htaccess` goes too: it carries the security headers, the HTTPS redirect and the caching rules.
 4. **Check from the outside:** `npm run check:deploy -- https://pauloq.com/mirepoix/`. It confirms the headers, that every file is there at this version, that `.htaccess` stays private, and that HTTP redirects to HTTPS.
 5. **Tag** the release in Git, e.g. `v0.1.1`.
 

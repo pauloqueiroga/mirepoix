@@ -1,5 +1,6 @@
-# Mirepoix's public pages are its front door and its privacy page. Recipes
-# never reach the server, so there's nothing private here to hide.
+# Mirepoix's public pages are its front door, its website (about/) and its
+# privacy page. Recipes never reach the server, so there's nothing private
+# here to hide.
 #
 # Crawlers only read robots.txt at the root of a domain. While Mirepoix lives
 # in a folder (pauloq.com/mirepoix/), add the Sitemap line below to
