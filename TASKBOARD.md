@@ -27,9 +27,9 @@ Items have IDs (e.g. `R1.5`) so that commits, tests and decisions can refer to t
 
 ## To-Do
 
-Every item ends with something you can do in the running app (`npm run dev`), not just new code.
+(nothing right now)
 
-- **W1.8 The website catches up with R5.** "Your measures" moves from Coming to what Mirepoix does, with scaling, timers and Markdown, in both pages, and screenshots of cook mode scaled and with a timer (`npm run screenshots`). The "Try a line" flag already speaks the new words (D21). Open http://localhost:5173/about/.
+Every item ends with something you can do in the running app (`npm run dev`), not just new code.
 
 ## In Progress
 
@@ -40,3 +40,4 @@ Every item ends with something you can do in the running app (`npm run dev`), no
 - **R5.3 Scale while cooking.** In cook mode, tap ×2, or type how many it makes: every amount and Makes change, the ticks stay, and Done brings back ×1.
 - **R5.4 Recipes as Markdown.** At the end of a recipe, Save as Markdown; on Keep a copy, Export all as Markdown. Paste a section of the file back into the editor and it reads the same.
 - **R5.5 Timers from steps.** In cook mode, a step with "Bake 10–12 minutes" has a timer button. Tap it, adjust with − and +, Start, Pause; at zero it beeps. Done asks first while a timer is set.
+- **W1.8 The website catches up with R5 (D20).** Your measures is Here on the timeline and Smart paste is Next. Capture shows the new ways to write equivalents and how a unit becomes yours. Cook gains timers and scaling while Yours to keep gains Markdown. A new question covers printing or sending a recipe, and the tablet's cook mode shows a timer running. Open http://localhost:5173/about/ with `npm run dev`.

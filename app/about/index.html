@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Mirepoix · A private recipe box</title>
-  <meta name="description" content="Mirepoix is a free, private recipe box for every device. Paste or type recipes in English or Portuguese, and every ingredient becomes quantity, unit and name. Cook with the screen on, leave notes for next time, and sync end-to-end encrypted.">
+  <meta name="description" content="Mirepoix is a free, private recipe box for every device. Paste or type recipes in English or Portuguese, and every ingredient becomes quantity, unit and name. Cook with the screen on, scale a recipe, set timers from its steps, leave notes for next time, and sync end-to-end encrypted.">
   <link rel="canonical" href="https://pauloq.com/mirepoix/about/">
   <link rel="alternate" hreflang="en" href="https://pauloq.com/mirepoix/about/">
   <link rel="alternate" hreflang="pt" href="https://pauloq.com/mirepoix/about/index.pt.html">
@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Mirepoix">
   <meta property="og:title" content="Mirepoix · From the page to the pan">
-  <meta property="og:description" content="A free, private recipe box. Paste a recipe and every ingredient becomes quantity, unit and name. Cook with the screen on, and sync end-to-end encrypted.">
+  <meta property="og:description" content="A free, private recipe box. Paste a recipe and every ingredient becomes quantity, unit and name. Cook with the screen on and timers from the steps. Sync it all end-to-end encrypted.">
   <meta property="og:url" content="https://pauloq.com/mirepoix/about/">
   <meta property="og:image" content="https://pauloq.com/mirepoix/icons/social.png">
   <meta property="og:image:width" content="1200">
@@ -150,6 +150,7 @@
               <li><button type="button" data-line="2 to 3 cloves garlic, crushed" data-lang="en">2 to 3 cloves garlic, crushed</button></li>
               <li><button type="button" data-line="sal a gosto" data-lang="pt" lang="pt">sal a gosto</button></li>
               <li><button type="button" data-line="1 can (400 ml) coconut milk" data-lang="en">1 can (400 ml) coconut milk</button></li>
+              <li><button type="button" data-line="2 cups / 437 g unsalted butter" data-lang="en">2 cups / 437 g unsalted butter</button></li>
               <li><button type="button" data-line="1 tablete de fermento biológico" data-lang="pt" lang="pt">1 tablete de fermento biológico</button></li>
             </ul>
           </div>
@@ -163,11 +164,11 @@
         </li>
         <li>
           <h3>Equivalents made clear.</h3>
-          <p>“2 cups (437 g) butter” is one amount written two ways, shown as “or 437 g”. Bring out the scale, or don’t.</p>
+          <p>Whether you write “2 cups (437 g)”, “2 cups / 437 g” or “2 cups or 437 g”, it’s one amount written two ways and shows as “or 437 g”. Bring out the scale, or don’t.</p>
         </li>
         <li>
           <h3>No guessing.</h3>
-          <p>A unit Mirepoix doesn’t know is kept as you wrote it and marked for you to check. You can always set the parts yourself.</p>
+          <p>A unit Mirepoix doesn’t know is kept as you wrote it and marked for you to check the first time. Save the recipe and it’s one of your units. You can always set the parts yourself.</p>
         </li>
       </ul>
     </section>
@@ -306,8 +307,12 @@
               <span>Ingredients and steps check off with a tap, and the step you’re on stays in view. Ticks are for this cook only and never saved.</span>
             </li>
             <li>
-              <strong>The screen stays awake</strong>
-              <span>No more tapping the screen with a floury knuckle. Where the device allows it, the screen stays on until you’re done.</span>
+              <strong>Timers from the steps</strong>
+              <span>“Bake 10–12 minutes” comes with a timer. Adjust it before you start or while it runs, keep a few going at once and hear when one is done.</span>
+            </li>
+            <li>
+              <strong>Scale it up or down</strong>
+              <span>Halve it, double it or say how many it should make. Every amount follows in fractions you can measure while the recipe itself stays as written.</span>
             </li>
             <li>
               <strong>A note for future you</strong>
@@ -398,9 +403,10 @@
         <h2 id="yours-title">Your recipes,<br> <em>Your copy.</em></h2>
         <p class="large-copy">Make one file with every recipe in it, whenever you like. It opens without Mirepoix, GitHub or your passphrase.</p>
         <p>Keep it in your cloud drive or your email. Import it on any device to bring everything back, cook’s notes included.</p>
+        <p>To read, print or send recipes, save one or all of them as Markdown, plain text that looks good anywhere.</p>
         <ul class="facts" aria-label="What you can count on">
-          <li><strong>JSON</strong> <small>Readable anywhere</small></li>
-          <li><strong>Offline</strong> <small>No connection needed</small></li>
+          <li><strong>JSON</strong> <small>Brings everything back</small></li>
+          <li><strong>Markdown</strong> <small>Reads anywhere</small></li>
           <li><strong>No ads</strong> <small>Not now, not later</small></li>
         </ul>
         <div class="consent-note">
@@ -437,15 +443,15 @@
           <h3>Cook mode</h3>
           <p>Big type, the screen on, ticks, notes for next time, and tags.</p>
         </li>
+        <li class="here">
+          <span class="chip ok">Here</span>
+          <h3>Your measures</h3>
+          <p>More ways to write equivalents, units of your own like “tablete”, recipes doubled or halved, timers in cook mode, and copies in Markdown.</p>
+        </li>
         <li class="next">
           <span class="chip alert">Next</span>
           <h3>Smart paste</h3>
-          <p>Paste a whole recipe in one go, and Mirepoix finds the sections.</p>
-        </li>
-        <li class="later">
-          <span class="chip neutral">Later</span>
-          <h3>Your measures</h3>
-          <p>More ways to write equivalents, and units of your own, like “copo americano”.</p>
+          <p>Paste a whole recipe in one go and Mirepoix finds the sections.</p>
         </li>
       </ol>
     </section>
@@ -486,6 +492,10 @@
         <li>
           <h3>Which languages does it speak?</h3>
           <p>Its screens are in English and Brazilian Portuguese. Each recipe has its own language for reading ingredients, so “2 cups flour” and “2 xícaras de farinha” both work, in the same box.</p>
+        </li>
+        <li>
+          <h3>Can I print a recipe or send it to someone?</h3>
+          <p>Yes. At the end of every recipe, Save as Markdown makes a plain text file that looks good anywhere, ready to print, email or paste into a message. Keep a copy does the same for every recipe at once.</p>
         </li>
       </ul>
     </section>
