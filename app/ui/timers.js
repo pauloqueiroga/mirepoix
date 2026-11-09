@@ -73,7 +73,7 @@ export function timerTray({ now = () => Date.now() } = {}) {
     timer.shown = state;
     timer.row.dataset.state = state;
     timer.main.textContent = { ready: t.startTimer, running: t.pauseTimer, paused: t.resumeTimer, done: t.stopTimer }[state];
-    timer.main.classList.toggle('primary', state === 'ready' || state === 'done');
+    timer.main.classList.toggle('primary', state === 'done');
   };
 
   /** @param {Timer} timer */

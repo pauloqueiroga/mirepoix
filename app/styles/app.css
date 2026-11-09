@@ -1477,10 +1477,11 @@ input.mono {
   box-shadow: inset 4px 0 0 var(--carrot);
 }
 
-/* Timers from steps: each time in a step sets one; they wait in a tray above the bottom bar */
+/* Timers from steps: each time in a step sets one; they wait in a tray above the bottom bar.
+   Celery, like the ticks: help while cooking. Time's up turns carrot, to be seen. */
 
 .cook-steps .time {
-  text-decoration: underline dotted var(--carrot);
+  text-decoration: underline dotted var(--celery);
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 }
@@ -1502,8 +1503,8 @@ input.mono {
   border: 0;
   border-radius: 22px;
   background: var(--surface);
-  box-shadow: inset 0 0 0 1.5px var(--carrot);
-  color: var(--carrot);
+  box-shadow: inset 0 0 0 1.5px var(--celery);
+  color: var(--celery);
   font: inherit;
   font-size: .8em;
   font-weight: 700;
@@ -1603,6 +1604,11 @@ input.mono {
   min-height: 44px;
   background: var(--sunken);
   color: var(--ink);
+}
+
+.timer[data-state="ready"] .timer-main {
+  background: var(--celery);
+  color: var(--on-celery);
 }
 
 .timer[data-state="running"] .timer-clock { color: var(--celery); }
