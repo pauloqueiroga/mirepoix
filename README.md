@@ -13,7 +13,7 @@ Mirepoix is a private recipe box that works on every device. You paste or type r
 
 ## What you get, release by release
 
-Every release is usable on its own; each one adds to the last. R5 came before R4.
+Every release is usable on its own; each one adds to the last.
 
 | Release | What you get |
 | --- | --- |
