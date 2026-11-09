@@ -72,6 +72,8 @@ const en = {
   lastTime: 'Last time',
   cooksNotes: 'Cook’s notes',
   startCooking: 'Start cooking',
+  saveAsMarkdown: 'Save as Markdown',
+  savedCopy: (/** @type {string} */ file) => `Saved ${file}, a text file anyone can read.`,
 
   // Cook mode
   cookMode: 'Cook mode',
@@ -82,6 +84,24 @@ const en = {
   ready: (/** @type {number} */ n, /** @type {number} */ total) => (n === total ? 'All ready' : `${n} of ${total} ready`),
   stepOf: (/** @type {number} */ n, /** @type {number} */ total) => `Step ${n} of ${total}`,
   allStepsDone: 'All steps done',
+  amountToMake: 'How much to make',
+  /** "Makes [36] cookies", the number in a box. */
+  makesThisMany: (/** @type {Node} */ amount) => ['Makes ', amount],
+  howManyMakes: 'How many it makes',
+  timesTheRecipe: 'Times the recipe',
+  stepsAsWritten: 'Amounts in the steps stay as written.',
+  timers: 'Timers',
+  setTimer: (/** @type {string} */ time) => `Timer for ${time}`,
+  stepNumber: (/** @type {number} */ n) => `Step ${n}`,
+  startTimer: 'Start',
+  pauseTimer: 'Pause',
+  resumeTimer: 'Resume',
+  stopTimer: 'Stop',
+  lessTime: (/** @type {string} */ change) => `${change} less`,
+  moreTime: (/** @type {string} */ change) => `${change} more`,
+  removeTimer: (/** @type {string} */ label) => `Remove the timer for ${label}`,
+  timeIsUp: (/** @type {string} */ label) => `Time’s up: ${label}`,
+  leaveTimers: 'Leave cook mode? Your timers will stop.',
   noteForNextTime: 'Note for next time',
   noteAbout: (/** @type {Node} */ title) => ['This is added to ', title, ' with today’s date. The recipe itself stays as it is.'],
   yourNote: 'Your note',
@@ -133,7 +153,7 @@ const en = {
     problem.code === 'no-title' ? 'Give the recipe a title.' : `Line ${problem.line} has no ingredient name.`,
   /** @type {Record<DoubtCode, (detail: string) => string>} */
   doubts: {
-    'unknown-unit': (unit) => `New unit “${unit}”. It’s kept as written, so check it’s right.`,
+    'unknown-unit': (unit) => `New unit “${unit}”. It’s kept as written, so check it’s right. Once the recipe is saved, Mirepoix knows it.`,
     'assumed-quantity': () => 'No amount was given, so it reads as 1.',
     'unclear-quantity': () => 'The amount is unclear. Check it, or write it as quantity | unit | name.',
     'no-name': () => 'There’s no ingredient name.',
@@ -148,6 +168,9 @@ const en = {
   nothingToExport: 'Nothing to export yet.',
   exportAll: 'Export all recipes',
   saved: (/** @type {string} */ file) => `Saved ${file}. Keep it somewhere safe, like your cloud drive or your email.`,
+  asMarkdown: 'As Markdown',
+  markdownText: 'Every recipe in one text file that reads well anywhere, to print, share or keep with your notes. Mirepoix can’t import it back, so keep an export too.',
+  exportMarkdown: 'Export all as Markdown',
   import: 'Import',
   importText: 'Adds the recipes from an export file, made on this device or another one. Nothing here is removed, and a recipe already here is only replaced by a newer version of itself, keeping the cook’s notes from both. Moving Mirepoix to a new address? Export there, import here.',
   importFromFile: 'Import from a file',
@@ -327,6 +350,8 @@ const pt = {
   lastTime: 'Da última vez',
   cooksNotes: 'Notas de cozinha',
   startCooking: 'Começar a cozinhar',
+  saveAsMarkdown: 'Salvar em Markdown',
+  savedCopy: (file) => `${file} foi salvo, um arquivo de texto que qualquer um consegue ler.`,
 
   cookMode: 'Modo cozinha',
   cookingNamed: (title) => `Cozinhando ${title}`,
@@ -336,6 +361,23 @@ const pt = {
   ready: (n, total) => (n === total ? 'Tudo separado' : `${n} de ${total} separados`),
   stepOf: (n, total) => `Passo ${n} de ${total}`,
   allStepsDone: 'Todos os passos feitos',
+  amountToMake: 'Quanto fazer',
+  makesThisMany: (amount) => ['Rende ', amount],
+  howManyMakes: 'Quanto rende',
+  timesTheRecipe: 'Vezes a receita',
+  stepsAsWritten: 'As quantidades nos passos ficam como estão escritas.',
+  timers: 'Timers',
+  setTimer: (time) => `Timer de ${time}`,
+  stepNumber: (n) => `Passo ${n}`,
+  startTimer: 'Iniciar',
+  pauseTimer: 'Pausar',
+  resumeTimer: 'Continuar',
+  stopTimer: 'Parar',
+  lessTime: (change) => `${change} a menos`,
+  moreTime: (change) => `${change} a mais`,
+  removeTimer: (label) => `Remover o timer de ${label}`,
+  timeIsUp: (label) => `Acabou o tempo: ${label}`,
+  leaveTimers: 'Sair do modo cozinha? Seus timers vão parar.',
   noteForNextTime: 'Nota para a próxima vez',
   noteAbout: (title) => ['Ela entra em ', title, ' com a data de hoje. A receita em si fica como está.'],
   yourNote: 'Sua nota',
@@ -383,7 +425,7 @@ const pt = {
   problem: (problem) =>
     problem.code === 'no-title' ? 'Dê um título à receita.' : `A linha ${problem.line} não tem nome de ingrediente.`,
   doubts: {
-    'unknown-unit': (unit) => `Unidade nova, “${unit}”. Ela fica como foi escrita, então confira se está certa.`,
+    'unknown-unit': (unit) => `Unidade nova, “${unit}”. Ela fica como foi escrita, então confira se está certa. Depois que a receita for salva, o Mirepoix passa a conhecê-la.`,
     'assumed-quantity': () => 'Nenhuma quantidade foi escrita, então vale 1.',
     'unclear-quantity': () => 'A quantidade não está clara. Confira, ou escreva como quantidade | unidade | nome.',
     'no-name': () => 'Falta o nome do ingrediente.',
@@ -397,6 +439,9 @@ const pt = {
   nothingToExport: 'Nada para exportar ainda.',
   exportAll: 'Exportar todas as receitas',
   saved: (file) => `${file} foi salvo. Guarde num lugar seguro, como na nuvem ou no seu e-mail.`,
+  asMarkdown: 'Em Markdown',
+  markdownText: 'Todas as receitas num arquivo de texto fácil de ler em qualquer lugar, para imprimir, compartilhar ou guardar junto das suas anotações. O Mirepoix não consegue importá-lo de volta, então faça também uma exportação.',
+  exportMarkdown: 'Exportar tudo em Markdown',
   import: 'Importar',
   importText: 'Adiciona as receitas de um arquivo exportado, feito neste aparelho ou em outro. Nada daqui é apagado, e uma receita que já está aqui só é trocada por uma versão mais nova dela mesma, com as notas de cozinha das duas. Mudando o Mirepoix de endereço? Exporte lá, importe aqui.',
   importFromFile: 'Importar de um arquivo',
@@ -568,6 +613,28 @@ export const formatDay = (date) => dayFormat.format(date);
 
 /** "Oct 12, 2026, 7:40 PM", for a note about to be written. @param {Date} date */
 export const formatMoment = (date) => momentFormat.format(date);
+
+/**
+ * Mirepoix's words in a Markdown file, in a recipe's language, so each
+ * recipe reads as one piece wherever it goes. Dates are written the way
+ * that language writes them.
+ * @param {Lang} lang the recipe's
+ * @returns {import('../domain/markdown.js').Words}
+ */
+export function fileWords(lang) {
+  const words = messages[lang];
+  const days = new Intl.DateTimeFormat(dateLocale(lang, navigator.language), { dateStyle: 'medium' });
+  return {
+    makes: words.makes,
+    tags: words.tags,
+    ingredients: words.ingredients,
+    preparation: words.preparation,
+    variations: words.variations,
+    notes: words.notes,
+    cooksNotes: words.cooksNotes,
+    day: (at) => days.format(new Date(at)),
+  };
+}
 
 /**
  * Remembers a language on this device and reloads, so every screen shows it.

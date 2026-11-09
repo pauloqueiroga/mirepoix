@@ -157,13 +157,20 @@ async function shoot(page, lang, device, file) {
   await page.locator('h1').waitFor();
   await snap('recipe');
 
-  // Cooking: a few ingredients gathered, and the first step done.
+  // Cooking: a few ingredients gathered, the first step done, and a timer
+  // from the steps running. The clock is fixed, so it shows its whole time.
   await page.goto(`/#/recipes/${encodeURIComponent(featured)}/cook`);
   const ingredients = page.locator('.cook-list:not(.cook-steps) input[type=checkbox]');
   await ingredients.first().waitFor();
   for (const index of [0, 1, 2, 3]) await ingredients.nth(index).check();
   await page.locator('.cook-steps input[type=checkbox]').first().check();
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.locator('.timer-chip').first().click();
+  await page.locator('.timer[data-state=ready] .timer-main').click();
+  await page.locator('.timer[data-state=running]').waitFor();
+  await page.evaluate(() => {
+    /** @type {HTMLElement | null} */ (document.activeElement)?.blur();
+    window.scrollTo(0, 0);
+  });
   await snap('cook');
 
   await page.locator('.foot button.pen').click();

@@ -1,6 +1,7 @@
 import { exportFile, mergePlan, readExport } from '../../domain/backup.js';
-import { footer, h } from '../dom.js';
-import { t } from '../i18n.js';
+import { recipesFile } from '../../domain/markdown.js';
+import { download, footer, h } from '../dom.js';
+import { fileWords, t } from '../i18n.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 
@@ -14,14 +15,15 @@ export function backupView({ count, list, put }) {
   const status = h('p', { class: 'status', role: 'status' });
 
   const exportAll = async () => {
-    const { name, text } = exportFile(await list());
-    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-    const link = h('a', { href: url, download: name, hidden: true });
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    status.textContent = t.saved(name);
+    const file = exportFile(await list());
+    download(file, 'application/json');
+    status.textContent = t.saved(file.name);
+  };
+  // Markdown, to read rather than to import back.
+  const exportMarkdown = async () => {
+    const file = recipesFile(await list(), fileWords);
+    download(file, 'text/markdown');
+    status.textContent = t.savedCopy(file.name);
   };
 
   const file = h('input', { id: 'import-file', type: 'file', accept: '.json,application/json', class: 'visually-hidden' });
@@ -49,6 +51,10 @@ export function backupView({ count, list, put }) {
         h('h2', { id: 'export-heading', class: 'section-label' }, t.export),
         h('p', null, count > 0 ? t.exportCount(count) : t.nothingToExport),
         count > 0 && h('button', { type: 'button', class: 'button primary', onclick: exportAll }, t.exportAll)),
+      count > 0 && h('section', { class: 'recipe-section', 'aria-labelledby': 'markdown-heading' },
+        h('h2', { id: 'markdown-heading', class: 'section-label' }, t.asMarkdown),
+        h('p', null, t.markdownText),
+        h('button', { type: 'button', class: 'button secondary', onclick: exportMarkdown }, t.exportMarkdown)),
       h('section', { class: 'recipe-section', 'aria-labelledby': 'import-heading' },
         h('h2', { id: 'import-heading', class: 'section-label' }, t.import),
         h('p', null, t.importText),

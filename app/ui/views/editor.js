@@ -22,19 +22,21 @@ import { stepGroups } from './recipe.js';
  *   lang: Lang,
  *   recipe?: Recipe,
  *   tags?: string[],
+ *   units?: string[],
  *   save: (recipe: Recipe) => Promise<void>,
  *   remove?: (id: string) => Promise<void>,
  *   leave: (outcome: Outcome) => void,
  *   leaving: { unsaved: () => boolean },
  * }} options
  *   recipe: the one being edited, if any. tags: every tag in use, offered
- *   with a tap (R3.4). leaving: the editor keeps leaving.unsaved up to date,
- *   so the app can ask before any way out (D10).
+ *   with a tap (R3.4). units: the cook's own, read without a doubt (R5.2).
+ *   leaving: the editor keeps leaving.unsaved up to date, so the app can ask
+ *   before any way out (D10).
  */
-export function editorView({ lang, recipe, tags: known = [], save, remove, leave, leaving }) {
+export function editorView({ lang, recipe, tags: known = [], units = [], save, remove, leave, leaving }) {
   /** @type {Draft} */
   const initial = recipe
-    ? draftOf(recipe)
+    ? draftOf(recipe, units)
     : { title: '', lang, source: '', yield: '', tags: '', ingredients: '', preparation: '', variations: '', notes: '' };
 
   const title = h('input', { id: 'title', type: 'text', class: 'title-input', autocomplete: 'off', autofocus: !recipe });
@@ -99,7 +101,7 @@ export function editorView({ lang, recipe, tags: known = [], save, remove, leave
 
   const refreshIngredients = () => {
     const current = chosenLang();
-    preview.replaceChildren(...previewContent(parseIngredientList(ingredients.value, current).lines, current));
+    preview.replaceChildren(...previewContent(parseIngredientList(ingredients.value, current, units).lines, current));
   };
   const refreshTags = () => {
     const typed = parseTags(tags.value);
@@ -121,7 +123,7 @@ export function editorView({ lang, recipe, tags: known = [], save, remove, leave
   /** @param {Event} event */
   const submit = async (event) => {
     event.preventDefault();
-    const { recipe: saved, problems } = readDraft(draft(), { base: recipe });
+    const { recipe: saved, problems } = readDraft(draft(), { base: recipe, units });
     alert.hidden = problems.length === 0;
     alert.textContent = problems.map(t.problem).join(' ');
     if (!saved) return;

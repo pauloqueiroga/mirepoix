@@ -137,3 +137,13 @@ test('a recipe can start with no ingredients at all', () => {
   const { recipe } = readDraft({ title: 'Ideas for Sunday', lang: 'en', ingredients: '' });
   assert.deepEqual(recipe?.ingredients, []);
 });
+
+test('the cook\'s own units read without doubts, and edit and save back unchanged (R5.2)', () => {
+  const units = ['tablete', 'copo de requeijão'];
+  const draft = { title: 'Pão', lang: /** @type {const} */ ('pt'), ingredients: '2 tabletes de fermento\n1 copo de requeijão de leite\n1 copo de requeijão de água' };
+  const { recipe, lines } = readDraft(draft, { now, units });
+  assert.ok(recipe);
+  assert.deepEqual(lines.flatMap((line) => (line.kind === 'ingredient' ? line.doubts : [])), []);
+  const again = readDraft({ ...draftOf(recipe, units) }, { now, base: recipe, units }).recipe;
+  assert.deepEqual(again, recipe);
+});

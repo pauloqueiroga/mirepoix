@@ -87,6 +87,17 @@ salsinha q.b. => | | salsinha | q.b.
 1 xícara (200 g) de queijo meia-cura ralado => 1 | cup | queijo meia-cura ralado | | 200 g
 1 lata (395 g) de leite condensado => 1 | can | leite condensado | | 395 g
 
+# Mais jeitos de escrever equivalências (R5.1)
+2 xícaras ou 437 g de manteiga => 2 | cup | manteiga | | 437 g
+2 xícaras / 437 g de manteiga => 2 | cup | manteiga | | 437 g
+2 xícaras/437 g de manteiga => 2 | cup | manteiga | | 437 g
+2 xícaras (chá) ou 240 g de farinha => 2 | cup | farinha | | 240 g
+2 xícaras de farinha ou 240 g => 2 | cup | farinha | | 240 g
+1 lata de leite condensado (ou 395 g) => 1 | can | leite condensado | | 395 g
+1 xícara de leite, ou 240 ml => 1 | cup | leite | | 240 ml
+1 colher (sopa) de manteiga ou margarina => 1 | tbsp | manteiga ou margarina
+sal ou pimenta a gosto => | | sal ou pimenta | a gosto
+
 # Explícito: quantidade | unidade | nome
 1 | tablete | fermento biológico => 1 | tablete | fermento biológico
 3 | | ovos de codorna => 3 | count | ovos de codorna

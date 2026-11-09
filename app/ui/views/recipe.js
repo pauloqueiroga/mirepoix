@@ -1,8 +1,9 @@
 import { lastCooksNote, newestFirst } from '../../domain/cooks-notes.js';
 import { displayAmount } from '../../domain/ingredients.js';
+import { recipeFile } from '../../domain/markdown.js';
 import { tagsOf } from '../../domain/tags.js';
-import { h } from '../dom.js';
-import { formatDay, t } from '../i18n.js';
+import { download, h } from '../dom.js';
+import { fileWords, formatDay, t } from '../i18n.js';
 
 /** @typedef {import('../../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('../../domain/recipe.js').Ingredient} Ingredient */
@@ -14,7 +15,8 @@ import { formatDay, t } from '../i18n.js';
 /**
  * A recipe to read (R1.7, R1.8). Nothing on this screen changes it; the quiet
  * Edit link in the corner opens the editor (D10), and Start cooking opens
- * cook mode (R3.1), the one place to leave a note for next time.
+ * cook mode (R3.1), the one place to leave a note for next time. At the
+ * bottom, the recipe can be saved as a Markdown file, to read anywhere.
  * @param {Recipe} recipe
  * @param {{ showTag: (tag: string) => void }} options
  *   showTag: opens the list showing just the recipes with that tag (R3.5)
@@ -25,6 +27,12 @@ export function recipeView(recipe, { showTag }) {
   const tags = tagsOf(recipe);
   // "Last time" shows the newest; the whole log is worth a section once there's more than that.
   const log = recipe.cooksNotes.length > 1 ? newestFirst(recipe) : [];
+  const saved = h('p', { class: 'status', role: 'status' });
+  const saveCopy = () => {
+    const file = recipeFile(recipe, fileWords(lang));
+    download(file, 'text/markdown');
+    saved.textContent = t.savedCopy(file.name);
+  };
   return [
     h('header', { class: 'bar' },
       h('a', { class: 'back', href: '#/' }, t.recipes),
@@ -49,7 +57,10 @@ export function recipeView(recipe, { showTag }) {
       log.length > 0 && section('cooks-notes', t.cooksNotes,
         h('ul', { class: 'cooks-notes' }, ...log.map((note) => h('li', null,
           h('time', { datetime: note.at }, formatDay(new Date(note.at))),
-          h('p', null, note.text)))))),
+          h('p', null, note.text))))),
+      h('div', { class: 'recipe-copy' },
+        h('button', { type: 'button', class: 'link', onclick: saveCopy }, t.saveAsMarkdown),
+        saved)),
     h('div', { class: 'foot' },
       h('a', { class: 'button primary wide pot', href: `#/recipes/${encodeURIComponent(recipe.id)}/cook` }, t.startCooking)),
   ];

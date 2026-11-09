@@ -133,8 +133,10 @@ test('Start cooking opens the recipe in big type with nothing to edit, and Done 
 
   const cookingSize = await page.locator('.cook-steps .line').first().evaluate((line) => parseFloat(getComputedStyle(line).fontSize));
   expect(cookingSize, 'bigger than reading').toBeGreaterThanOrEqual(readingSize * 1.15);
-  await expect(page.locator('main').locator('input:not([type="checkbox"]), select, textarea, [contenteditable]')).toHaveCount(0);
-  await expect(page.getByRole('textbox')).toHaveCount(0);
+  // Nothing to type into but how much to make, which changes nothing stored.
+  await expect(page.locator('main').locator('input:not([type="checkbox"], [name="scale"], .scale-amount), select, textarea, [contenteditable]')).toHaveCount(0);
+  await expect(page.getByRole('textbox')).toHaveCount(1);
+  await expect(page.getByRole('textbox')).toHaveAccessibleName('How many it makes');
   await expect(page.getByRole('link', { name: 'Edit' })).toHaveCount(0);
 
   await page.getByRole('link', { name: 'Done' }).click();
@@ -339,4 +341,198 @@ test.describe('in Portuguese', () => {
     await expect(page.getByRole('complementary', { name: /^Da última vez/ })).toContainText('Menos sal.');
     await expect(page.getByRole('region', { name: 'Notas de cozinha' }).getByRole('listitem')).toHaveCount(2);
   });
+});
+
+/** @param {import('@playwright/test').Page} page */
+const ingredientNames = (page) => page.getByRole('list', { name: 'Massa' }).getByRole('checkbox');
+
+/**
+ * The Massa ingredients read, in order, as these.
+ * @param {import('@playwright/test').Page} page
+ * @param {string[]} names
+ */
+async function expectIngredients(page, names) {
+  await expect(ingredientNames(page)).toHaveCount(names.length);
+  for (const [i, name] of names.entries()) await expect(ingredientNames(page).nth(i)).toHaveAccessibleName(name);
+}
+
+test('scaling shows every amount and Makes scaled, keeps the ticks, and is never saved', async ({ page }) => {
+  const id = await seed(page);
+  await page.goto(`/#/recipes/${id}/cook`);
+  await expect(page.getByRole('radio', { name: '×1' })).toBeChecked();
+  await expect(page.getByRole('textbox', { name: 'How many it makes' })).toHaveValue('30');
+  await expect(page.getByText('Amounts in the steps stay as written.')).toBeHidden();
+  await ingredientNames(page).first().check();
+
+  await page.getByRole('radio', { name: '×2' }).check();
+  await expect(page.getByText('Family notebook · Makes 60 unidades')).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'How many it makes' })).toHaveValue('60');
+  await expect(page.getByText('Amounts in the steps stay as written.')).toBeVisible();
+  await expectIngredients(page, ['1000 g polvilho azedo', '2 copos americanos leite', '4 xícaras or 400 g queijo meia-cura, ralado']);
+  await expect(ingredientNames(page).first()).toBeChecked();
+  await expect(page.getByText('1 of 4 ready')).toBeVisible();
+
+  await page.getByRole('radio', { name: '×½' }).check();
+  await expect(ingredientNames(page).nth(2)).toHaveAccessibleName('1 xícara or 100 g queijo meia-cura, ralado');
+  await expect(page.getByText('Family notebook · Makes 15 unidades')).toBeVisible();
+
+  const before = await stored(page, id);
+  await page.getByRole('link', { name: 'Done' }).click();
+  await expect(page.getByText('Family notebook · Makes 30 unidades')).toBeVisible();
+  expect(await stored(page, id)).toEqual(before);
+  await page.getByRole('link', { name: 'Start cooking' }).click();
+  await expect(page.getByRole('radio', { name: '×1' })).toBeChecked();
+  await expect(ingredientNames(page).first()).toHaveAccessibleName('500 g polvilho azedo');
+});
+
+test('typing how many it makes scales by that, in fractions a kitchen measures', async ({ page }) => {
+  const id = await seed(page);
+  await page.goto(`/#/recipes/${id}/cook`);
+  const makes = page.getByRole('textbox', { name: 'How many it makes' });
+  await makes.fill('45');
+  await expect(page.getByText('Makes 45 unidades')).toBeVisible();
+  await expectIngredients(page, ['750 g polvilho azedo', '1 ½ copos americanos leite', '3 xícaras or 300 g queijo meia-cura, ralado']);
+  for (const radio of await page.getByRole('radio').all()) await expect(radio).not.toBeChecked();
+
+  await makes.fill('abc');
+  await expect(makes).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Makes 45 unidades')).toBeVisible();
+  await makes.blur();
+  await expect(makes).toHaveValue('45');
+  await makes.fill('60');
+  await expect(page.getByRole('radio', { name: '×2' })).toBeChecked();
+});
+
+test('without a number in Makes, the box takes how many times the recipe to make', async ({ page }) => {
+  const id = await seed(page, { yield: '' });
+  await page.goto(`/#/recipes/${id}/cook`);
+  const times = page.getByRole('textbox', { name: 'Times the recipe' });
+  await expect(times).toHaveValue('1');
+  await times.fill('1.5');
+  await expectIngredients(page, ['750 g polvilho azedo', '1 ½ copos americanos leite', '3 xícaras or 300 g queijo meia-cura, ralado']);
+  await page.getByRole('radio', { name: '×3' }).check();
+  await expect(times).toHaveValue('3');
+  // What's typed stays as typed, not rounded like an amount.
+  await times.fill('1.3');
+  await times.blur();
+  await expect(times).toHaveValue('1.3');
+});
+
+/**
+ * A stand-in for the Web Audio API that counts the beeps, and for vibration.
+ * @param {import('@playwright/test').Page} page
+ */
+async function fakeSound(page) {
+  await page.addInitScript(() => {
+    const page = /** @type {any} */ (window);
+    page.beeps = 0;
+    page.buzzes = 0;
+    const node = () => ({ connect: (/** @type {any} */ next) => next, gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, frequency: {}, start() {}, stop() {} });
+    page.AudioContext = class {
+      state = 'suspended';
+      currentTime = 0;
+      destination = {};
+      async resume() { this.state = 'running'; }
+      async close() { this.state = 'closed'; }
+      createOscillator() { page.beeps += 1; return node(); }
+      createGain() { return node(); }
+    };
+    Object.defineProperty(Navigator.prototype, 'vibrate', { configurable: true, value: () => { page.buzzes += 1; return true; } });
+  });
+}
+
+/** @param {import('@playwright/test').Page} page */
+const beeps = (page) => page.evaluate(() => /** @type {any} */ (window).beeps);
+
+const TIMED = { preparation: [{ heading: '', steps: ['Escalde o polvilho.', 'Asse por 25 minutos.', 'Deixe esfriar de 10 a 15 minutos.'] }] };
+
+test('a time in a step sets a timer, ready to start, adjusted before and while it runs', async ({ page }) => {
+  await page.clock.install();
+  const id = await seed(page, TIMED);
+  await page.goto(`/#/recipes/${id}/cook`);
+  const timers = page.getByRole('region', { name: 'Timers' });
+  await expect(timers).toBeHidden();
+  await expect(page.getByRole('button', { name: /^Timer for/ })).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Timer for 25 minutos' }).click();
+  await expect(timers).toBeVisible();
+  const timer = timers.getByRole('listitem');
+  await expect(timer).toContainText('Step 2 · 25 minutos');
+  await expect(timer.getByRole('timer')).toHaveText('25:00');
+  await expect(timer.getByRole('button', { name: 'Start' })).toBeFocused();
+
+  // Before starting
+  await timer.getByRole('button', { name: '1 min more' }).click();
+  await expect(timer.getByRole('timer')).toHaveText('26:00');
+  await timer.getByRole('button', { name: '1 min less' }).click();
+  await timer.getByRole('button', { name: '1 min less' }).click();
+  await expect(timer.getByRole('timer')).toHaveText('24:00');
+  await page.clock.runFor(60_000);
+  await expect(timer.getByRole('timer'), 'not running yet').toHaveText('24:00');
+
+  // Running, paused, resumed, adjusted while running
+  await timer.getByRole('button', { name: 'Start' }).click();
+  await page.clock.runFor(61_000);
+  await expect(timer.getByRole('timer')).toHaveText('22:59');
+  await timer.getByRole('button', { name: 'Pause' }).click();
+  await page.clock.runFor(5 * 60_000);
+  await expect(timer.getByRole('timer')).toHaveText('22:59');
+  await timer.getByRole('button', { name: 'Resume' }).click();
+  await timer.getByRole('button', { name: '1 min more' }).click();
+  await expect(timer.getByRole('timer')).toHaveText('23:59');
+
+  // A second tap on the same time doesn't set a second timer.
+  await page.getByRole('button', { name: 'Timer for 25 minutos' }).click();
+  await expect(timer).toHaveCount(1);
+  // A range starts at its short end.
+  await page.getByRole('button', { name: 'Timer for 10 a 15 minutos' }).click();
+  await expect(timer).toHaveCount(2);
+  await expect(timer.nth(1).getByRole('timer')).toHaveText('10:00');
+  await timer.nth(1).getByRole('button', { name: 'Remove the timer for Step 3 · 10 a 15 minutos' }).click();
+  await expect(timer).toHaveCount(1);
+});
+
+test('a timer rings when its time is up, until it is stopped', async ({ page }) => {
+  await fakeSound(page);
+  await page.clock.install();
+  const id = await seed(page, TIMED);
+  await page.goto(`/#/recipes/${id}/cook`);
+  await page.getByRole('button', { name: 'Timer for 25 minutos' }).click();
+  const timer = page.getByRole('region', { name: 'Timers' }).getByRole('listitem');
+  await timer.getByRole('button', { name: 'Start' }).click();
+  // Jumping ahead, the way time passes for a page that's asleep, keeps time too.
+  await page.clock.fastForward(24 * 60_000);
+  await expect(timer.getByRole('timer')).toHaveText('1:00');
+  expect(await beeps(page)).toBe(0);
+
+  await page.clock.fastForward(60_000);
+  await expect(timer.getByRole('timer')).toHaveText('0:00');
+  await expect(timer).toHaveAttribute('data-state', 'done');
+  await expect(page.getByRole('alert')).toHaveText('Time’s up: Step 2 · 25 minutos');
+  await page.clock.runFor(3_000);
+  expect(await beeps(page)).toBeGreaterThan(3);
+  expect(await page.evaluate(() => /** @type {any} */ (window).buzzes)).toBeGreaterThan(0);
+
+  await timer.getByRole('button', { name: 'Stop' }).click();
+  await expect(page.getByRole('region', { name: 'Timers' })).toBeHidden();
+  const after = await beeps(page);
+  await page.clock.runFor(10_000);
+  expect(await beeps(page)).toBe(after);
+});
+
+test('leaving cook mode with a timer set asks first', async ({ page }) => {
+  const id = await seed(page, TIMED);
+  await page.goto(`/#/recipes/${id}/cook`);
+  await page.getByRole('button', { name: 'Timer for 25 minutos' }).click();
+  /** @type {string[]} */
+  const asked = [];
+  page.on('dialog', (dialog) => {
+    asked.push(dialog.message());
+    void (asked.length === 1 ? dialog.dismiss() : dialog.accept());
+  });
+  await page.getByRole('link', { name: 'Done' }).click();
+  await expect(page.getByRole('region', { name: 'Timers' })).toBeVisible();
+  await page.getByRole('link', { name: 'Done' }).click();
+  await expect(page.getByRole('link', { name: 'Start cooking' })).toBeVisible();
+  expect(asked).toEqual(['Leave cook mode? Your timers will stop.', 'Leave cook mode? Your timers will stop.']);
 });

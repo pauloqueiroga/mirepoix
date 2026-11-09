@@ -78,6 +78,21 @@ fresh parsley => | | fresh parsley
 2 1/4 cups flour (280 g) => 2 1/4 | cup | flour | | 280 g
 1 cup (240 ml; 8 fl oz) milk => 1 | cup | milk | | 240 ml; 8 fl oz
 
+# More ways to write equivalents (R5.1): after the amount, after the name, or after "or"
+2 cups / 437 g unsalted butter => 2 | cup | unsalted butter | | 437 g
+2 cups/437g unsalted butter => 2 | cup | unsalted butter | | 437 g
+2 cups or 437 g unsalted butter, softened => 2 | cup | unsalted butter | softened | 437 g
+1 cup / 240 ml / 8 fl oz milk => 1 | cup | milk | | 240 ml; 8 fl oz
+1 cup (or 240 ml) milk => 1 | cup | milk | | 240 ml
+2 1/4 cups flour or 280 g => 2 1/4 | cup | flour | | 280 g
+2 1/4 cups flour / 280 g => 2 1/4 | cup | flour | | 280 g
+1 cup butter, or 227 g => 1 | cup | butter | | 227 g
+1 lb / 450 g ground beef => 1 | lb | ground beef | | 450 g
+2 tbsp oil or butter => 2 | tbsp | oil or butter
+1 cup milk or cream => 1 | cup | milk or cream
+1 cup milk or 1 cup cream => 1 | cup | milk or 1 cup cream
+2 eggs or 3 egg whites => 2 | count | eggs or 3 egg whites
+
 # Bullets and checkboxes pasted from websites
 - 2 eggs => 2 | count | eggs
 • 1 cup rice => 1 | cup | rice
