@@ -48,10 +48,11 @@ const stored = (page) => page.evaluate(async () => {
 /**
  * Exports from the Keep a copy screen and returns the file's name and text.
  * @param {import('@playwright/test').Page} page
+ * @param {string} [button]
  */
-async function exportAll(page) {
+async function exportAll(page, button = 'Export all recipes') {
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export all recipes' }).click();
+  await page.getByRole('button', { name: button }).click();
   const file = await download;
   return { name: file.suggestedFilename(), text: await readFile(await file.path(), 'utf8') };
 }
@@ -162,4 +163,21 @@ test('an empty recipe box offers to import, and has nothing to export', async ({
   await expect(page.getByRole('heading', { level: 1, name: 'Keep a copy' })).toBeVisible();
   await expect(page.getByText('Nothing to export yet.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export all recipes' })).toHaveCount(0);
+});
+
+test('every recipe can also be saved as one Markdown file, to read anywhere', async ({ page }) => {
+  await seed(page, ['Pão de queijo', 'Feijoada']);
+  await page.goto('/#/backup');
+  await expect(page.getByRole('region', { name: 'As Markdown' })).toContainText('Mirepoix can’t import it back');
+  const { name, text } = await exportAll(page, 'Export all as Markdown');
+  expect(name).toMatch(/^mirepoix-recipes-\d{4}-\d{2}-\d{2}\.md$/);
+  // By title, each in its own language (these are Portuguese recipes), a rule between them.
+  expect(text).toBe('# Feijoada\n\n## Ingredientes\n\n- 500 g de polvilho azedo\n\n---\n\n# Pão de queijo\n\n## Ingredientes\n\n- 500 g de polvilho azedo\n');
+  await expect(page.getByRole('status')).toHaveText(`Saved ${name}, a text file anyone can read.`);
+});
+
+test('with no recipes there is no Markdown to export either', async ({ page }) => {
+  await page.goto('/#/backup');
+  await expect(page.getByText('Nothing to export yet.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Export all as Markdown' })).toHaveCount(0);
 });

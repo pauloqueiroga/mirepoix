@@ -28,6 +28,20 @@ export function h(tag, attributes, ...children) {
 }
 
 /**
+ * Hands the browser a file to save, as if downloaded.
+ * @param {{ name: string, text: string }} file
+ * @param {string} type its media type, e.g. "text/markdown"
+ */
+export function download({ name, text }, type) {
+  const url = URL.createObjectURL(new Blob([text], { type: `${type};charset=utf-8` }));
+  const link = h('a', { href: url, download: name, hidden: true });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
  * The small print at the bottom of a screen: the website (D20), the privacy
  * page, the other language, named in itself (R1.17), and a way to support
  * Mirepoix (R2.0.1).

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { UNITS, isKnownUnit, matchUnit, unitFromText, unitText } from '../../app/domain/units.js';
+import { UNITS, isKnownUnit, learnedUnits, matchLearned, matchUnit, unitFromText, unitText } from '../../app/domain/units.js';
 
 const units = Object.keys(UNITS).filter((unit) => unit !== 'count');
 
@@ -72,4 +72,30 @@ test('units are written in the recipe language, plural above one', () => {
   assert.equal(unitText({ quantity: '1', unit: 'tablete' }, 'pt'), 'tablete');
   assert.equal(isKnownUnit('tablete'), false);
   assert.equal(isKnownUnit('count'), true);
+});
+
+/** A recipe holding just these ingredients, as the store keeps them. */
+function holding(/** @type {{ unit: string, alternatives?: { quantity: string, unit: string }[] }[]} */ items) {
+  return { ingredients: [{ heading: '', items: items.map((item) => ({ quantity: '1', name: 'x', note: '', alternatives: [], ...item })) }] };
+}
+
+test('the cook\'s own units are the ones saved in recipes that Mirepoix doesn\'t know (R5.2)', () => {
+  const recipes = [
+    holding([{ unit: 'cup' }, { unit: 'tabletes' }, { unit: 'count' }]),
+    holding([{ unit: 'copo de requeijão', alternatives: [{ quantity: '1', unit: 'knob' }] }, { unit: '' }]),
+  ];
+  assert.deepEqual(learnedUnits(recipes), ['tabletes', 'copo de requeijão', 'knob']);
+});
+
+test('spellings that differ in case, accents or a plural ending are one learned unit', () => {
+  const recipes = [holding([{ unit: 'tablete' }]), holding([{ unit: 'Tabletes' }, { unit: 'tabléte' }, { unit: 'knobs' }, { unit: 'knob' }])];
+  assert.deepEqual(learnedUnits(recipes), ['tablete', 'knobs']);
+});
+
+test('a learned unit matches its singular, plural, case and accents, longest first', () => {
+  const units = ['tablete', 'copo', 'copo de requeijão'];
+  assert.deepEqual(matchLearned(['Tabletes', 'de', 'fermento'], units), { unit: 'Tabletes', length: 1 });
+  assert.deepEqual(matchLearned(['copos', 'de', 'requeijao', 'de', 'leite'], units), { unit: 'copos de requeijao', length: 3 });
+  assert.equal(matchLearned(['tabela'], units), null);
+  assert.equal(matchLearned(['tablete'], []), null);
 });

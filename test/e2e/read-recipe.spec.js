@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test } from './fixtures.js';
 
 /** @type {string[]} */
@@ -60,7 +61,9 @@ test('reading has nothing editable; only the Edit link leads to changes', async 
   });
   await page.goto(`/#/recipes/${id}`);
   await expect(page.getByRole('heading', { level: 1, name: 'Brown butter cookies' })).toBeVisible();
-  await expect(page.locator('input, textarea, select, button, [contenteditable]')).toHaveCount(0);
+  await expect(page.locator('input, textarea, select, [contenteditable]')).toHaveCount(0);
+  // The one button saves a copy elsewhere; nothing here changes.
+  await expect(page.getByRole('button')).toHaveText(['Save as Markdown']);
   await expect(page.getByRole('link', { name: 'Edit' })).toHaveAttribute('href', `#/recipes/${id}/edit`);
   const address = page.url();
   await page.getByText('butter, browned').click();
@@ -130,4 +133,31 @@ test('an unknown recipe address says so', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Recipe not found' })).toBeVisible();
   await page.getByRole('link', { name: 'Recipes' }).click();
   await expect(page.getByRole('heading', { name: 'No recipes yet' })).toBeVisible();
+});
+
+test('a recipe saves as a Markdown file named after it, and stays as it was', async ({ page }) => {
+  await page.goto('/');
+  const id = await seed(page, {
+    title: 'Pão de queijo',
+    lang: 'pt',
+    yield: '30 unidades',
+    ingredients: [{ heading: '', items: [{ quantity: '2', unit: 'cup', name: 'queijo meia-cura', note: 'ralado', alternatives: [{ quantity: '200', unit: 'g' }] }] }],
+    preparation: [{ heading: '', steps: ['Escalde o polvilho.', 'Asse por 25 minutos.'] }],
+  });
+  const read = () => page.evaluate(async (recipeId) => (await (await import('/store/local-store.js')).openLocalStore()).get(recipeId), id);
+  const before = await read();
+  await page.goto(`/#/recipes/${id}`);
+
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save as Markdown' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe('pao-de-queijo.md');
+  // In the recipe's language, whatever the screens speak.
+  expect(await readFile(await file.path(), 'utf8')).toBe([
+    '# Pão de queijo', '', 'Rende 30 unidades', '',
+    '## Ingredientes', '', '- 2 xícaras (200 g) de queijo meia-cura, ralado', '',
+    '## Modo de preparo', '', '1. Escalde o polvilho.', '2. Asse por 25 minutos.', '',
+  ].join('\n'));
+  await expect(page.getByRole('status')).toHaveText('Saved pao-de-queijo.md, a text file anyone can read.');
+  expect(await read()).toEqual(before);
 });

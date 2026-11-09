@@ -3,6 +3,7 @@ import { addCooksNote, mergeCooksNotes, textFingerprint } from '../domain/cooks-
 import { fingerprint } from '../domain/fingerprint.js';
 import { byTitle, newId } from '../domain/recipe.js';
 import { allTags } from '../domain/tags.js';
+import { learnedUnits } from '../domain/units.js';
 import { openLocalStore, requestPersistentStorage } from '../store/local-store.js';
 import { createSyncer, deviceName } from '../store/sync.js';
 import { t, uiLang } from './i18n.js';
@@ -17,6 +18,11 @@ import { syncChip, syncView } from './views/sync.js';
 
 /** @typedef {import('../domain/recipe.js').Recipe} Recipe */
 /** @typedef {import('./views/list.js').Filters} Filters */
+/**
+ * What the screen on show would lose by going, kept up to date by the screen.
+ * @typedef {{ unsaved: () => boolean, message?: () => string }} Leaving
+ *   message: what to ask before going, when it's not unsaved changes
+ */
 
 /** @type {import('./router.js').RouteDef[]} */
 const ROUTES = [
@@ -69,6 +75,7 @@ export async function startApp(root) {
   // Whether the screen on show holds unsaved changes. The editor and cook
   // mode keep this current, so every way out asks first: links, the back
   // button, closing (D10).
+  /** @type {Leaving} */
   let leaving = { unsaved: () => false };
   // What the screen on show needs done when it goes away.
   /** @type {(() => void)[]} */
@@ -110,6 +117,7 @@ export async function startApp(root) {
     shown = location.hash;
     // The new screen's own, until it's shown: a render overtaken by a newer
     // one lets go of whatever its screen took, such as cook mode's screen lock.
+    /** @type {Leaving} */
     const next = { unsaved: () => false };
     /** @type {(() => void)[]} */
     const own = [];
@@ -136,7 +144,8 @@ export async function startApp(root) {
       });
       screen = 'recipes';
     } else if (route?.name === 'new') {
-      nodes = editorView({ lang: uiLang, tags: allTags(await store.list()), save, leave: () => go('#/'), leaving: next });
+      const recipes = await store.list();
+      nodes = editorView({ lang: uiLang, tags: allTags(recipes), units: learnedUnits(recipes), save, leave: () => go('#/'), leaving: next });
       title = `${t.newRecipe} · Mirepoix`;
       screen = 'new recipe';
     } else if (route?.name === 'recipe') {
@@ -148,12 +157,14 @@ export async function startApp(root) {
       }
     } else if (route?.name === 'edit') {
       const recipe = await store.get(id);
+      const recipes = await store.list();
       let landed = id;
       nodes = recipe
         ? editorView({
           lang: recipe.lang,
           recipe,
-          tags: allTags(await store.list()),
+          tags: allTags(recipes),
+          units: learnedUnits(recipes),
           // If the recipe changed on another device while this one was being
           // edited, theirs stays and this edit is kept beside it (D6), without
           // the cook's notes, which all stay on theirs. Notes that came in
@@ -239,7 +250,7 @@ export async function startApp(root) {
   });
 
   addEventListener('hashchange', () => {
-    if (leaving.unsaved() && !confirm(t.leaveUnsaved)) {
+    if (leaving.unsaved() && !confirm(leaving.message?.() ?? t.leaveUnsaved)) {
       arriving = null;
       history.pushState(null, '', shown); // stay put; pushState doesn't fire hashchange
       return;

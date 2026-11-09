@@ -141,3 +141,59 @@ export function unitText({ quantity, unit }, lang) {
   const [one, many] = info[lang];
   return quantityValue(quantity) > 1 ? many : one;
 }
+
+/**
+ * The cook's own units (R5.2): units in some recipes that aren't among ours,
+ * kept as written, like "tabletes" or "copo de requeijão". A unit saved in a
+ * recipe once is read without a doubt from then on. Nothing else keeps them,
+ * so they sync and travel with the recipes, and a unit goes away with the
+ * last recipe that uses it. Spellings that differ only in case, accents or a
+ * plural ending are one unit.
+ * @param {{ ingredients: { items: { unit: string, alternatives: { unit: string }[] }[] }[] }[]} recipes
+ * @returns {string[]} as first written
+ */
+export function learnedUnits(recipes) {
+  /** @type {string[]} */
+  const units = [];
+  for (const recipe of recipes) {
+    for (const group of recipe.ingredients) {
+      for (const item of group.items) {
+        for (const unit of [item.unit, ...item.alternatives.map((alternative) => alternative.unit)]) {
+          const words = unit.split(' ').filter(Boolean);
+          if (words.length === 0 || isKnownUnit(unit)) continue;
+          if (!units.some((other) => sameWords(other.split(' ').filter(Boolean), words))) units.push(unit);
+        }
+      }
+    }
+  }
+  return units;
+}
+
+/**
+ * The cook's own unit spelled by the first words (R5.2), ignoring case,
+ * accents and a plural ending: "tablete" is matched by "Tabletes". The
+ * longest one wins.
+ * @param {string[]} words
+ * @param {readonly string[]} units the cook's own, from learnedUnits
+ * @returns {{ unit: string, length: number } | null} the unit as these words write it, and how many words it took
+ */
+export function matchLearned(words, units) {
+  let best = 0;
+  for (const unit of units) {
+    const parts = unit.split(' ').filter(Boolean);
+    if (parts.length > best && sameWords(parts, words.slice(0, parts.length))) best = parts.length;
+  }
+  return best > 0 ? { unit: words.slice(0, best).join(' '), length: best } : null;
+}
+
+/**
+ * @param {string[]} a
+ * @param {string[]} b
+ */
+function sameWords(a, b) {
+  return a.length === b.length && a.every((word, i) => {
+    const x = normalizeWord(word);
+    const y = normalizeWord(b[i] ?? '');
+    return x === y || x === `${y}s` || y === `${x}s` || x === `${y}es` || y === `${x}es`;
+  });
+}

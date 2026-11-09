@@ -19,16 +19,17 @@ import { parseTags, renderTags, tagsOf } from './tags.js';
 /**
  * The editor's text for a saved recipe; reading it back gives the same recipe.
  * @param {Recipe} recipe
+ * @param {readonly string[]} [units] the cook's own units it will be read back with (R5.2)
  * @returns {Required<Draft>}
  */
-export function draftOf(recipe) {
+export function draftOf(recipe, units = []) {
   return {
     title: recipe.title,
     lang: recipe.lang,
     source: recipe.source,
     yield: recipe.yield,
     tags: renderTags(tagsOf(recipe)),
-    ingredients: renderIngredientList(recipe.ingredients, recipe.lang),
+    ingredients: renderIngredientList(recipe.ingredients, recipe.lang, units),
     preparation: renderSteps(recipe.preparation),
     variations: renderItems(recipe.variations),
     notes: renderItems(recipe.notes),
@@ -37,14 +38,15 @@ export function draftOf(recipe) {
 
 /**
  * @param {Draft} draft
- * @param {{ id?: string, now?: Date, base?: Recipe }} [options]
+ * @param {{ id?: string, now?: Date, base?: Recipe, units?: readonly string[] }} [options]
  *   base: the recipe being edited, whose id, creation time, cook's notes and
- *   any fields from newer versions are kept; id and now: fixed values, for tests
+ *   any fields from newer versions are kept; units: the cook's own (R5.2);
+ *   id and now: fixed values, for tests
  * @returns {{ recipe: Recipe | null, problems: Problem[], lines: ListLine[] }}
  */
-export function readDraft(draft, { id, now = new Date(), base } = {}) {
+export function readDraft(draft, { id, now = new Date(), base, units = [] } = {}) {
   const { title, lang, ingredients, source = '', yield: makes = '', tags = '', preparation = '', variations = '', notes = '' } = draft;
-  const { lines, groups } = parseIngredientList(ingredients, lang);
+  const { lines, groups } = parseIngredientList(ingredients, lang, units);
   /** @type {Problem[]} */
   const problems = [];
   if (!title.trim()) problems.push({ code: 'no-title' });

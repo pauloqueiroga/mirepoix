@@ -109,7 +109,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - **Sections:** the four sections the user asked for (Ingredients, Preparation, Variations, Notes), plus `cooksNotes`, the dated notes added while cooking. Ingredients and steps can be grouped under headings ("For the sauce").
 - **Text-first:** every ingredient renders to one line and parses back to the same structure. Tests enforce this round trip.
 - **Evolution:** fields can be added without bumping `schema`. Any other change ships with a migration and tests.
-- **Extended by D18 and D19:**.
+- **Extended by D18, D19 and D21:**.
 
 ## D9. Text-first capture with live parsing, in English and Portuguese
 
@@ -121,6 +121,7 @@ To change a decision, add a new entry and mark the old one **Superseded by Dn**.
 - Quantities written as words are read too (R1.16, 2026-10-21): "two", "dois", "vinte e cinco", "twenty-five", "three quarters", "um terço", "half an onion", "dois ou três". They're saved as numbers. Look-alikes stay text: "five-spice powder", "um pouco de sal".
 - Each recipe has a language (`en` or `pt`), which picks the vocabulary for parsing and display. The UI itself is in English. **Superseded in part by D15:** the screens are in English or Portuguese.
 - Parser cases live in fixture files. They grow with every real-world line that surprised us.
+- **Extended by D21:** more ways to write equivalents, and units of your own.
 
 ## D10. Reading never edits; editing is deliberate
 
@@ -230,6 +231,7 @@ How D4–D7 came out in code (`app/store/`), and the choices made on the way.
 - **Reading:** the recipe shows the newest note as "Last time" near the top. Once there's more than one, a "Cook's notes" section at the bottom lists them all, newest first, with their dates.
 - **Analytics** hears "cook mode", and while it's on, the tab title is "Cook mode" (D14).
 - **Consequences:** a note saved by mistake stays. If that turns out to matter, a note could be hidden later with a marker that merges just like a note does. An accidental Back loses the ticks.
+- **Extended by D22 and D24:** scaling and timers, which, like the ticks, live on the screen only.
 
 ## D19. Tags, and filtering the list by tag
 
@@ -260,3 +262,50 @@ How D4–D7 came out in code (`app/store/`), and the choices made on the way.
 - **Not only phones (2026-11-07):** the page says "every device", so a few screens are shown where they're used: the hero puts a phone in front of a tablet, cook mode is on a tablet with the note on a phone beside it, and "Every device" shows the box on a laptop beside Sync on a phone. The rest stay on phones, where most cooking happens. The frames are plain, like the phone's, no particular brand. A unit test keeps every screen in its own device's frame.
 - **From the app,** two quiet links in the screens' language (D15), and nothing louder (no banner, pop-up, badge or header icon). The empty recipe list says "New to Mirepoix? See what it can do" under the import line: every newcomer sees it, and it goes with the first recipe. The footer of every screen that has one starts with "About", beside Privacy, so it's always there but below the recipes. Both open in the same window, and the website's "Open Mirepoix" comes back. With no connection, an installed app can't open the website, since it isn't kept offline; that's accepted.
 - **Consequences:** the website's words have to keep up with the app, and its release timeline repeats README's table by hand. The screenshots are 40 PNGs, about 4.6 MB in the repository and about 1.2 MB per visit, loaded lazily. A device with the app installed sees the website once its service worker updates to this version, which is why it ships with a version bump like every release.
+
+## D21. Your measures: equivalents written more ways, and units learned from recipes (R5)
+
+**Accepted** · 2026-11-09
+
+- **Context:** "2 cups or 437 grams of butter", and units that "might be almost anything" (USER-MIND). D9 read equivalents only in parentheses, and flagged a unit it didn't know every time it was typed.
+- **More ways to write equivalents (R5.1):** right after the amount, with "/", "or" or "ou" ("2 cups / 437 g butter", "2 xícaras ou 437 g de manteiga", "2 cups/437g"); at the end of the line ("2 1/4 cups flour or 280 g"); after a comma ("1 cup butter, or 227 g"); and inside parentheses with "or" ("(or 240 ml)"). Only amounts in units Mirepoix knows, and never in the main amount's own unit, so "2 tbsp oil or butter", "1 cup milk or 1 cup cream" and "1 cup or 1/2 cup sugar" stay as written. They're saved like any equivalent, so the editor shows them in parentheses from then on (text-first, D8).
+- **Your units (R5.2), learned from the recipes:** a unit kept as written in a saved recipe ("tabletes", "copo de requeijão") is read without the "new unit" flag in every recipe after it. Case, accents and a plural ending don't matter ("tablete", "Tabletes"), and it counts in equivalents too ("15 g (1 tablete) de fermento"). The flag says so: once the recipe is saved, Mirepoix knows the unit.
+- **Kept nowhere else:** the units are worked out from the recipes each time the editor opens (`learnedUnits` in `domain/units.js`), like the tags in use (D19). So they sync and travel with export and import at no cost, and a unit goes away with the last recipe that uses it. A separate list was the alternative; it would have needed its own file in the data repository and more of the sync engine (D17).
+- **Only where a new unit would be read anyway:** before "de"/"of" and a name. So "ovos", saved once as a unit by mistake ("3 ovos de codorna"), never takes over "2 ovos" or "3 ovos caipiras". A longer unit of your own beats a shorter one of ours: "1 copo de requeijão de leite" is a copo de requeijão of leite, not a copo of "requeijão de leite". The editor writes lines with your units in mind, so a recipe opened and saved untouched stays the same.
+- **Consequences:** a typo saved as a unit stays known until the recipe that has it is fixed; there's no unit manager, as there's no tag manager. Your units are kept as you wrote them each time, so scaling "1 tablete" gives "2 tablete". The website's "Try a line" reads without anyone's units, and shows the flag's new words.
+
+## D22. Scaling a recipe, in cook mode only
+
+**Accepted** · 2026-11-09
+
+- **Context:** "Scale a recipe (×½, ×2, custom servings)" was in Someday. Scaling is for cooking a different amount, not for changing the recipe (D10).
+- **Where:** in cook mode only, at the top of Ingredients. The recipe screen always shows the recipe as written. ×½, ×1, ×2 or ×3 with a tap, or a number typed: the number in Makes when it has one ("Makes [36] cookies", for 24), and otherwise how many times the recipe. Makes and every amount, equivalents included, show scaled in place, so the ticks stay.
+- **Never kept:** like the ticks (D18), the scale lives on the screen only. Done, Back or a reload brings back ×1, and nothing about it is stored or synced.
+- **The math** (`domain/scale.js`) is exact, in fractions, so ⅓ cup halved is ⅙ cup. Only the result is rounded, to what a kitchen measures: exact halves, thirds, quarters, sixths and eighths stay; other fractions go to the nearest eighth or third; grams and millilitres to whole numbers (one decimal under 10); kilos, litres and anything written with decimals stay decimals. Ranges scale at both ends. Units stay as they are: 16 tbsp is not turned into 1 cup.
+- **Makes:** its first number scales ("about 24 cookies" → "about 36 cookies"). A range ("6-8 servings") scales with the taps, but has no single number to type.
+- **Steps aren't scaled:** their amounts are free text. While scaled, a line under the control says "Amounts in the steps stay as written."
+- **Consequences:** cook mode, which had nothing to type in (D10), has one box: how much to make, which changes nothing stored. A typed amount under ×1/100 or over ×100 is taken for a slip and not used.
+
+## D23. Recipes as Markdown
+
+**Accepted** · 2026-11-09
+
+- **Context:** "Export as Markdown (a human-readable backup)" was in Someday; PDF and plain text were the other options.
+- **Decision:** Markdown. It's plain text that reads well anywhere (a text editor, a notes app, an email) and renders nicely where Markdown does. PDF would need a library or the print dialog; plain text is Markdown without the little structure that helps. **One recipe** from the recipe screen ("Save as Markdown", a quiet link at the end, named after it: `pao-de-queijo.md`). **Every recipe** from Keep a copy, in one file, by title, with a rule between them (`mirepoix-recipes-2026-11-09.md`).
+- **What's in it:** the title, source and Makes, tags, then Ingredients, Preparation (numbered straight through its groups, as on screen), Variations, Notes, and the cook's notes with their dates, oldest first.
+- **Pastes back:** ingredient lines are written the way the editor writes them, and group headings as "For the sauce:" lines, so each section pasted into the editor's box reads back as the same groups, steps and items.
+- **In the recipe's language:** Mirepoix's few words in the file ("Ingredientes", "Rende 30 unidades", the dates) follow the recipe, not the screens (unlike D15), so each recipe reads as one piece wherever it goes.
+- **Not for importing:** Import stays the JSON export (R1.11), which is the backup that brings everything back. Keep a copy says so.
+- **Consequences:** recipe text isn't escaped, so a "*" or "#" in a note may show as formatting where Markdown is rendered. `domain/markdown.js` gets the words from the screens (`fileWords`) and never words anything itself (D15).
+
+## D24. Timers from steps
+
+**Accepted** · 2026-11-09
+
+- **Context:** "Timers from step text ('bake 10–12 minutes')" was in Someday; the maintainer asked for timers that can be adjusted before they start and while they run.
+- **Finding times** (`domain/timers.js`): in each step, in English and Portuguese, with the reader that reads amounts (D9): "10–12 minutes", "2 to 3 hours", "1 hour 15 minutes", "1h30", "1 hora e meia", "meia hora", "dois ou três minutos", "a 5-minute rest", "5 more minutes". Hours, minutes and seconds, with their usual abbreviations, but not "m" or "s" alone. Temperatures and "a few minutes" are left alone.
+- **In cook mode:** each time is marked in its step, with a button under the step. A tap sets a timer in a tray above the bottom bar, **not running yet**: − and + (a minute, or 10 seconds for times under two minutes) before it starts or while it runs, Start, Pause, Resume, and × to take it away. A range starts at its short end, and its label keeps the whole range ("Step 4 · 10–12 minutes"). One timer per time in a step: a second tap brings back the one set. Several can run at once.
+- **Keeping time:** a running timer holds the moment it ends, not a count of ticks, so it's right after the page has been asleep.
+- **When it's done:** beeps made by the browser (Web Audio, no sound file), a buzz where the phone allows it (not on iPhones), the clock blinks (still, with reduced motion), and screen readers hear "Time's up". It rings until Stop, for two minutes at most. Browsers only allow sound after a tap, so Start gets it ready.
+- **On the screen only:** like the ticks, nothing about timers is saved. Leaving cook mode with a timer set asks first ("Leave cook mode? Your timers will stop.").
+- **Consequences:** a phone that's locked, or with Mirepoix in the background, can't ring until it's back; cook mode keeps the screen on (D18), which makes that rare. An iPhone's silent switch may mute the beeps. No notifications: they'd need a permission prompt and the service worker, for little gain while the screen is on.

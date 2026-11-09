@@ -69,7 +69,7 @@ test('"Try a line" reads ingredients with the app\'s own reader, in either langu
   await expect(box).toHaveValue('1 tablete de fermento biológico');
   await expect(page.getByRole('radio', { name: 'Português' })).toBeChecked();
   await expect(reading(page).getByText('1 to check')).toBeVisible();
-  await expect(reading(page).getByRole('cell').nth(3)).toHaveText('New unit “tablete”. It’s kept as written, so check it’s right.');
+  await expect(reading(page).getByRole('cell').nth(3)).toHaveText('New unit “tablete”. It’s kept as written, so check it’s right. Once the recipe is saved, Mirepoix knows it.');
 
   // Units show in the recipe's language (D9, D15): xícaras are cups in an English recipe.
   await box.fill('2 xícaras de farinha');

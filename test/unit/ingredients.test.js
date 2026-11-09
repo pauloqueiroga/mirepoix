@@ -78,6 +78,54 @@ for (const lang of /** @type {const} */ (['en', 'pt'])) {
   });
 }
 
+test('a measure in the same unit is not an equivalent (R5.1)', () => {
+  for (const line of ['1 cup or 1/2 cup sugar', '2 cups flour or 1 cup', '1 cup flour, or 2 cups']) {
+    assert.deepEqual(parseIngredient(line, 'en').ingredient.alternatives, [], line);
+  }
+  assert.deepEqual(parseIngredient('2 xícaras ou 3 xícaras de leite', 'pt').ingredient.alternatives, []);
+});
+
+test('a unit saved in a recipe once is read without a doubt from then on (R5.2)', () => {
+  const units = ['tabletes', 'knob'];
+  const tablete = parseIngredient('1 tablete de fermento biológico', 'pt', units);
+  assert.deepEqual(tablete.ingredient, { quantity: '1', unit: 'tablete', name: 'fermento biológico', note: '', alternatives: [] });
+  assert.deepEqual(tablete.doubts, []);
+  assert.deepEqual(parseIngredient('2 knobs of butter', 'en', units).doubts, []);
+  assert.deepEqual(parseIngredient('2 knobs of butter', 'en').doubts.map((doubt) => doubt.code), ['unknown-unit'], 'without it, still new');
+});
+
+test('the cook\'s own units count in equivalents too', () => {
+  const units = ['tablete'];
+  assert.deepEqual(parseIngredient('15 g (1 tablete) de fermento', 'pt', units).ingredient.alternatives, [{ quantity: '1', unit: 'tablete' }]);
+  assert.deepEqual(parseIngredient('15 g ou 1 tablete de fermento', 'pt', units).ingredient.alternatives, [{ quantity: '1', unit: 'tablete' }]);
+  assert.deepEqual(parseIngredient('15 g (1 tablete) de fermento', 'pt').ingredient.alternatives, [], 'not before it is learned');
+});
+
+test('a learned unit needs "de"/"of" and a name after it, so "ovos" saved once doesn\'t take over', () => {
+  const units = ['ovos'];
+  assert.deepEqual(parseIngredient('2 ovos', 'pt', units).ingredient, { quantity: '2', unit: 'count', name: 'ovos', note: '', alternatives: [] });
+  assert.equal(parseIngredient('3 ovos caipiras', 'pt', units).ingredient.unit, 'count');
+  assert.equal(parseIngredient('3 ovos de codorna', 'pt', units).ingredient.unit, 'ovos');
+});
+
+test('a longer learned unit beats a shorter one of ours', () => {
+  const reading = parseIngredient('1 copo de requeijão de leite', 'pt', ['copo de requeijão']);
+  assert.deepEqual(reading.ingredient, { quantity: '1', unit: 'copo de requeijão', name: 'leite', note: '', alternatives: [] });
+  assert.equal(parseIngredient('1 copo de leite', 'pt', ['copo de requeijão']).ingredient.unit, 'glass');
+});
+
+test('a line written with the cook\'s own units in mind reads back unchanged with them', () => {
+  const units = ['copo de requeijão'];
+  /** @type {Ingredient} */
+  const glass = { quantity: '1', unit: 'glass', name: 'requeijão de leite', note: '', alternatives: [] };
+  const line = renderIngredient(glass, 'pt', units);
+  assert.deepEqual(parseIngredient(line, 'pt', units).ingredient, glass, line);
+  /** @type {Ingredient} */
+  const own = { quantity: '1', unit: 'copo de requeijão', name: 'leite', note: '', alternatives: [] };
+  assert.equal(renderIngredient(own, 'pt', units), '1 copo de requeijão de leite');
+  assert.equal(renderIngredient(own, 'pt'), '1 | copo de requeijão | leite');
+});
+
 test('writes ingredients the way a recipe would', () => {
   /** @type {[Ingredient, Lang, string][]} */
   const cases = [

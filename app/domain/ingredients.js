@@ -1,7 +1,7 @@
 // Ingredient lines (D8, D9): what people write ↔ quantity, unit, name, note
 // and equivalents. Doubtful readings are flagged, never silently guessed.
 import { displayQuantity, formatQuantity, readQuantity } from './quantity.js';
-import { isKnownUnit, matchUnit, normalizeWord, unitFromText, unitText } from './units.js';
+import { isKnownUnit, matchLearned, matchUnit, normalizeWord, unitFromText, unitText } from './units.js';
 
 /** @typedef {import('./recipe.js').Lang} Lang */
 /** @typedef {import('./recipe.js').Amount} Amount */
@@ -24,14 +24,19 @@ const HALF = new Set(['half', 'meia', 'meio']);
 const APPROXIMATELY = /^(about|approx\.?|approximately|around|roughly|aprox\.?|aproximadamente|cerca de)\s+/iu;
 const TRAILING_NOTE = /\s+(to taste|as needed|if needed|optional|for serving|to serve|for garnish|a gosto|à gosto|q\.?\s?b\.?|o quanto baste|quanto baste|opcional|para servir|para decorar)$/iu;
 const FIRST_COMMA = /(?<!\d),|,(?!\d)/u;
+// Between two measures of the same thing (R5.1): "2 cups / 437 g", "2 xícaras ou 437 g".
+const OR = new Set(['or', 'ou', '/']);
+const OR_BETWEEN = /\s+(?:or|ou|\/)\s+/giu;
+const OR_FIRST = /^(?:or|ou)\s+/iu;
 
 /**
  * Reads one ingredient line.
  * @param {string} line
  * @param {Lang} lang
+ * @param {readonly string[]} [units] the cook's own units, from learnedUnits (R5.2)
  * @returns {Reading}
  */
-export function parseIngredient(line, lang) {
+export function parseIngredient(line, lang, units = []) {
   /** @type {Doubt[]} */
   const doubts = [];
   /** @type {Amount[]} */
@@ -44,7 +49,7 @@ export function parseIngredient(line, lang) {
   let text = squash(clean(line).replace(/\(([^()]*)\)/gu, (whole, inner) => {
     const content = String(inner).trim();
     if (SIZE_WORDS.has(normalizePhrase(content))) return whole;
-    const amounts = readAmounts(content, lang);
+    const amounts = readAmounts(content, lang, units);
     if (amounts) alternatives.push(...amounts);
     else if (content) notes.push(content);
     return ' ';
@@ -81,10 +86,15 @@ export function parseIngredient(line, lang) {
     words = read.rest.split(' ').filter(Boolean);
     if (/^[\d/]/u.test(words[0] ?? '')) doubts.push(doubt('unclear-quantity'));
     const known = unitAfterQuantity(words);
-    if (known) {
+    const mine = ownUnit(words, units);
+    if (mine && (!known || mine.length > known.length)) {
+      unit = mine.unit;
+      words = skipConnector(words.slice(mine.length));
+    } else if (known) {
       unit = known.unit;
       words = words.slice(known.length);
       ({ quantity, words } = andAHalf(quantity, words));
+      words = equivalentsAhead(words, lang, unit, units, alternatives);
       words = skipConnector(words);
     } else {
       const guess = guessUnit(words);
@@ -116,10 +126,20 @@ export function parseIngredient(line, lang) {
     return '';
   });
   name = name.replace(/[\s.;:]+$/u, '');
+  let afterComma = commaNote;
+  if (quantity) {
+    name = equivalentsBehind(name, lang, unit, units, alternatives);
+    // "1 cup butter, or 227 g"
+    const amounts = OR_FIRST.test(afterComma) && readAmounts(afterComma, lang, units);
+    if (amounts && amounts.every((amount) => amount.unit !== unit)) {
+      alternatives.push(...amounts);
+      afterComma = '';
+    }
+  }
   if (/^(?:\+|plus\s|mais\s)/iu.test(name)) doubts.push(doubt('unclear-quantity'));
   if (!name) doubts.push(doubt('no-name'));
 
-  const note = [lead, ...notes, trailing, commaNote].filter(Boolean).join(', ');
+  const note = [lead, ...notes, trailing, afterComma].filter(Boolean).join(', ');
   return { ingredient: { quantity, unit, name, note, alternatives }, doubts };
 }
 
@@ -129,10 +149,11 @@ export function parseIngredient(line, lang) {
  * with explicit parts ("3 | | ovos de codorna").
  * @param {Ingredient} ingredient
  * @param {Lang} lang
+ * @param {readonly string[]} [units] the cook's own units the line will be read with (R5.2)
  */
-export function renderIngredient(ingredient, lang) {
+export function renderIngredient(ingredient, lang, units = []) {
   const natural = naturalLine(ingredient, lang);
-  return sameIngredient(parseIngredient(natural, lang).ingredient, ingredient) ? natural : explicitLine(ingredient, lang);
+  return sameIngredient(parseIngredient(natural, lang, units).ingredient, ingredient) ? natural : explicitLine(ingredient, lang);
 }
 
 /**
@@ -140,9 +161,10 @@ export function renderIngredient(ingredient, lang) {
  * ignored, and lines like "For the sauce:" starting a new group.
  * @param {string} text
  * @param {Lang} lang
+ * @param {readonly string[]} [units] the cook's own units (R5.2)
  * @returns {{ lines: ListLine[], groups: IngredientGroup[] }}
  */
-export function parseIngredientList(text, lang) {
+export function parseIngredientList(text, lang, units = []) {
   /** @type {ListLine[]} */
   const lines = [];
   /** @type {IngredientGroup[]} */
@@ -159,7 +181,7 @@ export function parseIngredientList(text, lang) {
       lines.push({ kind: 'heading', number, line: raw.trim(), heading: group.heading });
       continue;
     }
-    const { ingredient, doubts } = parseIngredient(line, lang);
+    const { ingredient, doubts } = parseIngredient(line, lang, units);
     group.items.push(ingredient);
     lines.push({ kind: 'ingredient', number, line: raw.trim(), ingredient, doubts });
   }
@@ -171,10 +193,11 @@ export function parseIngredientList(text, lang) {
  * Writes ingredient groups back as the text of an Ingredients box.
  * @param {IngredientGroup[]} groups
  * @param {Lang} lang
+ * @param {readonly string[]} [units] the cook's own units the box will be read with (R5.2)
  */
-export function renderIngredientList(groups, lang) {
+export function renderIngredientList(groups, lang, units = []) {
   return groups
-    .map((group) => [group.heading && `${group.heading}:`, ...group.items.map((item) => renderIngredient(item, lang))]
+    .map((group) => [group.heading && `${group.heading}:`, ...group.items.map((item) => renderIngredient(item, lang, units))]
       .filter(Boolean)
       .join('\n'))
     .join('\n\n');
@@ -232,23 +255,81 @@ function readExplicit([quantityText = '', unitText = '', nameText = ''], lang, {
 }
 
 /**
- * Equivalents inside parentheses: "437 g", "240 ml; 8 fl oz", "1 cup or 240 ml".
+ * Equivalents inside parentheses: "437 g", "240 ml; 8 fl oz", "1 cup or 240 ml",
+ * "or 240 ml" (R5.1), "1 tablete" when it's one of the cook's own (R5.2).
  * @param {string} text
  * @param {Lang} lang
+ * @param {readonly string[]} units the cook's own
  * @returns {Amount[] | null} null unless every piece is an amount with a known unit
  */
-function readAmounts(text, lang) {
+function readAmounts(text, lang, units) {
   /** @type {Amount[]} */
   const amounts = [];
-  for (const piece of text.split(/\s*;\s*|\s+\/\s+|\s+(?:or|ou)\s+/iu)) {
-    const read = readQuantity(piece, lang);
-    if (!read) return null;
-    const words = read.rest.split(' ').filter(Boolean);
-    const unit = matchUnit(words);
-    if (!unit || unit.length !== words.length) return null;
-    amounts.push({ quantity: read.quantity, unit: unit.unit });
+  for (const piece of text.replace(OR_FIRST, '').split(/\s*;\s*|\s+\/\s+|\s+(?:or|ou)\s+/iu)) {
+    const read = readAmount(piece.split(' ').filter(Boolean), lang, units);
+    if (!read || read.words.length > 0) return null;
+    amounts.push(read.amount);
   }
   return amounts.length > 0 ? amounts : null;
+}
+
+/**
+ * An amount with a known unit at the start of some words, and the words after it.
+ * @param {string[]} words
+ * @param {Lang} lang
+ * @param {readonly string[]} units the cook's own, which count as known
+ * @returns {{ amount: Amount, words: string[] } | null}
+ */
+function readAmount(words, lang, units) {
+  const read = readQuantity(words.join(' '), lang);
+  if (!read) return null;
+  const rest = read.rest.split(' ').filter(Boolean);
+  const unit = matchUnit(rest) ?? matchLearned(rest, units);
+  return unit && { amount: { quantity: read.quantity, unit: unit.unit }, words: rest.slice(unit.length) };
+}
+
+/**
+ * Equivalents right after the amount (R5.1): "2 cups / 437 g butter", "2
+ * xícaras ou 437 g de manteiga". Adds them to found and returns the words
+ * after them; "2 tbsp oil or butter" has none. A measure in the same unit
+ * isn't an equivalent ("1 cup or 1/2 cup"), so it stays where it is.
+ * @param {string[]} words
+ * @param {Lang} lang
+ * @param {string} unit the main amount's
+ * @param {readonly string[]} units the cook's own
+ * @param {Amount[]} found
+ */
+function equivalentsAhead(words, lang, unit, units, found) {
+  let rest = words;
+  while (OR.has(normalizeWord(rest[0] ?? ''))) {
+    const read = readAmount(rest.slice(1), lang, units);
+    if (!read || read.amount.unit === unit) break;
+    found.push(read.amount);
+    rest = read.words;
+  }
+  return rest;
+}
+
+/**
+ * Equivalents at the end of the name (R5.1): "flour or 280 g", "farinha /
+ * 240 g". Only when everything after the "or" is amounts in other units, so
+ * "milk or 1 cup cream" stays a name. Adds them to found and returns the rest
+ * of the name.
+ * @param {string} name
+ * @param {Lang} lang
+ * @param {string} unit the main amount's
+ * @param {readonly string[]} units the cook's own
+ * @param {Amount[]} found
+ */
+function equivalentsBehind(name, lang, unit, units, found) {
+  for (const separator of name.matchAll(OR_BETWEEN)) {
+    const amounts = readAmounts(name.slice(separator.index + separator[0].length), lang, units);
+    if (amounts && separator.index > 0 && amounts.every((amount) => amount.unit !== unit)) {
+      found.push(...amounts);
+      return name.slice(0, separator.index);
+    }
+  }
+  return name;
 }
 
 /**
@@ -297,6 +378,18 @@ function andAHalf(quantity, words) {
 }
 
 /**
+ * One of the cook's own units (R5.2), where a new one would be guessed:
+ * before "de"/"of" and a name. "2 tabletes de fermento" has one; "2 ovos" and
+ * "2 ovos caipiras" don't, even if "ovos" was once saved as a unit.
+ * @param {string[]} words
+ * @param {readonly string[]} units
+ */
+function ownUnit(words, units) {
+  const mine = matchLearned(words, units);
+  return mine && isConnector(words[mine.length]) && words.length > mine.length + 1 ? mine : null;
+}
+
+/**
  * An unknown unit, read from "N <unit> de/of <name>": up to three words
  * before the first connector. Always flagged.
  * @param {string[]} words
@@ -341,7 +434,7 @@ function splitNote(text) {
 
 /** @param {string} line */
 function clean(line) {
-  return squash(line).replace(BULLETS, '').replace(/(\S)\(/gu, '$1 (').trim();
+  return squash(line).replace(BULLETS, '').replace(/(\S)\(/gu, '$1 (').replace(/(\p{L}\.?)\/(?=\d)/gu, '$1 / ').trim();
 }
 
 /** @param {string} text */
